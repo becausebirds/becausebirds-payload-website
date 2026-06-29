@@ -51,7 +51,7 @@ export default function PieChartBlock({ block }: { block: any }) {
           <PieChart>
             <Pie data={data} dataKey="value" nameKey="label" />
             <ChartLegend
-              content={<ChartLegendContent nameKey="label" />}
+              content={<ChartLegendContent payload={[]} nameKey="label" />}
               className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center"
             />
           </PieChart>

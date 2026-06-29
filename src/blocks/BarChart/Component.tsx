@@ -17,56 +17,57 @@ import {
 } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
-function buildChartConfig(
-  series1Label: string,
-  series1Color: string,
-  series2Label?: string,
-  series2Color?: string,
-) {
+// ---------- local types ----------
+type ChartDataEntry = {
+  label: string
+  value1: number
+  value2?: number | null
+}
+
+type BarChartBlockProps = {
+  title?: string | null
+  description?: string | null
+  caption?: string | null
+  chartData?: ChartDataEntry[] | null
+  series1Label?: string | null
+  series2Label?: string | null
+}
+
+// ---------- chartConfig helper ----------
+function buildChartConfig(series1Label: string, series2Label?: string) {
   const config: Record<string, { label: string; color: string }> = {
     value1: {
       label: series1Label,
-      color: `var(--${series1Color})`,
+      color: 'var(--chart-1)',
     },
   }
-  if (series2Label && series2Color) {
+  if (series2Label) {
     config.value2 = {
       label: series2Label,
-      color: `var(--${series2Color})`,
+      color: 'var(--chart-2)',
     }
   }
   return config
 }
 
-export default function BarChartBlock({ block }: { block: any }) {
-  const {
-    title,
-    description,
-    caption,
-    chartData,
-    series1Label,
-    series1Color = 'chart-1',
-    series2Label,
-    series2Color = 'chart-2',
-  } = block
+// ---------- component ----------
+export default function BarChartBlock({ block }: { block: BarChartBlockProps }) {
+  const { title, description, caption, chartData, series1Label, series2Label } = block
 
-  const data = (chartData ?? []).map((entry: any) => ({
+  // Transform payload data → Recharts-friendly array
+  const data = (chartData ?? []).map((entry: ChartDataEntry) => ({
     label: entry.label,
     value1: entry.value1,
-    ...(entry.value2 != null ? { value2: entry.value2 } : {}),
+    ...(entry.value2 !== null && entry.value2 !== undefined
+      ? { value2: entry.value2 }
+      : {}),
   }))
 
-  const hasTwoSeries = data.some((d: any) => d.value2 !== undefined)
-
-  const chartConfig = buildChartConfig(
-    series1Label ?? 'Series 1',
-    series1Color,
-    hasTwoSeries ? series2Label ?? 'Series 2' : undefined,
-    hasTwoSeries ? series2Color : undefined,
-  )
+  const chartConfig = buildChartConfig(series1Label ?? 'Series 1', series2Label ?? undefined)
+  const hasTwoSeries = data.some((d: { value2?: number }) => d.value2 !== undefined)
 
   return (
-    <Card className="bg-card text-foreground">
+    <Card className="bg-secondary-background text-foreground">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
@@ -75,12 +76,25 @@ export default function BarChartBlock({ block }: { block: any }) {
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <BarChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="label" tickLine={false} tickMargin={10} axisLine={false} />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+            />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="value1" fill="var(--color-value1)" radius={4} />
+            <ChartLegend content={<ChartLegendContent payload={[]} />} />
+            <Bar
+              dataKey="value1"
+              fill="var(--color-value1)"
+              radius={4}
+            />
             {hasTwoSeries && (
-              <Bar dataKey="value2" fill="var(--color-value2)" radius={4} />
+              <Bar
+                dataKey="value2"
+                fill="var(--color-value2)"
+                radius={4}
+              />
             )}
           </BarChart>
         </ChartContainer>
@@ -89,7 +103,9 @@ export default function BarChartBlock({ block }: { block: any }) {
         <CardFooter>
           <div className="flex w-full items-start gap-2 text-sm">
             <div className="grid gap-2">
-              <div className="flex items-center gap-2 leading-none">{caption}</div>
+              <div className="flex items-center gap-2 leading-none">
+                {caption}
+              </div>
             </div>
           </div>
         </CardFooter>

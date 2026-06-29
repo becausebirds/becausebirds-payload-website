@@ -17,7 +17,21 @@ import {
 } from '@/components/ui/chart'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
-import type { BarChartBlock as BarChartBlockType } from '@/payload-types'
+// ---------- local types ----------
+type ChartDataEntry = {
+  label: string
+  value1: number
+  value2?: number | null
+}
+
+type BarChartBlockProps = {
+  title?: string | null
+  description?: string | null
+  caption?: string | null
+  chartData?: ChartDataEntry[] | null
+  series1Label?: string | null
+  series2Label?: string | null
+}
 
 // ---------- chartConfig helper ----------
 function buildChartConfig(series1Label: string, series2Label?: string) {
@@ -37,11 +51,11 @@ function buildChartConfig(series1Label: string, series2Label?: string) {
 }
 
 // ---------- component ----------
-export default function BarChartBlock({ block }: { block: BarChartBlockType }) {
+export default function BarChartBlock({ block }: { block: BarChartBlockProps }) {
   const { title, description, caption, chartData, series1Label, series2Label } = block
 
   // Transform payload data → Recharts-friendly array
-  const data = (chartData ?? []).map((entry) => ({
+  const data = (chartData ?? []).map((entry: ChartDataEntry) => ({
     label: entry.label,
     value1: entry.value1,
     ...(entry.value2 !== null && entry.value2 !== undefined
@@ -49,8 +63,8 @@ export default function BarChartBlock({ block }: { block: BarChartBlockType }) {
       : {}),
   }))
 
-  const chartConfig = buildChartConfig(series1Label, series2Label ?? undefined)
-  const hasTwoSeries = data.some((d) => d.value2 !== undefined)
+  const chartConfig = buildChartConfig(series1Label ?? 'Series 1', series2Label ?? undefined)
+  const hasTwoSeries = data.some((d: { value2?: number }) => d.value2 !== undefined)
 
   return (
     <Card className="bg-secondary-background text-foreground">
@@ -69,7 +83,7 @@ export default function BarChartBlock({ block }: { block: BarChartBlockType }) {
               axisLine={false}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
+            <ChartLegend content={<ChartLegendContent payload={[]} />} />
             <Bar
               dataKey="value1"
               fill="var(--color-value1)"

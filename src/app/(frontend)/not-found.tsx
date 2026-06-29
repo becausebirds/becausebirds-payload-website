@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 
+declare const plausible: (event: string, options?: { props?: Record<string, string> }) => void
+
 export default function NotFound() {
   useEffect(() => {
     if (typeof plausible === 'function') {
