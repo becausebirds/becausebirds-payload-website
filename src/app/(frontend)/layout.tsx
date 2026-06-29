@@ -15,6 +15,7 @@ import React from 'react'
 
 import { AdminBar } from '@/components/AdminBar'
 import { Providers } from '@/providers'
+import { LightboxProvider } from '@/components/Lightbox'   // ← ADD THIS
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { cookies } from 'next/headers'
@@ -45,31 +46,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 __html: `window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }`,
               }}
             />
-            {/* Privacy-friendly analytics by Plausible (PA tag) */}
-            <script
-              async
-              src="https://metrics.becausebirds.com/js/pa-0x7cC2UP7PJ-dvQ0KTwdv.js"
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)};
-                  plausible.init=plausible.init||function(i){plausible.o=i||{}};
-                  plausible.init()
-                `,
-              }}
-            />
           </>
         )}
       </head>
       <body className="bg-background text-foreground">
         <Providers>
-          <AdminBar
-            adminBarProps={{
-              preview: isEnabled,
-            }}
-          />
-          {children}
+          <LightboxProvider>    {/* ← WRAP children */}
+            <AdminBar
+              adminBarProps={{
+                preview: isEnabled,
+              }}
+            />
+            {children}
+          </LightboxProvider>    {/* ← CLOSE WRAP */}
         </Providers>
       </body>
     </html>

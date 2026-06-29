@@ -7,14 +7,20 @@ import { ArchiveBlock } from '@/blocks/ArchiveBlock/Component'
 import { FormBlock } from '@/blocks/Form/Component'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import { ButtonsBlock } from '@/blocks/Buttons/Component'
-import { QuizBlock } from '@/blocks/Quiz/Component' // ← ADD THIS
+import { QuizBlock } from '@/blocks/Quiz/Component'
+import { BarChartBlock } from '@/blocks/BarChart/Component'
+import { PieChartBlock } from '@/blocks/PieChart/Component'
+import { MapBlockComponent } from '@/components/blocks/MapBlock'
 
 const blockComponents = {
   archive: ArchiveBlock,
   formBlock: FormBlock,
   mediaBlock: MediaBlock,
   buttons: ButtonsBlock,
-  'quiz-embed': QuizBlock, // ← ADD THIS (matches your block slug)
+  'quiz-embed': QuizBlock,
+  'bar-chart': BarChartBlock,
+  'pie-chart': PieChartBlock, 
+   map: MapBlockComponent,
 }
 
 export const RenderBlocks: React.FC<{

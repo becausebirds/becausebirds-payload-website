@@ -908,6 +908,41 @@ export interface Post {
         | DetailsBlock
         | PullquoteBlock
         | ButtonsBlock
+        | {
+            title: string;
+            description?: string | null;
+            caption?: string | null;
+            chartData: {
+              label: string;
+              value1: number;
+              value2?: number | null;
+              id?: string | null;
+            }[];
+            series1Label: string;
+            series1Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
+            series2Label?: string | null;
+            series2Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bar-chart';
+          }
+        | {
+            title: string;
+            description?: string | null;
+            mapType?: ('dots' | 'heatmap') | null;
+            /**
+             * Upload your MyEBirdData.csv export. Only CSV files are supported.
+             */
+            csvFile?: (number | null) | Media;
+            /**
+             * Paste CSV data here instead of uploading a file (good for small test datasets). If a file is uploaded above, this is ignored.
+             */
+            csvData?: string | null;
+            showHotspotsOnly?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'map';
+          }
       )[]
     | null;
   updatedAt: string;
@@ -1799,6 +1834,39 @@ export interface PostsSelect<T extends boolean = true> {
         details?: T | DetailsBlockSelect<T>;
         pullquote?: T | PullquoteBlockSelect<T>;
         buttons?: T | ButtonsBlockSelect<T>;
+        'bar-chart'?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              caption?: T;
+              chartData?:
+                | T
+                | {
+                    label?: T;
+                    value1?: T;
+                    value2?: T;
+                    id?: T;
+                  };
+              series1Label?: T;
+              series1Color?: T;
+              series2Label?: T;
+              series2Color?: T;
+              id?: T;
+              blockName?: T;
+            };
+        map?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              mapType?: T;
+              csvFile?: T;
+              csvData?: T;
+              showHotspotsOnly?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -2444,15 +2512,10 @@ export interface TaskSchedulePublish {
   input: {
     type?: ('publish' | 'unpublish') | null;
     locale?: string | null;
-    doc?:
-      | ({
-          relationTo: 'pages';
-          value: number | Page;
-        } | null)
-      | ({
-          relationTo: 'posts';
-          value: number | Post;
-        } | null);
+    doc?: {
+      relationTo: 'pages';
+      value: number | Page;
+    } | null;
     global?: string | null;
     user?: (number | null) | User;
   };

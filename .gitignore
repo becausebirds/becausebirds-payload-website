@@ -89,3 +89,5 @@ test.env
 
 .pnpm-store/
 tests/
+package-lock.json
+payload_dump.sql

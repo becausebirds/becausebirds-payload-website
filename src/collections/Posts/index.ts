@@ -49,6 +49,10 @@ import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 
+// Chart block
+import { BarChartBlock } from '../../blocks/BarChart'
+import { PieChartBlock } from '../../blocks/PieChart'
+import { MapBlock } from '../../blocks/MapBlock'
 import {
   MetaDescriptionField,
   MetaImageField,
@@ -153,6 +157,9 @@ export const Posts: CollectionConfig<'posts'> = {
                         Details,
                         Pullquote,
                         Buttons,
+                        BarChartBlock,
+                        PieChartBlock,
+                        MapBlock,
                       ],
                     }),
                     FixedToolbarFeature(),
@@ -332,6 +339,8 @@ export const Posts: CollectionConfig<'posts'> = {
     Details,
     Pullquote,
     Buttons,
+    BarChartBlock,
+    MapBlock,
   ],
 },
   ],

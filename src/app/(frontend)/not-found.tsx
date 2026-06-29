@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect } from 'react'
 import Link from 'next/link'
 import React from 'react'
 
@@ -6,6 +9,12 @@ import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 
 export default function NotFound() {
+  useEffect(() => {
+    if (typeof plausible === 'function') {
+      plausible('404', { props: { path: document.location.pathname } })
+    }
+  }, [])
+
   return (
     <div className="relative min-h-screen bg-white dark:bg-black p-2 sm:p-4 md:p-6 lg:p-8">
       {/* SVG Background */}
@@ -22,19 +31,6 @@ export default function NotFound() {
 
         {/* Main Content */}
         <main className="flex-1 max-w-6xl mx-auto px-6 py-8 w-full">
-          {/* 404 tracking – only fires if plausible() is available (i.e. not a Payload admin) */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                document.addEventListener('DOMContentLoaded', function () {
-                  if (typeof plausible === 'function') {
-                    plausible('404', { props: { path: document.location.pathname } });
-                  }
-                });
-              `,
-            }}
-          />
-
           <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
             <h1 className="text-8xl sm:text-9xl font-black tracking-tight mb-4">404</h1>
             <p className="text-lg sm:text-xl font-bold text-gray-600 dark:text-gray-400 mb-8">

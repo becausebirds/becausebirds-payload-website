@@ -1,5 +1,9 @@
 import PersonalityQuizWrapper from '@/components/PersonalityQuizWrapper'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
+import BarChartBlock from '@/blocks/BarChart/Component'
+import PieChartBlock from '@/blocks/PieChart/Component'
+import MapBlock from '@/blocks/MapBlock/Component'
+
 import {
   DefaultNodeTypes,
   SerializedBlockNode,
@@ -40,6 +44,15 @@ import { cn } from '@/utilities/ui'
 // Define locally since it's not exported from payload-types
 type QuizBlockProps = {
   quiz: Quiz
+}
+
+type MapBlockProps = {
+  title?: string
+  description?: string | null
+  mapType?: 'dots' | 'heatmap'
+  csvFile?: { url: string } | null
+  csvData?: string | null
+  showHotspotsOnly?: boolean
 }
 
 // Import all your block converters
@@ -84,7 +97,27 @@ type NodeTypes =
       | DetailsBlockProps
       | PullquoteBlockProps
       | ButtonsBlockProps
+      | BarChartBlockProps
+      | PieChartBlockProps
+      | MapBlockProps
     >
+
+type BarChartBlockProps = {
+  title?: string
+  description?: string
+  caption?: string
+  chartData?: { label: string; value1: number; value2?: number }[]
+  series1Label?: string
+  series1Color?: string
+  series2Label?: string
+  series2Color?: string
+}
+
+type PieChartBlockProps = {
+  title?: string
+  description?: string
+  chartData?: { label: string; value: number; color?: string }[]
+}
 
 const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
   const { value, relationTo } = linkNode.fields.doc!
@@ -205,6 +238,22 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         }))
       return <ButtonsConverter buttons={mappedButtons} align={align ?? undefined} />
     },
+    'bar-chart': ({ node }: { node: SerializedBlockNode<BarChartBlockProps> }) => (
+      <BarChartBlock block={nullToUndefined(node.fields)} />
+    ),
+    'pie-chart': ({ node }: { node: SerializedBlockNode<PieChartBlockProps> }) => (
+      <PieChartBlock block={nullToUndefined(node.fields)} />
+    ),
+    map: ({ node }: { node: SerializedBlockNode<MapBlockProps> }) => (
+      <MapBlock
+        title={node.fields.title ?? ''}
+        description={node.fields.description}
+        mapType={node.fields.mapType ?? 'dots'}
+        csvFile={node.fields.csvFile ?? null}
+        csvData={node.fields.csvData ?? null}
+        showHotspotsOnly={node.fields.showHotspotsOnly ?? true}
+      />
+    ),
   },
 })
 
