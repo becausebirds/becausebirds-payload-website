@@ -7,15 +7,19 @@ export const HTMLConverter: React.FC<{
 }> = ({ code }) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Disable iframe scroll hijacking
+  // Make iframes responsive
   useEffect(() => {
     if (!containerRef.current) return
     const iframes = containerRef.current.querySelectorAll('iframe')
     iframes.forEach((iframe) => {
-      iframe.setAttribute('scrolling', 'no')
-      iframe.style.overflow = 'hidden'
-      // For older browsers
-      ;(iframe as any).scrolling = 'no'
+      const width = iframe.getAttribute('width')
+      const height = iframe.getAttribute('height')
+      if (width && height) {
+        iframe.style.maxWidth = `${width}px`
+        iframe.style.width = '100%'
+        iframe.style.aspectRatio = `${width} / ${height}`
+        iframe.removeAttribute('width')
+      }
     })
   }, [code])
 

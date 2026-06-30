@@ -14,6 +14,7 @@ import Quizzes from './collections/Quizzes'
 import { Comments } from './collections/Comments'
 import { Users } from './collections/Users'
 import { Visitors } from './collections/Visitors'
+import { Microposts } from './collections/Microposts'
 import { Tags } from './collections/Tags'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -21,6 +22,7 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { QuizBlock } from '@/blocks/Quiz/config'
+import { micropubPost, micropubGet } from './endpoints/microblog'  // ← NEW
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -58,20 +60,34 @@ export default buildConfig({
       ],
     },
   },
-  // This config helps us configure global or default features that the other editors can inherit
+  // This config helps us configure global or default features that the other
+  // editors can inherit
   editor: defaultLexical,
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
-    push: true, // ✅ Changed from schemaAutoSync to push
+    push: true,
   }),
-  collections: [Pages, Posts, Quizzes, Media, Comments, Visitors, Categories, Tags, Products, Users],
+  collections: [Posts, Microposts, Pages, Quizzes, Media, Comments, Visitors,
+  Categories, Tags, Products, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
     ...plugins,
     //    comments(),
+  ],
+  endpoints: [                       // ← REPLACED with imports
+    {
+      path: '/micropub',
+      method: 'post',
+      handler: micropubPost,
+    },
+    {
+      path: '/micropub',
+      method: 'get',
+      handler: micropubGet,
+    },
   ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,

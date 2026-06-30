@@ -1,8 +1,6 @@
-import '@/globals.css'
-import type { Metadata } from 'next'
-
 import { cn } from '@/utilities/ui'
 import { Public_Sans } from 'next/font/google'
+import type { Metadata } from 'next'
 
 const publicSans = Public_Sans({
   subsets: ['latin'],
@@ -15,7 +13,7 @@ import React from 'react'
 
 import { AdminBar } from '@/components/AdminBar'
 import { Providers } from '@/providers'
-import { LightboxProvider } from '@/components/Lightbox'   // ← ADD THIS
+import { LightboxProvider } from '@/components/Lightbox'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { cookies } from 'next/headers'
@@ -26,39 +24,41 @@ import { getServerSideURL } from '@/utilities/getURL'
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { isEnabled } = await draftMode()
 
-  // Check if a Payload admin user is logged in via the HTTP-only cookie
   const cookieStore = await cookies()
   const isPayloadUser = cookieStore.has('payload-token')
 
   return (
-      <html className={cn(publicSans.variable)} lang="en" suppressHydrationWarning>
+    <html className={cn(publicSans.variable)} lang="en" suppressHydrationWarning>
       <head>
+        <link rel="micropub" href={`${getServerSideURL()}/api/micropub`} />
+        <link rel="authorization_endpoint" href="https://indieauth.com/auth" />
+        <link rel="token_endpoint" href="https://tokens.indieauth.com/token" />
+        <link
+          rel="webmention"
+          href={`https://webmention.io/${new URL(getServerSideURL()).hostname}/webmention`}
+        />
+        <link
+          rel="pingback"
+          href={`https://webmention.io/${new URL(getServerSideURL()).hostname}/xmlrpc`}
+        />
+
         {!isPayloadUser && (
-          <>
-            {/* Plausible Analytics (tagged-events + outbound-links) */}
-            <script
-              defer
-              data-domain="becausebirds.com"
-              src="https://metrics.becausebirds.com/js/script.tagged-events.outbound-links.js"
-            />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }`,
-              }}
-            />
-          </>
+          <script
+            async
+            src="https://metrics.becausebirds.com/js/pa-0x7cC2UP7PJ-dvQ0KTwdv.js"
+          />
         )}
       </head>
       <body className="bg-background text-foreground">
         <Providers>
-          <LightboxProvider>    {/* ← WRAP children */}
+          <LightboxProvider>
             <AdminBar
               adminBarProps={{
                 preview: isEnabled,
               }}
             />
             {children}
-          </LightboxProvider>    {/* ← CLOSE WRAP */}
+          </LightboxProvider>
         </Providers>
       </body>
     </html>
@@ -67,8 +67,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 export const metadata: Metadata = {
   title: {
-    default: 'Because Birds',        // fallback for the homepage
-    template: '%s', 
+    default: 'Because Birds',
+    template: '%s',
   },
   description: 'A website for people who love birds.',
   metadataBase: new URL(getServerSideURL()),

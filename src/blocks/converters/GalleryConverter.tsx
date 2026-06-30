@@ -34,7 +34,8 @@ export const GalleryConverter: React.FC<{
     () =>
       (images ?? [])
         .filter((img): img is GalleryImage & { image: Media } =>
-          typeof img?.image === 'object' && img.image !== null && !!img.image.url
+          typeof img?.image === 'object' && img.image !== null && 
+!!img.image.url
         )
         .map((img) => ({
           src: img.image.url!,
@@ -65,7 +66,7 @@ export const GalleryConverter: React.FC<{
   if (!images || images.length === 0) return null
 
   return (
-    <div className={`grid ${gridColsClass} gap-6 my-8`}>
+    <div className={`grid ${gridColsClass} gap-x-3 gap-y-0.5 md:gap-y-3 my-3 md:my-4`}>
       {(images ?? []).map((img, index) => {
         if (!img?.image || typeof img.image === 'number') return null
 
@@ -78,27 +79,29 @@ export const GalleryConverter: React.FC<{
         return (
           <figure
             key={index}
-            className="flex flex-col w-full cursor-pointer group"
+            className="flex flex-col w-full cursor-pointer group !my-0"
             onClick={() => handleClick(index)}
           >
-            <div className="relative w-full aspect-square flex-shrink-0 overflow-hidden rounded-base transition-transform group-hover:scale-[1.02]">
+            <div className="relative w-full aspect-[4/3] flex-shrink-0 
+overflow-hidden rounded-base transition-transform group-hover:scale-[1.02]">
               <Image
                 src={imageData.url}
                 alt={altText || 'Gallery image'}
                 fill
                 className="object-cover w-full h-full rounded-base"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-black/50 px-2 py-1 rounded">
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-
+black/10 transition-colors flex items-center justify-center">
+                <span className="text-white opacity-0 group-hover:opacity-100 
+transition-opacity text-xs bg-black/50 px-2 py-1 rounded">
                   Click to enlarge
                 </span>
               </div>
             </div>
             {caption && (
-              <figcaption className="text-center text-sm mt-3 w-full pt-2">
-                <div className="payload-richtext max-w-none">
-                  <RichText data={caption} enableGutter={false} enableProse={false} />
-                </div>
+              <figcaption className="text-center text-sm mt-1 w-full">
+                <RichText data={caption} enableGutter={false} 
+enableProse={false} />
               </figcaption>
             )}
           </figure>
