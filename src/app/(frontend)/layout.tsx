@@ -41,7 +41,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           rel="pingback"
           href={`https://webmention.io/${new URL(getServerSideURL()).hostname}/xmlrpc`}
         />
-
+        <link rel="me" href="https://github.com/becausebirds" />
+        <link rel="me atproto" href="https://bsky.app/profile/becausebirds.com" />
+        
         {!isPayloadUser && (
           <script
             async

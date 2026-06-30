@@ -193,13 +193,13 @@ const LightboxDialogContent: React.FC<{
         >
           <div className="relative flex items-center justify-center w-full h-full max-w-full max-h-full">
             <Image
-              src={item.src}
-              alt={item.alt}
-              width={item.width}
-              height={item.height}
-              className="object-contain w-full h-full rounded"
-              priority
-            />
+  src={item.src}
+  alt={item.alt}
+  fill
+  className="object-contain rounded"
+  sizes="95vw"
+  priority
+/>
           </div>
         </div>
       </div>
