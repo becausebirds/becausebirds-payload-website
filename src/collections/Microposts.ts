@@ -89,6 +89,18 @@ export const Microposts: CollectionConfig = {
       },
     },
     {
+      name: 'images',
+      type: 'array',
+      fields: [
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          required: true,
+        },
+      ],
+    },
+    {
       name: 'syndicatedTo',
       type: 'array',
       fields: [
