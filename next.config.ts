@@ -20,9 +20,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     ...(process.env.NODE_ENV === 'development' ? { unoptimized: true } : {}),  
-  localPatterns: [
+    localPatterns: [
       {
         pathname: '/api/media/file/**',
+        // No 'search' key = any query string allowed
       },
     ],
     qualities: [75],
