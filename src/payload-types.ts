@@ -67,9 +67,8 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    posts: Post;
-    microposts: Micropost;
     pages: Page;
+    posts: Post;
     quizzes: Quiz;
     media: Media;
     comments: Comment;
@@ -78,6 +77,7 @@ export interface Config {
     tags: Tag;
     products: Product;
     users: User;
+    microposts: Micropost;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -95,9 +95,8 @@ export interface Config {
     };
   };
   collectionsSelect: {
-    posts: PostsSelect<false> | PostsSelect<true>;
-    microposts: MicropostsSelect<false> | MicropostsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
@@ -106,6 +105,7 @@ export interface Config {
     tags: TagsSelect<false> | TagsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    microposts: MicropostsSelect<false> | MicropostsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -165,9 +165,9 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
+ * via the `definition` "pages".
  */
-export interface Post {
+export interface Page {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
@@ -186,7 +186,7 @@ export interface Post {
     };
     [k: string]: unknown;
   };
-  relatedPosts?: (number | Post)[] | null;
+  relatedPosts?: (number | Page)[] | null;
   categories?: (number | Category)[] | null;
   excerpt?: string | null;
   tags?: (number | Tag)[] | null;
@@ -239,41 +239,6 @@ export interface Post {
         | DetailsBlock
         | PullquoteBlock
         | ButtonsBlock
-        | {
-            title: string;
-            description?: string | null;
-            caption?: string | null;
-            chartData: {
-              label: string;
-              value1: number;
-              value2?: number | null;
-              id?: string | null;
-            }[];
-            series1Label: string;
-            series1Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
-            series2Label?: string | null;
-            series2Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'bar-chart';
-          }
-        | {
-            title: string;
-            description?: string | null;
-            mapType?: ('dots' | 'heatmap') | null;
-            /**
-             * Upload your MyEBirdData.csv export. Only CSV files are supported.
-             */
-            csvFile?: (number | null) | Media;
-            /**
-             * Paste CSV data here instead of uploading a file (good for small test datasets). If a file is uploaded above, this is ignored.
-             */
-            csvData?: string | null;
-            showHotspotsOnly?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'map';
-          }
       )[]
     | null;
   updatedAt: string;
@@ -871,28 +836,9 @@ export interface ButtonsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "microposts".
+ * via the `definition` "posts".
  */
-export interface Micropost {
-  id: number;
-  content: string;
-  slug?: string | null;
-  syndicatedTo?:
-    | {
-        platform?: string | null;
-        url?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  publishedAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
- */
-export interface Page {
+export interface Post {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
@@ -911,7 +857,7 @@ export interface Page {
     };
     [k: string]: unknown;
   };
-  relatedPosts?: (number | Page)[] | null;
+  relatedPosts?: (number | Post)[] | null;
   categories?: (number | Category)[] | null;
   excerpt?: string | null;
   tags?: (number | Tag)[] | null;
@@ -964,6 +910,41 @@ export interface Page {
         | DetailsBlock
         | PullquoteBlock
         | ButtonsBlock
+        | {
+            title: string;
+            description?: string | null;
+            caption?: string | null;
+            chartData: {
+              label: string;
+              value1: number;
+              value2?: number | null;
+              id?: string | null;
+            }[];
+            series1Label: string;
+            series1Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
+            series2Label?: string | null;
+            series2Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bar-chart';
+          }
+        | {
+            title: string;
+            description?: string | null;
+            mapType?: ('dots' | 'heatmap') | null;
+            /**
+             * Upload your MyEBirdData.csv export. Only CSV files are supported.
+             */
+            csvFile?: (number | null) | Media;
+            /**
+             * Paste CSV data here instead of uploading a file (good for small test datasets). If a file is uploaded above, this is ignored.
+             */
+            csvData?: string | null;
+            showHotspotsOnly?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'map';
+          }
       )[]
     | null;
   updatedAt: string;
@@ -1046,6 +1027,31 @@ export interface Product {
   publishedAt?: string | null;
   author?: string | null;
   url?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "microposts".
+ */
+export interface Micropost {
+  id: number;
+  content: string;
+  slug?: string | null;
+  images?:
+    | {
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  syndicatedTo?:
+    | {
+        platform?: string | null;
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  publishedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1414,16 +1420,12 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'posts';
-        value: number | Post;
-      } | null)
-    | ({
-        relationTo: 'microposts';
-        value: number | Micropost;
-      } | null)
-    | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'posts';
+        value: number | Post;
       } | null)
     | ({
         relationTo: 'quizzes';
@@ -1456,6 +1458,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'microposts';
+        value: number | Micropost;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -1521,9 +1527,9 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
+ * via the `definition` "pages_select".
  */
-export interface PostsSelect<T extends boolean = true> {
+export interface PagesSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
   content?: T;
@@ -1578,39 +1584,6 @@ export interface PostsSelect<T extends boolean = true> {
         details?: T | DetailsBlockSelect<T>;
         pullquote?: T | PullquoteBlockSelect<T>;
         buttons?: T | ButtonsBlockSelect<T>;
-        'bar-chart'?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              caption?: T;
-              chartData?:
-                | T
-                | {
-                    label?: T;
-                    value1?: T;
-                    value2?: T;
-                    id?: T;
-                  };
-              series1Label?: T;
-              series1Color?: T;
-              series2Label?: T;
-              series2Color?: T;
-              id?: T;
-              blockName?: T;
-            };
-        map?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              mapType?: T;
-              csvFile?: T;
-              csvData?: T;
-              showHotspotsOnly?: T;
-              id?: T;
-              blockName?: T;
-            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1835,27 +1808,9 @@ export interface ButtonsBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "microposts_select".
+ * via the `definition` "posts_select".
  */
-export interface MicropostsSelect<T extends boolean = true> {
-  content?: T;
-  slug?: T;
-  syndicatedTo?:
-    | T
-    | {
-        platform?: T;
-        url?: T;
-        id?: T;
-      };
-  publishedAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
- */
-export interface PagesSelect<T extends boolean = true> {
+export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
   content?: T;
@@ -1910,6 +1865,39 @@ export interface PagesSelect<T extends boolean = true> {
         details?: T | DetailsBlockSelect<T>;
         pullquote?: T | PullquoteBlockSelect<T>;
         buttons?: T | ButtonsBlockSelect<T>;
+        'bar-chart'?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              caption?: T;
+              chartData?:
+                | T
+                | {
+                    label?: T;
+                    value1?: T;
+                    value2?: T;
+                    id?: T;
+                  };
+              series1Label?: T;
+              series1Color?: T;
+              series2Label?: T;
+              series2Color?: T;
+              id?: T;
+              blockName?: T;
+            };
+        map?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              mapType?: T;
+              csvFile?: T;
+              csvData?: T;
+              showHotspotsOnly?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -2157,6 +2145,30 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "microposts_select".
+ */
+export interface MicropostsSelect<T extends boolean = true> {
+  content?: T;
+  slug?: T;
+  images?:
+    | T
+    | {
+        image?: T;
+        id?: T;
+      };
+  syndicatedTo?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

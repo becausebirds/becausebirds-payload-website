@@ -1,10 +1,22 @@
 import type { PayloadHandler } from 'payload'
 
 export const micropubPost: PayloadHandler = async (req) => {
-  // 1. IndieAuth token verification (simplified for single-user)
+  // 1. Validate Bearer token against env variable
   const authHeader = req.headers.get('authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const expectedToken = process.env.MICROPUB_TOKEN
+
+  if (
+    !authHeader ||
+    !authHeader.startsWith('Bearer ') ||
+    !expectedToken
+  ) {
     return Response.json({ error: 'unauthorized' }, { status: 401 })
+  }
+
+  const token = authHeader.slice(7)
+
+  if (token !== expectedToken) {
+    return Response.json({ error: 'forbidden' }, { status: 403 })
   }
 
   // 2. Parse the form/JSON body
