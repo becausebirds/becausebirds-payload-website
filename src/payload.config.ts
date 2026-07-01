@@ -80,7 +80,7 @@ export default buildConfig({
         const siteUrl = process.env.NEXT_PUBLIC_SERVER_URL ||
 'https://becausebirds.com'
         return Response.json({
-          'media-endpoint': `${siteUrl}/api/micropub/media`,
+          'media-endpoint': `${siteUrl}/api/micropub`,
           'syndicate-to': [
             { uid: 'bluesky', name: 'Bluesky' },
           ],
@@ -118,6 +118,44 @@ authHeader.slice(7) !== validToken) {
             content = json.content || ''
             photoUrls = json.photo || []
           }
+        } else if (contentType.includes('multipart/form-data')) {
+          const formData = await req.formData!()
+          content = (formData.get('content') as string) || ''
+
+          // Handle photo upload
+          const photoFile = formData.get('photo') as File | null
+          if (photoFile && photoFile.size > 0) {
+            const payload = await req.payload
+            const mediaDoc = await payload.create({
+              collection: 'media',
+              data: {},
+              file: {
+                name: photoFile.name,
+                data: Buffer.from(await photoFile.arrayBuffer()),
+                mimetype: photoFile.type,
+                size: photoFile.size,
+              },
+            })
+            console.log('mediaDoc:', JSON.stringify(mediaDoc, null, 2))
+            photoUrls = [String(mediaDoc.id)]
+          }
+
+          // Handle video upload
+          const videoFile = formData.get('video') as File | null
+          if (!photoFile && videoFile && videoFile.size > 0) {
+            const payload = await req.payload
+            const mediaDoc = await payload.create({
+              collection: 'media',
+              data: {},
+              file: {
+                name: videoFile.name,
+                data: Buffer.from(await videoFile.arrayBuffer()),
+                mimetype: videoFile.type,
+                size: videoFile.size,
+              },
+            })
+            photoUrls = [String(mediaDoc.id)]
+          }
         } else {
           return Response.json({ error: 'unsupported content type' }, { status:
 400 })
@@ -133,7 +171,7 @@ authHeader.slice(7) !== validToken) {
           collection: 'microposts',
           data: {
             content: content.trim(),
-            images: photoUrls.map((url: string) => ({ image: url })),
+            images: photoUrls.map((id) => ({ image: id })),
           } as any,
         })
 
@@ -145,51 +183,6 @@ authHeader.slice(7) !== validToken) {
           status: 201,
           headers: { Location: postUrl },
         })
-      },
-    },
-    {
-      path: '/micropub/media',
-      method: 'post',
-      handler: async (req) => {
-        const validToken = process.env.MICROPUB_TOKEN
-        const authHeader = req.headers.get('authorization')
-        if (!authHeader || !authHeader.startsWith('Bearer ') ||
-authHeader.slice(7) !== validToken) {
-          return Response.json({ error: 'unauthorized' }, { status: 401 })
-        }
-
-        try {
-          const formData = await req.formData!()
-          const file = formData.get('file') as File | null
-          if (!file) {
-            return Response.json({ error: 'file is required' }, { status: 400 })
-          }
-
-          const arrayBuffer = await file.arrayBuffer()
-          const buffer = Buffer.from(arrayBuffer)
-
-          const payload = await req.payload
-          const mediaDoc = await payload.create({
-            collection: 'media',
-            data: {},
-            file: {
-              name: file.name,
-              data: buffer,
-              mimetype: file.type,
-              size: buffer.length,
-            },
-          })
-
-          const siteUrl = process.env.NEXT_PUBLIC_SERVER_URL ||
-'https://becausebirds.com'
-          return new Response(null, {
-            status: 201,
-            headers: { Location: `${siteUrl}${mediaDoc.url}` },
-          })
-        } catch (err) {
-          console.error('[Micropub Media] Upload failed:', err)
-          return Response.json({ error: 'upload failed' }, { status: 500 })
-        }
       },
     },
   ],

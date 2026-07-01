@@ -17,6 +17,7 @@ import { LightboxProvider } from '@/components/Lightbox'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { cookies } from 'next/headers'
+import Script from 'next/script'
 
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -43,13 +44,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
         <link rel="me" href="https://github.com/becausebirds" />
         <link rel="me atproto" href="https://bsky.app/profile/becausebirds.com" />
-        
-        {!isPayloadUser && (
-          <script
-            async
-            src="https://metrics.becausebirds.com/js/pa-0x7cC2UP7PJ-dvQ0KTwdv.js"
-          />
-        )}
       </head>
       <body className="bg-background text-foreground">
         <Providers>
@@ -59,6 +53,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 preview: isEnabled,
               }}
             />
+            {!isPayloadUser && (
+  <Script
+    src="https://metrics.becausebirds.com/js/pa-0x7cC2UP7PJ-dvQ0KTwdv.js"
+    strategy="beforeInteractive"
+  />
+)}
             {children}
           </LightboxProvider>
         </Providers>
@@ -67,16 +67,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   )
 }
 
-export const metadata: Metadata = {
-  title: {
-    default: 'Because Birds',
-    template: '%s',
-  },
-  description: 'A website for people who love birds.',
-  metadataBase: new URL(getServerSideURL()),
-  openGraph: mergeOpenGraph(),
-  twitter: {
-    card: 'summary_large_image',
-    creator: '@payloadcms',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const url = getServerSideURL()
+  return {
+    title: {
+      default: 'Because Birds',
+      template: '%s',
+    },
+    description: 'A website for people who love birds.',
+    metadataBase: new URL(url),
+    openGraph: mergeOpenGraph(),
+    twitter: {
+      card: 'summary_large_image',
+      creator: '@payloadcms',
+    },
+  }
 }
