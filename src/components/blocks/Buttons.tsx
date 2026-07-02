@@ -28,7 +28,7 @@ export const ButtonsBlock: React.FC<ButtonsBlockProps> = ({ buttons, align }) =>
           target={button.target}
           rel={button.target === '_blank' ? 'noopener noreferrer' : undefined}
         >
-          <Button variant={button.style} className="rounded-base">
+<Button variant={button.style === 'outline' ? 'neutral' : button.style === 'ghost' ? 'default' : button.style} className="rounded-base">
             {button.text}
           </Button>
         </a>

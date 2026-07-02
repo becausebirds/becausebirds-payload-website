@@ -12,7 +12,7 @@ export const Buttons: Block = {
         { name: 'text', type: 'text', required: true },
         { name: 'url', type: 'text', required: true },
         { name: 'target', type: 'select', options: ['_self', '_blank'], defaultValue: '_self' },
-        { name: 'style', type: 'select', options: ['primary', 'secondary', 'outline', 'ghost'], defaultValue: 'primary' },
+        { name: 'style', type: 'select', options: ['primary', 'secondary', 'neutral'], defaultValue: 'primary' },
       ],
     },
     {

@@ -134,7 +134,7 @@ center sm:p-4"
               <div className="flex justify-center pb-4">
                 <Button
                   onClick={handlePrevious}
-                  variant="outline"
+                  variant="neutral"
                   size="sm"
                   className="px-6"
                 >

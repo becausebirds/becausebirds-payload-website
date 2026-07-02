@@ -241,7 +241,7 @@ gap-6">
             </div>
             <div className="flex justify-center mt-8">
               <Link href="/archive">
-                <Button className="rounded-base" variant="outline">View all
+                <Button className="rounded-base" variant="neutral">View all
 posts →</Button>
               </Link>
             </div>
@@ -260,7 +260,7 @@ tight">Projects</h2>
               </div>
               <div className="flex justify-center mt-8">
                 <Link href="/archive?category=5">
-                  <Button className="rounded-base" variant="outline">View all
+                  <Button className="rounded-base" variant="neutral">View all
 projects →</Button>
                 </Link>
               </div>
