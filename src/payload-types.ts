@@ -825,7 +825,7 @@ export interface ButtonsBlock {
         text: string;
         url: string;
         target?: ('_self' | '_blank') | null;
-        style?: ('primary' | 'secondary' | 'outline' | 'ghost') | null;
+        style?: ('primary' | 'secondary' | 'neutral') | null;
         id?: string | null;
       }[]
     | null;
