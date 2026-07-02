@@ -50,7 +50,7 @@ export const Card: React.FC<{
                 const categoryTitle = titleFromCategory || 'Untitled category'
 
                 return (
-                  <Badge key={index} variant="secondary">
+                  <Badge key={index} variant="default">
                     {categoryTitle}
                   </Badge>
                 )
