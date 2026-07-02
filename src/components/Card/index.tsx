@@ -1,11 +1,11 @@
-'use client'
 import { cn } from '@/utilities/ui'
 import useClickableCard from '@/utilities/useClickableCard'
 import Link from 'next/link'
-import React, { Fragment } from 'react'
+import React from 'react'
 
 import type { Post } from '@/payload-types'
 
+import { Badge } from '@/components/ui/badge'
 import { Media } from '@/components/Media'
 
 export type CardPostData = Pick<Post, 'slug' | 'categories' | 'meta' | 'title' | 'heroImage'>
@@ -43,20 +43,16 @@ export const Card: React.FC<{
       </div>
       <div className="p-4">
         {showCategories && hasCategories && (
-          <div className="uppercase text-sm mb-4 text-muted-foreground">
+          <div className="flex flex-wrap gap-2 mb-4">
             {categories?.map((category, index) => {
               if (typeof category === 'object') {
                 const { title: titleFromCategory } = category
-
                 const categoryTitle = titleFromCategory || 'Untitled category'
 
-                const isLast = index === categories.length - 1
-
                 return (
-                  <Fragment key={index}>
+                  <Badge key={index} variant="secondary">
                     {categoryTitle}
-                    {!isLast && <Fragment>, &nbsp;</Fragment>}
-                  </Fragment>
+                  </Badge>
                 )
               }
 
