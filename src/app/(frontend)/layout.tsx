@@ -1,6 +1,7 @@
 import { cn } from '@/utilities/ui'
 import { Public_Sans } from 'next/font/google'
 import type { Metadata } from 'next'
+import PlausibleProvider from 'next-plausible'
 
 const publicSans = Public_Sans({
   subsets: ['latin'],
@@ -17,7 +18,6 @@ import { LightboxProvider } from '@/components/Lightbox'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
 import { cookies } from 'next/headers'
-import Script from 'next/script'
 
 import './globals.css'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -53,13 +53,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 preview: isEnabled,
               }}
             />
-            {!isPayloadUser && (
-  <Script
-    src="https://metrics.becausebirds.com/js/pa-0x7cC2UP7PJ-dvQ0KTwdv.js"
-    strategy="beforeInteractive"
-  />
-)}
-            {children}
+            <PlausibleProvider
+              src="https://metrics.becausebirds.com/js/pa-0x7cC2UP7PJ-dvQ0KTwdv.js"
+              enabled={!isPayloadUser}
+            >
+              {children}
+            </PlausibleProvider>
           </LightboxProvider>
         </Providers>
       </body>
@@ -74,7 +73,7 @@ export async function generateMetadata(): Promise<Metadata> {
       default: 'Because Birds',
       template: '%s',
     },
-    description: 'A website for people who love birds.',
+    description: 'A birding blog by Jeff Mann For anyone who loves birds.',
     metadataBase: new URL(url),
     openGraph: mergeOpenGraph(),
     twitter: {
