@@ -45,7 +45,7 @@ export const VideoConverter: React.FC<{
 
   return (
     <figure className="my-8">
-      <video controls className="w-full max-h-[75vh]" src={videoSrc} />
+      <video controls className="w-full" src={`${videoSrc}#t=0.001`} preload="metadata" />
       {caption && <figcaption className="text-center text-sm mt-2">{caption}</figcaption>}
     </figure>
   )
