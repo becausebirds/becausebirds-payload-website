@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import type { Media } from '@/payload-types'
 
 export const VideoConverter: React.FC<{
@@ -7,7 +7,17 @@ export const VideoConverter: React.FC<{
   url?: string | null
   caption?: string | null
 }> = ({ source = 'url', file, url, caption }) => {
+  const videoRef = useRef<HTMLVideoElement>(null)
   let videoSrc = ''
+
+  const playThenPause = async (video: HTMLVideoElement) => {
+    try {
+      await video.play()
+      video.pause()
+    } catch {
+      // Autoplay blocked — fall back to default behaviour
+    }
+  }
 
   if (source === 'upload' && typeof file !== 'number' && file) {
     videoSrc = file.url || ''
@@ -43,9 +53,23 @@ export const VideoConverter: React.FC<{
     videoSrc = url
   }
 
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video || !videoSrc) return
+    playThenPause(video)
+  }, [videoSrc])
+
   return (
     <figure className="my-8">
-      <video controls className="w-full" src={`${videoSrc}#t=0.001`} preload="metadata" />
+      <video
+        ref={videoRef}
+        controls
+        className="w-full"
+        src={videoSrc}
+        muted
+        playsInline
+        preload="metadata"
+      />
       {caption && <figcaption className="text-center text-sm mt-2">{caption}</figcaption>}
     </figure>
   )
