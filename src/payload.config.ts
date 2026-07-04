@@ -223,7 +223,7 @@ authHeader.slice(7) !== validToken) {
     transport: createTransport(
       postmarkTransport({
         auth: {
-          apiKey: process.env.POSTMARK_SERVER_TOKEN,
+          apiKey: process.env.POSTMARK_SERVER_TOKEN!,
         },
       })
     ),
