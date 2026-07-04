@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from
 '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import NavBar from '@/components/navbar'
-import Footer from '@/components/Footer'
+import { Footer } from '@/Footer/Component'
 import type { Post } from '@/payload-types'
 import BirdingStats from '@/components/BirdingStats'
 
