@@ -8,7 +8,6 @@ import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import postmarkTransport from 'nodemailer-postmark-transport'
 import { createTransport } from 'nodemailer'
 
-
 import { Archive } from './blocks/ArchiveBlock/config'
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
@@ -75,7 +74,8 @@ export default buildConfig({
     },
     push: true,
   }),
-  collections: [Pages, Posts, Quizzes, Media, Comments, Visitors, BirdChecklists, Categories,
+  collections: [Pages, Posts, Quizzes, Media, Comments, Visitors,
+BirdChecklists, Categories,
   Tags, Products, Users, Microposts],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
@@ -217,16 +217,22 @@ authHeader.slice(7) !== validToken) {
     tasks: [],
   },
 
-  email: nodemailerAdapter({
-    defaultFromAddress: 'jeff@becausebirds.com',   // verified in Postmark
-    defaultFromName: 'Because Birds',
-    transport: createTransport(
-      postmarkTransport({
-        auth: {
-          apiKey: process.env.POSTMARK_SERVER_TOKEN!,
-        },
+  // Use Postmark when token is available (prod), fall back to Ethereal (build/dev)
+  email: process.env.POSTMARK_SERVER_TOKEN
+    ? nodemailerAdapter({
+        defaultFromAddress: 'jeff@becausebirds.com',
+        defaultFromName: 'Because Birds',
+        transport: createTransport(
+          postmarkTransport({
+            auth: {
+              apiKey: process.env.POSTMARK_SERVER_TOKEN,
+            },
+          })
+        ),
       })
-    ),
-  }),
-
+    : nodemailerAdapter({
+        defaultFromAddress: 'jeff@becausebirds.com',
+        defaultFromName: 'Because Birds',
+        // No transport config = automatically uses Ethereal (dev-friendly, no API key needed)
+      }),
 })
