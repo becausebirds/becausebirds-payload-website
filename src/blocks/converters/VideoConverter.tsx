@@ -65,7 +65,7 @@ export const VideoConverter: React.FC<{
       <video
         ref={videoRef}
         controls
-        className="w-full"
+        className="w-full max-h-[75vh]"
         src={videoSrc}
         muted
         playsInline

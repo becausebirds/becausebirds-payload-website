@@ -64,7 +64,7 @@ export const PostHero: React.FC<{
       <div className="min-h-[80vh] select-none">
         {heroImage && typeof heroImage !== 'string' && (
           <>
-            <Media fill priority imgClassName="-z-10 object-cover" resource={heroImage} />
+            <Media fill priority size="100vw" imgClassName="-z-10 object-cover" resource={heroImage} />
             {/* Dark overlay over the entire image for better text legibility */}
             <div className="absolute inset-0 bg-black/40 pointer-events-none" />
           </>
