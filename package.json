@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "@atproto/api": "^0.20.23",
+    "@better-auth/passkey": "^1.6.23",
     "@hookform/resolvers": "3.9.1",
     "@payloadcms/admin-bar": "3.84.1",
     "@payloadcms/db-postgres": "3.84.1",
+    "@payloadcms/email-nodemailer": "^3.85.2",
     "@payloadcms/live-preview-react": "3.84.1",
     "@payloadcms/next": "3.84.1",
     "@payloadcms/plugin-form-builder": "3.84.1",
@@ -35,6 +37,8 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-slot": "^1.0.2",
     "@tailwindcss/postcss": "^4.3.1",
+    "better-auth": "^1.6.23",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cross-env": "^7.0.3",
@@ -48,7 +52,10 @@
     "next-plausible": "^4.0.0",
     "next-sitemap": "^4.2.3",
     "next-themes": "^0.4.6",
+    "nodemailer": "^9.0.3",
+    "nodemailer-postmark-transport": "^7.0.0",
     "payload": "3.84.1",
+    "pg": "^8.22.0",
     "prism-react-renderer": "^2.3.1",
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
@@ -66,6 +73,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/leaflet": "^1.9.21",
     "@types/node": "22.19.9",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "4.5.2",
@@ -84,6 +92,6 @@
   },
   "engines": {
     "node": ">=20.9.0",
-    "pnpm": "^9 || ^10"
+    "pnpm": "^9 || ^10 || ^11"
   }
 }
