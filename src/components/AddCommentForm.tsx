@@ -19,7 +19,7 @@ const formSchema = z.object({
   author: z.string().min(1, 'Name is required').max(100),
   email: z.union([z.string().email('Please enter a valid email'), z.literal('')]),
   content: z.string().min(1, 'Comment is required').max(5000),
-  website: z.string().max(0), // honeypot — must be empty
+  fax_number: z.string().max(0), // honeypot — must be empty
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -51,7 +51,7 @@ export default function AddCommentForm({
       author: '',
       email: '',
       content: '',
-      website: '',
+      fax_number: '',
     },
   })
 
@@ -76,18 +76,11 @@ export default function AddCommentForm({
         author: values.author,
         email: values.email,
         content: values.content,
+        replyPost: replyPost,
       }
 
-      // Only add replyPost if it's a valid, non-empty string after trimming
-      const cleanedReplyPost = replyPost?.trim()
-      if (cleanedReplyPost && cleanedReplyPost !== '0') {
-        body.replyPost = cleanedReplyPost
-      }
-
-      // Only add replyComment if it's a valid, non-empty string after trimming
-      const cleanedReplyComment = replyComment?.trim()
-      if (cleanedReplyComment && cleanedReplyComment !== '0') {
-        body.replyComment = cleanedReplyComment
+      if (replyComment) {
+        body.replyComment = replyComment
       }
 
       const res = await fetch('/api/comments/add-comment', {
@@ -171,10 +164,10 @@ export default function AddCommentForm({
           <div className="absolute left-[-9999px]" aria-hidden="true">
             <FormField
               control={form.control}
-              name="website"
+              name="fax_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="dark:text-black">Website</FormLabel>
+                  <FormLabel className="dark:text-black">Fax Number</FormLabel>
                   <FormControl>
                     <Input tabIndex={-1} autoComplete="off" {...field} />
                   </FormControl>

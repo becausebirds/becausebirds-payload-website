@@ -4,6 +4,11 @@ import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import postmarkTransport from 'nodemailer-postmark-transport'
+import { createTransport } from 'nodemailer'
+
+
 import { Archive } from './blocks/ArchiveBlock/config'
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
@@ -22,6 +27,8 @@ import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { QuizBlock } from '@/blocks/Quiz/config'
+import { BirdChecklists } from './collections/BirdChecklists'
+import { BirdChecklist } from './blocks/BirdChecklistBlock'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -68,7 +75,7 @@ export default buildConfig({
     },
     push: true,
   }),
-  collections: [Pages, Posts, Quizzes, Media, Comments, Visitors, Categories,
+  collections: [Pages, Posts, Quizzes, Media, Comments, Visitors, BirdChecklists, Categories,
   Tags, Products, Users, Microposts],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
@@ -209,4 +216,17 @@ authHeader.slice(7) !== validToken) {
     },
     tasks: [],
   },
+
+  email: nodemailerAdapter({
+    defaultFromAddress: 'jeff@becausebirds.com',   // verified in Postmark
+    defaultFromName: 'Because Birds',
+    transport: createTransport(
+      postmarkTransport({
+        auth: {
+          apiKey: process.env.POSTMARK_SERVER_TOKEN,
+        },
+      })
+    ),
+  }),
+
 })

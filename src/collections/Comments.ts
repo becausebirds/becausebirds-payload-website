@@ -1,5 +1,6 @@
 // src/collections/Comments.ts
 import type { CollectionConfig } from 'payload'
+import { sendAdminNotification } from '@/utilities/sendAdminNotification'
 import { addCommentHandler } from '../endpoints/add-comment'
 import { hasPublishedCommentHandler } from '../endpoints/has-published-comment'
 
@@ -20,6 +21,9 @@ export const Comments: CollectionConfig = {
     },
   },
   timestamps: true,
+  hooks: {
+    afterChange: [sendAdminNotification],  // ← add this
+  },
   fields: [
     {
       name: 'author',
@@ -30,14 +34,14 @@ export const Comments: CollectionConfig = {
       type: 'email',
     },
     {
-  name: 'date',
-  type: 'date',
-  admin: {
-    date: {
-      displayFormat: 'MMM d, yyyy h:mm a',
+      name: 'date',
+      type: 'date',
+      admin: {
+        date: {
+          displayFormat: 'MMM d, yyyy h:mm a',
+        },
+      },
     },
-  },
-},
     {
       name: 'content',
       type: 'textarea',

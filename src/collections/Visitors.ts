@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { sendAdminNotification } from '@/utilities/sendAdminNotification'
 
 export const Visitors: CollectionConfig = {
   slug: 'visitors',
@@ -49,6 +50,9 @@ export const Visitors: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    afterChange: [sendAdminNotification],
+  },
   access: {
     create: () => true,    
     read: () => true,      
