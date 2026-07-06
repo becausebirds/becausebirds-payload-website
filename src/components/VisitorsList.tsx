@@ -50,8 +50,11 @@ export default async function VisitorsList() {
 
   if (visitors.length === 0) {
     return (
-      <div className="border-2 border-black dark:border-border p-8 text-center bg-white dark:bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_hsl(var(--border))]">
-        <p className="text-lg font-bold font-['Courier_New',monospace]">No guests yet.</p>
+      <div className="border-2 border-black dark:border-border p-8 text-center 
+bg-white dark:bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+dark:shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+        <p className="text-lg font-bold font-['Courier_New',monospace]">No 
+guests yet.</p>
       </div>
     )
   }
@@ -65,23 +68,29 @@ export default async function VisitorsList() {
           <div
             key={visitor.id}
             style={{ backgroundColor }}
-            className="relative border-2 border-black dark:border-border p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_hsl(var(--border))] dark:text-black"
+            className="relative border-2 border-black dark:border-border p-6 
+shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] 
+dark:shadow-[8px_8px_0px_0px_hsl(var(--border))] dark:text-black"
           >
             {/* Name Header */}
-            <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-4 gap-2">
-              <h4 className="text-2xl font-black font-['Courier_New',monospace]">
+            <div className="flex flex-col sm:flex-row sm:items-baseline justify-
+between mb-4 gap-2">
+              <h4 className="text-2xl font-black 
+font-['Courier_New',monospace]">
                 {visitor.name}
               </h4>
               <div className="flex items-center gap-3">
                 <span className="text-xs font-bold opacity-70">
-                  {new Date(visitor.date || visitor.createdAt).toLocaleDateString('en-US', {
+                  {new Date(visitor.date || 
+visitor.createdAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
                   })}
                 </span>
                 {/* Location with full border */}
-                <span className="text-sm font-bold border-2 border-black dark:border-border bg-white dark:bg-card px-2 py-0.5 dark:text-foreground">
+                <span className="text-sm font-bold border-2 border-black 
+dark:border-border bg-white dark:bg-card px-2 py-0.5 dark:text-foreground">
                   🌐 {visitor.location}
                 </span>
               </div>
@@ -89,19 +98,25 @@ export default async function VisitorsList() {
 
             {/* Message Bubble */}
             {visitor.message && (
-              <div className="bg-white dark:bg-card border-2 border-black dark:border-border p-4 mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_hsl(var(--border))]">
-                <p className="text-sm leading-relaxed font-medium italic dark:text-foreground">
+              <div className="bg-white dark:bg-card border-2 border-black 
+dark:border-border p-4 mb-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+dark:shadow-[4px_4px_0px_0px_hsl(var(--border))]">
+                <p className="text-sm leading-relaxed font-medium italic 
+dark:text-foreground">
                   &ldquo;{visitor.message}&rdquo;
                 </p>
               </div>
             )}
 
             {/* Favorite Bird Area */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold uppercase tracking-wider">🐦‍ Favorite bird:</span>
               <Badge
                 variant="default"
-                className="border-2 border-black dark:border-border bg-white dark:bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:shadow-[3px_3px_0px_0px_hsl(var(--border))] px-3 py-1 text-sm font-black dark:text-foreground"
+                className="border-2 border-black dark:border-border bg-white 
+dark:bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] 
+dark:shadow-[3px_3px_0px_0px_hsl(var(--border))] px-3 py-1 text-sm font-black 
+dark:text-foreground max-w-full whitespace-normal break-words"
               >
                 {visitor.favoriteBird}
               </Badge>
