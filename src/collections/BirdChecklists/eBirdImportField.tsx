@@ -177,7 +177,7 @@ export const EbirdImportFieldClient: TextFieldClientComponent = (props) => {
     desc 
   }: { 
     label: string, 
-    refElement: React.RefObject<HTMLInputElement>, 
+    refElement: React.RefObject<HTMLInputElement | null>,
     onFile: (f: File) => void, 
     type: 'html' | 'csv', 
     desc: string 

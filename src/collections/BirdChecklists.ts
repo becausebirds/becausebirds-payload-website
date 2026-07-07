@@ -127,23 +127,12 @@ export const BirdChecklists: CollectionConfig = {
       type: 'json',
       label: 'GPS Track Data',
       admin: {
-        description: 'Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.',
-        jsonSchema: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              lat: { type: 'number' },
-              lng: { type: 'number' },
-              timestamp: { type: 'string' },
-            },
-          },
-        },
-        style: {
-          height: '300px',
-          overflow: 'auto',
-        },
-      },
+  description: 'Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.',
+  style: {
+    height: '300px',
+    overflow: 'auto',
+  },
+},
     },
     {
       name: 'trackDistanceKm',
@@ -157,24 +146,12 @@ export const BirdChecklists: CollectionConfig = {
       type: 'json',
       label: 'Bird Species Observed',
       admin: {
-        description: 'Array of species: [{ commonName, scientificName, count, comments }, ...]. Imported from eBird CSV.',
-        jsonSchema: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              commonName: { type: 'string' },
-              scientificName: { type: 'string' },
-              count: { type: 'string' },
-              comments: { type: 'string' },
-            },
-          },
-        },
-        style: {
-          height: '400px',
-          overflow: 'auto',
-        },
-      },
+  description: 'Array of species: [{ commonName, scientificName, count, comments }, ...]. Imported from eBird CSV.',
+  style: {
+    height: '400px',
+    overflow: 'auto',
+  },
+},
     },
 
     // ─── Notes ───────────────────────────────────────────────────────
