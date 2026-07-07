@@ -1,0 +1,1 @@
+export { BirdChecklistBlock } from './config'
