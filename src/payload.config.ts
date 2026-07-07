@@ -27,7 +27,8 @@ import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { QuizBlock } from '@/blocks/Quiz/config'
 import { BirdChecklists } from './collections/BirdChecklists'
-import { BirdChecklist } from './blocks/BirdChecklistBlock'
+import { BirdChecklistBlock } from './blocks/BirdChecklist'
+
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -74,7 +75,7 @@ export default buildConfig({
     },
     push: true,
   }),
-  collections: [Pages, Posts, Quizzes, Media, Comments, Visitors,
+  collections: [Posts, Pages, Quizzes, Media, Comments, Visitors,
 BirdChecklists, Categories,
   Tags, Products, Users, Microposts],
   cors: [getServerSideURL()].filter(Boolean),

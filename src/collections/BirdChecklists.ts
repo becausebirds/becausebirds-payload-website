@@ -38,14 +38,6 @@ export const BirdChecklists: CollectionConfig = {
       label: 'Title',
     },
 
-    // ─── Observer ────────────────────────────────────────────────────
-    {
-      name: 'observer',
-      type: 'text',
-      label: 'Observer',
-      admin: { position: 'sidebar' },
-    },
-
     // ─── Date & Time ─────────────────────────────────────────────────
     {
       name: 'date',
@@ -135,8 +127,22 @@ export const BirdChecklists: CollectionConfig = {
       type: 'json',
       label: 'GPS Track Data',
       admin: {
-        description:
-          'Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.',
+        description: 'Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.',
+        jsonSchema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              lat: { type: 'number' },
+              lng: { type: 'number' },
+              timestamp: { type: 'string' },
+            },
+          },
+        },
+        style: {
+          height: '300px',
+          overflow: 'auto',
+        },
       },
     },
     {
@@ -145,56 +151,30 @@ export const BirdChecklists: CollectionConfig = {
       label: 'Track Distance (km)',
     },
 
-    // ─── Bird Species (Array) ────────────────────────────────────────
+    // ─── Bird Species (JSON) ─────────────────────────────────────────
     {
       name: 'species',
-      type: 'array',
+      type: 'json',
       label: 'Bird Species Observed',
-      labels: { singular: 'Species', plural: 'Species' },
-      fields: [
-        {
-          name: 'commonName',
-          type: 'text',
-          label: 'Common Name',
-          required: true,
+      admin: {
+        description: 'Array of species: [{ commonName, scientificName, count, comments }, ...]. Imported from eBird CSV.',
+        jsonSchema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              commonName: { type: 'string' },
+              scientificName: { type: 'string' },
+              count: { type: 'string' },
+              comments: { type: 'string' },
+            },
+          },
         },
-        {
-          name: 'scientificName',
-          type: 'text',
-          label: 'Scientific Name',
+        style: {
+          height: '400px',
+          overflow: 'auto',
         },
-        {
-          name: 'count',
-          type: 'text',
-          label: 'Count',
-        },
-        {
-          name: 'exotic',
-          type: 'select',
-          label: 'Exotic Status',
-          options: [
-            { label: 'Native', value: 'native' },
-            { label: 'Naturalized', value: 'naturalized' },
-            { label: 'Provisional', value: 'provisional' },
-            { label: 'Escapee', value: 'escapee' },
-          ],
-        },
-        {
-          name: 'hasPhotos',
-          type: 'checkbox',
-          label: 'Has Photos',
-        },
-        {
-          name: 'hasAudio',
-          type: 'checkbox',
-          label: 'Has Audio Recording',
-        },
-        {
-          name: 'comments',
-          type: 'textarea',
-          label: 'Comments',
-        },
-      ],
+      },
     },
 
     // ─── Notes ───────────────────────────────────────────────────────
@@ -203,8 +183,7 @@ export const BirdChecklists: CollectionConfig = {
       type: 'textarea',
       label: 'Personal Notes',
       admin: {
-        description:
-          'Optional notes about this checklist (not overwritten on re-import).',
+        description: 'Optional notes about this checklist (not overwritten on re-import).',
       },
     },
 

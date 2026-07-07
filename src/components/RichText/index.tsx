@@ -3,6 +3,7 @@ import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import BarChartBlock from '@/blocks/BarChart/Component'
 import PieChartBlock from '@/blocks/PieChart/Component'
 import MapBlock from '@/blocks/MapBlock/Component'
+import BirdChecklistComponent from '@/blocks/BirdChecklist/Component'
 
 import {
   DefaultNodeTypes,
@@ -55,6 +56,13 @@ type MapBlockProps = {
   showHotspotsOnly?: boolean
 }
 
+type BirdChecklistBlockProps = {
+  checklist: { id: string } | string
+  showMap?: boolean
+  showFullSpeciesList?: boolean
+  disableInnerContainer?: boolean
+}
+
 // Import all your block converters
 import { HeadingConverter } from '@/blocks/converters/HeadingConverter'
 import { ParagraphConverter } from '@/blocks/converters/ParagraphConverter'
@@ -100,6 +108,7 @@ type NodeTypes =
       | BarChartBlockProps
       | PieChartBlockProps
       | MapBlockProps
+      | BirdChecklistBlockProps
     >
 
 type BarChartBlockProps = {
@@ -203,7 +212,6 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
     columns: ({ node }) => (
       <ColumnsConverter {...nullToUndefined(node.fields)} />
     ),
-    // 👇 FIX: explicit type annotation on `node`
     'quiz-embed': ({ node }: { node: SerializedBlockNode<QuizBlockProps> }) => {
       const quiz = node.fields.quiz
       console.log('Quiz converter - quiz data:', quiz)
@@ -252,6 +260,14 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         csvFile={node.fields.csvFile ?? null}
         csvData={node.fields.csvData ?? null}
         showHotspotsOnly={node.fields.showHotspotsOnly ?? true}
+      />
+    ),
+    'bird-checklist': ({ node }: { node: SerializedBlockNode<BirdChecklistBlockProps> }) => (
+      <BirdChecklistComponent
+        checklist={nullToUndefined(node.fields.checklist)}
+        showMap={node.fields.showMap ?? true}
+        showFullSpeciesList={node.fields.showFullSpeciesList ?? true}
+        disableInnerContainer={node.fields.disableInnerContainer ?? false}
       />
     ),
   },

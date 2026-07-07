@@ -5,215 +5,237 @@ import { useField, useForm } from '@payloadcms/ui'
 import type { TextFieldClientComponent } from 'payload'
 import { parseEbirdChecklistHtml } from '@/lib/ebird-parser'
 
+// ── Industrial-Strength CSV Parser ───────────────────────────────────
+
+function parseCsvToRows(csv: string): string[][] {
+  const rows: string[][] = []
+  let currentRow: string[] = []
+  let currentField = ''
+  let inQuotes = false
+
+  for (let i = 0; i < csv.length; i++) {
+    const char = csv[i]
+    const nextChar = csv[i + 1]
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentField += '"'
+        i++ 
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (char === ',' && !inQuotes) {
+      currentRow.push(currentField)
+      currentField = ''
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i++
+
+      currentRow.push(currentField)
+      rows.push(currentRow)
+      currentRow = []
+      currentField = ''
+    } else {
+      currentField += char
+    }
+  }
+
+  if (currentField || currentRow.length > 0) {
+    currentRow.push(currentField)
+    rows.push(currentRow)
+  }
+
+  return rows.map(row => row.map(field => field.trim().replace(/^"|"$/g, '')))
+}
+
+function parseSpeciesName(s: string): { commonName: string; scientificName: string | null } {
+  if (!s) return { commonName: '', scientificName: null }
+  const m = s.match(/^(.+?)\s*\(([^)]+)\)$/)
+  return m ? { commonName: m[1].trim(), scientificName: m[2].trim() } : { commonName: s.trim(), scientificName: null }
+}
+
+function parseCsvSpeciesList(csv: string) {
+  console.log('--- Starting CSV Species Import ---')
+  const rows = parseCsvToRows(csv.replace(/^\ufeff/, ''))
+
+  if (rows.length < 2) {
+    console.error('CSV contains insufficient data')
+    return []
+  }
+
+  const header = rows[0].map(h => h.toLowerCase())
+  const speciesIdx = header.findIndex(h => h === 'species')
+  const countIdx = header.findIndex(h => h === 'count')
+
+  if (speciesIdx === -1) {
+    console.error('Could not find "Species" column')
+    throw new Error('CSV must have a "Species" column')
+  }
+
+  const species: any[] = []
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i]
+    const sf = row[speciesIdx]
+
+    if (!sf) continue
+
+    const { commonName, scientificName } = parseSpeciesName(sf)
+    species.push({
+      commonName,
+      scientificName: scientificName ?? '',
+      count: countIdx !== -1 ? (row[countIdx] || '') : '',
+      comments: '',
+    })
+  }
+
+  console.log(`Successfully extracted ${species.length} species.`)
+  console.log('--- CSV Import Complete ---')
+  return species
+}
+
+// ── Component ─────────────────────────────────────────────────────────
+
 export const EbirdImportFieldClient: TextFieldClientComponent = (props) => {
   const { path } = props
   const { value, setValue } = useField<string>({ path: path! })
   const { dispatchFields } = useForm()
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [loading, setLoading] = useState(false)
+  const htmlInputRef = useRef<HTMLInputElement>(null)
+  const csvInputRef = useRef<HTMLInputElement>(null)
+
+  const [loading, setLoading] = useState<'html' | 'csv' | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [fileName, setFileName] = useState<string | null>(null)
+  const [success, setSuccess] = useState<'html' | 'csv' | false>(false)
 
-  const handleFile = useCallback(async (file: File) => {
-    if (!file) return
-
-    setLoading(true)
+  const handleHtmlFile = useCallback(async (file: File) => {
+    setLoading('html')
     setError(null)
     setSuccess(false)
-    setFileName(file.name)
-
     try {
       const text = await file.text()
       const data = parseEbirdChecklistHtml(text)
+      const setter = (name: string, val: any) => dispatchFields({ type: 'UPDATE', path: name, value: val })
 
-      if (!data.species || data.species.length === 0) {
-        setError(
-          'Could not find any species in the file. Make sure you saved the full page source of an eBird checklist.',
-        )
-        return
-      }
+      setter('ebirdChecklistId', data.checklistId || '')
+      setter('title', data.locationName ? `eBird Checklist — ${data.locationName} — ${data.date}` : `eBird Checklist — ${data.checklistId || ''}`)
+      setter('date', data.date || '')
+      setter('startTime', data.startTime || '')
+      setter('locationName', data.locationName || '')
+      setter('locationId', data.locationId || '')
+      setter('latitude', data.latitude)
+      setter('longitude', data.longitude)
+      setter('region', data.region || '')
+      setter('protocol', data.protocol || '')
+      setter('duration', data.duration)
+      setter('distance', data.distance)
+      setter('numberOfObservers', data.numberOfObservers)
+      setter('speciesCount', data.speciesCount)
+      setter('gpsTrack', data.gpsTrack || [])
+      setter('trackDistanceKm', data.trackDistanceKm)
+      setter('lastImportedAt', new Date().toISOString())
+      setter('rawImportData', data)
 
-      const setField = (fieldName: string, val: any) => {
-        dispatchFields({ type: 'UPDATE', path: fieldName, value: val })
-      }
-
-      setField('ebirdChecklistId', data.checklistId || '')
-      setField('title', data.locationName
-        ? `eBird Checklist — ${data.locationName} — ${data.date}`
-        : `eBird Checklist — ${data.checklistId || ''}`
-      )
-      setField('observer', data.observer || '')
-      setField('date', data.date || '')
-      setField('startTime', data.startTime || '')
-      setField('locationName', data.locationName || '')
-      setField('locationId', data.locationId || '')
-      setField('latitude', data.latitude)
-      setField('longitude', data.longitude)
-      setField('region', data.region || '')
-      setField('protocol', data.protocol || '')
-      setField('duration', data.duration)
-      setField('distance', data.distance)
-      setField('numberOfObservers', data.numberOfObservers)
-      setField('speciesCount', data.speciesCount)
-      setField('gpsTrack', data.gpsTrack || [])
-      setField('trackDistanceKm', data.trackDistanceKm)
-      setField('species', (data.species || []).map((s: any, i: number) => ({
-        id: `new-${i}`,
+      const rows = data.species.map((s: any) => ({
         commonName: s.commonName,
-        scientificName: s.scientificName,
+        scientificName: s.scientificName ?? '',
         count: s.count,
-        exotic: s.exotic,
-        hasPhotos: s.hasPhotos,
-        hasAudio: s.hasAudio,
         comments: s.comments,
-      })))
-      setField('lastImportedAt', new Date().toISOString())
-      setField('rawImportData', data)
-
-      setSuccess(true)
+      }))
+      setter('species', rows)
+      setSuccess('html')
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to parse the file.',
-      )
+      setError(err instanceof Error ? err.message : 'Failed to parse HTML file.')
     } finally {
-      setLoading(false)
+      setLoading(null)
     }
   }, [dispatchFields])
 
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      const file = e.dataTransfer.files?.[0]
-      if (file) handleFile(file)
-    },
-    [handleFile],
-  )
+  const handleCsvFile = useCallback(async (file: File) => {
+    setLoading('csv')
+    setError(null)
+    setSuccess(false)
+    try {
+      const text = await file.text()
+      const rows = parseCsvSpeciesList(text)
+      if (rows.length === 0) throw new Error('Could not find any species in the CSV.')
 
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (file) handleFile(file)
-    },
-    [handleFile],
-  )
+      dispatchFields({ type: 'UPDATE', path: 'species', value: rows })
+      dispatchFields({ type: 'UPDATE', path: 'speciesCount', value: rows.length })
+      dispatchFields({ type: 'UPDATE', path: 'lastImportedAt', value: new Date().toISOString() })
+      setSuccess('csv')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse CSV file.')
+    } finally {
+      setLoading(null)
+    }
+  }, [dispatchFields])
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-        padding: '0.75rem',
-        border: '1px solid var(--theme-elevation-150)',
-        borderRadius: '4px',
-        background: 'var(--theme-elevation-50)',
-      }}
-    >
-      <label
-        style={{
-          color: 'var(--theme-text)',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-        }}
-      >
-        Import from eBird Page Source File
-      </label>
+  const DropZone = ({ 
+    label, 
+    refElement, 
+    onFile, 
+    type, 
+    desc 
+  }: { 
+    label: string, 
+    refElement: React.RefObject<HTMLInputElement>, 
+    onFile: (f: File) => void, 
+    type: 'html' | 'csv', 
+    desc: string 
+  }) => {
+    const isSuccess = success === type
+    const isLoading = loading === type
 
-      {/* Drop zone / file picker */}
+    return (
       <div
-        onDrop={handleDrop}
+        onDrop={(e) => {
+          e.preventDefault()
+          const file = e.dataTransfer.files?.[0]
+          if (file) onFile(file)
+        }}
         onDragOver={(e) => e.preventDefault()}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => refElement.current?.click()}
         style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '0.5rem',
-          padding: '2rem 1rem',
-          border: `2px dashed ${
-            loading
-              ? 'var(--theme-elevation-200)'
-              : success
-                ? 'var(--theme-success-500)'
-                : 'var(--theme-elevation-300)'
-          }`,
+          padding: '1.5rem 1rem',
+          border: `2px dashed ${isLoading ? 'var(--theme-elevation-200)' : isSuccess ? 'var(--theme-success-500)' : 'var(--theme-elevation-300)'}`,
           borderRadius: '6px',
-          cursor: loading ? 'wait' : 'pointer',
-          background: loading
-            ? 'var(--theme-elevation-25)'
-            : success
-              ? 'var(--theme-success-50)'
-              : 'transparent',
+          cursor: isLoading ? 'wait' : 'pointer',
+          background: isLoading ? 'var(--theme-elevation-25)' : isSuccess ? 'var(--theme-success-50)' : 'transparent',
           transition: 'all 0.15s ease',
           textAlign: 'center',
         }}
       >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".html,.htm,.txt"
-          onChange={handleFileSelect}
-          style={{ display: 'none' }}
-        />
-
-        {loading ? (
-          <>
-            <span style={{ fontSize: '2rem' }}>⏳</span>
-            <span style={{ fontWeight: 500, color: 'var(--theme-text)' }}>
-              Parsing file...
-            </span>
-          </>
-        ) : success ? (
-          <>
-            <span style={{ fontSize: '2rem' }}>✅</span>
-            <span style={{ fontWeight: 500, color: 'var(--theme-success-700)' }}>
-              {fileName ? `${fileName} — imported!` : 'Imported successfully!'}
-            </span>
-            <span style={{ fontSize: '0.8rem', color: 'var(--theme-elevation-500)' }}>
-              Click or drop another file to re-import
-            </span>
-          </>
-        ) : (
-          <>
-            <span style={{ fontSize: '2rem' }}>📄</span>
-            <span style={{ fontWeight: 500, color: 'var(--theme-text)' }}>
-              Drop page source file here
-            </span>
-            <span style={{ fontSize: '0.8rem', color: 'var(--theme-elevation-500)' }}>
-              or click to browse &mdash; .html .htm .txt
-            </span>
-          </>
-        )}
+        <span style={{ fontSize: '1.5rem' }}>{isLoading ? '⏳' : isSuccess ? '✅' : (type === 'html' ? '🌐' : '📊')}</span>
+        <span style={{ fontWeight: 500, color: isSuccess ? 'var(--theme-success-700)' : 'var(--theme-text)' }}>
+          {isLoading ? `Parsing ${type}...` : isSuccess ? `${label} imported!` : `Upload ${label}`}
+        </span>
+        <span style={{ fontSize: '0.75rem', color: 'var(--theme-elevation-500)' }}>{desc}</span>
       </div>
+    )
+  }
 
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0.75rem', border: '1px solid var(--theme-elevation-150)', borderRadius: '4px', background: 'var(--theme-elevation-50)' }}>
+      <label style={{ color: 'var(--theme-text)', fontSize: '0.875rem', fontWeight: 600 }}>Import from eBird</label>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <>
+          <input ref={htmlInputRef} type="file" accept=".html,.htm,.txt" onChange={(e) => e.target.files?.[0] && handleHtmlFile(e.target.files[0])} style={{ display: 'none' }} />
+          <DropZone label="Page Source" refElement={htmlInputRef} onFile={handleHtmlFile} type="html" desc="For GPS tracks & metadata (.html)" />
+        </>
+        <>
+          <input ref={csvInputRef} type="file" accept=".csv" onChange={(e) => e.target.files?.[0] && handleCsvFile(e.target.files[0])} style={{ display: 'none' }} />
+          <DropZone label="Species List" refElement={csvInputRef} onFile={handleCsvFile} type="csv" desc="For bird counts (.csv)" />
+        </>
+      </div>
       {error && (
-        <div
-          style={{
-            padding: '0.5rem 0.75rem',
-            background: 'var(--theme-error-100)',
-            color: 'var(--theme-error-700)',
-            borderRadius: '4px',
-            fontSize: '0.8rem',
-          }}
-        >
+        <div style={{ padding: '0.5rem 0.75rem', background: 'var(--theme-error-100)', color: 'var(--theme-error-700)', borderRadius: '4px', fontSize: '0.8rem' }}>
           ⚠ {error}
         </div>
       )}
-
-      <p
-        style={{
-          margin: 0,
-          fontSize: '0.75rem',
-          color: 'var(--theme-elevation-500)',
-        }}
-      >
-        1. Go to your eBird checklist page &middot;{' '}
-        2. Right-click and <strong>Save Page As...</strong> (Webpage, HTML only) &middot;{' '}
-        3. Drop the saved file here to auto-fill all fields
-      </p>
     </div>
   )
 }

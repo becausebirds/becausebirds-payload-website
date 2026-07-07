@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { BirdChecklistBlock } from '@/blocks/BirdChecklist'
 
 import {
   BlocksFeature,
@@ -146,6 +147,7 @@ export const Pages: CollectionConfig<'pages'> = {
                         // Layout
                         Columns,
                         QuizBlock,
+                        BirdChecklistBlock,
                         Group,
                         Details,
                         Pullquote,
@@ -186,9 +188,7 @@ export const Pages: CollectionConfig<'pages'> = {
             {
               name: 'categories',
               type: 'relationship',
-              admin: {
-                position: 'sidebar',
-              },
+            
               hasMany: true,
               relationTo: 'categories',
             },
