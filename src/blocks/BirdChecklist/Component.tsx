@@ -276,7 +276,7 @@ export default async function BirdChecklistComponent({
           </div>
         </div>
 
-        <div className="bg-gray-200 px-5 pt-4 pb-2 md:p-6">
+        <div className="bg-gray-200 dark:bg-gray-800 px-5 pt-4 pb-2 md:p-6">
           {showMap && trackPoints.length > 1 && (
             <div className="mb-6 overflow-hidden rounded-lg border-2 border-black bg-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <ChecklistMapClient trackPoints={trackPoints} />
@@ -306,7 +306,7 @@ export default async function BirdChecklistComponent({
           )}
 
           {c.notes && (
-            <div className="mt-6 rounded-lg border-2 border-black bg-amber-100 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="mt-6 rounded-lg border-2 border-black bg-amber-100 dark:bg-taupe-400 p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <span className="mb-2 flex items-center gap-2 text-xs text-black uppercase tracking-wider">
                 <Pencil className="h-4 w-4" />
                 Notes
