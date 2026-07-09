@@ -1,13 +1,30 @@
 import type { CollectionConfig } from 'payload'
+import { generatePreviewPath } from '../utilities/generatePreviewPath'
 
 export const BirdChecklists: CollectionConfig = {
   slug: 'bird-checklists',
-  admin: {
-    useAsTitle: 'title',
-    defaultColumns: ['title', 'date', 'locationName', 'speciesCount', 'updatedAt'],
-    group: 'Birding',
-    description: 'eBird checklists imported and managed in your CMS',
+admin: {
+  useAsTitle: 'title',
+  defaultColumns: ['title', 'date', 'locationName', 'speciesCount', 'updatedAt'],
+  group: 'Birding',
+  description: 'Bird checklists created and managed in your CMS',
+
+  livePreview: {
+    url: ({ data, req }) =>
+      generatePreviewPath({
+        slug: data?.slug,
+        collection: 'bird-checklists',
+        req,
+      }),
   },
+
+  preview: (data, { req }) =>
+    generatePreviewPath({
+      slug: data?.slug as string,
+      collection: 'bird-checklists',
+      req,
+    }),
+},
   access: {
     read: () => true,
   },
@@ -99,10 +116,21 @@ export const BirdChecklists: CollectionConfig = {
       admin: { position: 'sidebar', width: '50%' },
     },
     {
+      name: 'county',
+      type: 'text',
+      label: 'County',
+    },
+    {
+      name: 'state',
+      type: 'text',
+      label: 'State/Province',
+    },
+    {
       name: 'region',
       type: 'text',
       label: 'Region',
     },
+    
 
     // ─── Protocol / Effort ───────────────────────────────────────────
     {

@@ -67,12 +67,13 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    pages: Page;
     posts: Post;
+    pages: Page;
     quizzes: Quiz;
     media: Media;
     comments: Comment;
     visitors: Visitor;
+    'bird-checklists': BirdChecklist;
     categories: Category;
     tags: Tag;
     products: Product;
@@ -95,12 +96,13 @@ export interface Config {
     };
   };
   collectionsSelect: {
-    pages: PagesSelect<false> | PagesSelect<true>;
     posts: PostsSelect<false> | PostsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
     visitors: VisitorsSelect<false> | VisitorsSelect<true>;
+    'bird-checklists': BirdChecklistsSelect<false> | BirdChecklistsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
@@ -165,9 +167,9 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "posts".
  */
-export interface Page {
+export interface Post {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
@@ -186,7 +188,7 @@ export interface Page {
     };
     [k: string]: unknown;
   };
-  relatedPosts?: (number | Page)[] | null;
+  relatedPosts?: (number | Post)[] | null;
   categories?: (number | Category)[] | null;
   excerpt?: string | null;
   tags?: (number | Tag)[] | null;
@@ -239,6 +241,41 @@ export interface Page {
         | DetailsBlock
         | PullquoteBlock
         | ButtonsBlock
+        | {
+            title: string;
+            description?: string | null;
+            caption?: string | null;
+            chartData: {
+              label: string;
+              value1: number;
+              value2?: number | null;
+              id?: string | null;
+            }[];
+            series1Label: string;
+            series1Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
+            series2Label?: string | null;
+            series2Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'bar-chart';
+          }
+        | {
+            title: string;
+            description?: string | null;
+            mapType?: ('dots' | 'heatmap') | null;
+            /**
+             * Upload your MyEBirdData.csv export. Only CSV files are supported.
+             */
+            csvFile?: (number | null) | Media;
+            /**
+             * Paste CSV data here instead of uploading a file (good for small test datasets). If a file is uploaded above, this is ignored.
+             */
+            csvData?: string | null;
+            showHotspotsOnly?: boolean | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'map';
+          }
       )[]
     | null;
   updatedAt: string;
@@ -836,9 +873,9 @@ export interface ButtonsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
+ * via the `definition` "pages".
  */
-export interface Post {
+export interface Page {
   id: number;
   title: string;
   heroImage?: (number | null) | Media;
@@ -857,7 +894,7 @@ export interface Post {
     };
     [k: string]: unknown;
   };
-  relatedPosts?: (number | Post)[] | null;
+  relatedPosts?: (number | Page)[] | null;
   categories?: (number | Category)[] | null;
   excerpt?: string | null;
   tags?: (number | Tag)[] | null;
@@ -910,41 +947,6 @@ export interface Post {
         | DetailsBlock
         | PullquoteBlock
         | ButtonsBlock
-        | {
-            title: string;
-            description?: string | null;
-            caption?: string | null;
-            chartData: {
-              label: string;
-              value1: number;
-              value2?: number | null;
-              id?: string | null;
-            }[];
-            series1Label: string;
-            series1Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
-            series2Label?: string | null;
-            series2Color?: ('chart-1' | 'chart-2' | 'chart-3' | 'chart-4' | 'chart-5') | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'bar-chart';
-          }
-        | {
-            title: string;
-            description?: string | null;
-            mapType?: ('dots' | 'heatmap') | null;
-            /**
-             * Upload your MyEBirdData.csv export. Only CSV files are supported.
-             */
-            csvFile?: (number | null) | Media;
-            /**
-             * Paste CSV data here instead of uploading a file (good for small test datasets). If a file is uploaded above, this is ignored.
-             */
-            csvData?: string | null;
-            showHotspotsOnly?: boolean | null;
-            id?: string | null;
-            blockName?: string | null;
-            blockType: 'map';
-          }
       )[]
     | null;
   updatedAt: string;
@@ -978,6 +980,77 @@ export interface Visitor {
   favoriteBird: string;
   message?: string | null;
   date: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Bird checklists created and managed in your CMS
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bird-checklists".
+ */
+export interface BirdChecklist {
+  id: number;
+  importField?: string | null;
+  ebirdChecklistId?: string | null;
+  /**
+   * Public URL slug. Automatically generated from eBird checklist ID.
+   */
+  slug?: string | null;
+  title?: string | null;
+  date?: string | null;
+  startTime?: string | null;
+  locationName?: string | null;
+  locationId?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  county?: string | null;
+  state?: string | null;
+  region?: string | null;
+  protocol?: ('Traveling' | 'Stationary' | 'Incidental' | 'Historical' | 'Area') | null;
+  duration?: number | null;
+  distance?: number | null;
+  numberOfObservers?: number | null;
+  speciesCount?: number | null;
+  /**
+   * Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.
+   */
+  gpsTrack?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  trackDistanceKm?: number | null;
+  /**
+   * Array of species: [{ commonName, scientificName, count, comments }, ...]. Imported from eBird CSV.
+   */
+  species?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Optional notes about this checklist (not overwritten on re-import).
+   */
+  notes?: string | null;
+  lastImportedAt?: string | null;
+  rawImportData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1041,6 +1114,7 @@ export interface Micropost {
   images?:
     | {
         image: number | Media;
+        alt?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1420,12 +1494,12 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'pages';
-        value: number | Page;
-      } | null)
-    | ({
         relationTo: 'posts';
         value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'quizzes';
@@ -1442,6 +1516,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'visitors';
         value: number | Visitor;
+      } | null)
+    | ({
+        relationTo: 'bird-checklists';
+        value: number | BirdChecklist;
       } | null)
     | ({
         relationTo: 'categories';
@@ -1527,9 +1605,9 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
+ * via the `definition` "posts_select".
  */
-export interface PagesSelect<T extends boolean = true> {
+export interface PostsSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
   content?: T;
@@ -1584,6 +1662,39 @@ export interface PagesSelect<T extends boolean = true> {
         details?: T | DetailsBlockSelect<T>;
         pullquote?: T | PullquoteBlockSelect<T>;
         buttons?: T | ButtonsBlockSelect<T>;
+        'bar-chart'?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              caption?: T;
+              chartData?:
+                | T
+                | {
+                    label?: T;
+                    value1?: T;
+                    value2?: T;
+                    id?: T;
+                  };
+              series1Label?: T;
+              series1Color?: T;
+              series2Label?: T;
+              series2Color?: T;
+              id?: T;
+              blockName?: T;
+            };
+        map?:
+          | T
+          | {
+              title?: T;
+              description?: T;
+              mapType?: T;
+              csvFile?: T;
+              csvData?: T;
+              showHotspotsOnly?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -1808,9 +1919,9 @@ export interface ButtonsBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
+ * via the `definition` "pages_select".
  */
-export interface PostsSelect<T extends boolean = true> {
+export interface PagesSelect<T extends boolean = true> {
   title?: T;
   heroImage?: T;
   content?: T;
@@ -1865,39 +1976,6 @@ export interface PostsSelect<T extends boolean = true> {
         details?: T | DetailsBlockSelect<T>;
         pullquote?: T | PullquoteBlockSelect<T>;
         buttons?: T | ButtonsBlockSelect<T>;
-        'bar-chart'?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              caption?: T;
-              chartData?:
-                | T
-                | {
-                    label?: T;
-                    value1?: T;
-                    value2?: T;
-                    id?: T;
-                  };
-              series1Label?: T;
-              series1Color?: T;
-              series2Label?: T;
-              series2Color?: T;
-              id?: T;
-              blockName?: T;
-            };
-        map?:
-          | T
-          | {
-              title?: T;
-              description?: T;
-              mapType?: T;
-              csvFile?: T;
-              csvData?: T;
-              showHotspotsOnly?: T;
-              id?: T;
-              blockName?: T;
-            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -2062,6 +2140,38 @@ export interface VisitorsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bird-checklists_select".
+ */
+export interface BirdChecklistsSelect<T extends boolean = true> {
+  importField?: T;
+  ebirdChecklistId?: T;
+  slug?: T;
+  title?: T;
+  date?: T;
+  startTime?: T;
+  locationName?: T;
+  locationId?: T;
+  latitude?: T;
+  longitude?: T;
+  county?: T;
+  state?: T;
+  region?: T;
+  protocol?: T;
+  duration?: T;
+  distance?: T;
+  numberOfObservers?: T;
+  speciesCount?: T;
+  gpsTrack?: T;
+  trackDistanceKm?: T;
+  species?: T;
+  notes?: T;
+  lastImportedAt?: T;
+  rawImportData?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
@@ -2157,6 +2267,7 @@ export interface MicropostsSelect<T extends boolean = true> {
     | T
     | {
         image?: T;
+        alt?: T;
         id?: T;
       };
   syndicatedTo?:
@@ -2575,6 +2686,20 @@ export interface TaskSchedulePublish {
     user?: (number | null) | User;
   };
   output?: unknown;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "BirdChecklistBlock".
+ */
+export interface BirdChecklistBlock {
+  checklist: number | BirdChecklist;
+  showMap?: boolean | null;
+  showFullSpeciesList?: boolean | null;
+  disableInnerContainer?: boolean | null;
+  minimized?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'bird-checklist';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
