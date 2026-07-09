@@ -3,31 +3,44 @@ import { generatePreviewPath } from '../utilities/generatePreviewPath'
 
 export const BirdChecklists: CollectionConfig = {
   slug: 'bird-checklists',
-admin: {
-  useAsTitle: 'title',
-  defaultColumns: ['title', 'date', 'locationName', 'speciesCount', 'updatedAt'],
-  group: 'Birding',
-  description: 'Bird checklists created and managed in your CMS',
 
-  livePreview: {
-    url: ({ data, req }) =>
-      generatePreviewPath({
-        slug: data?.slug,
-        collection: 'bird-checklists',
-        req,
-      }),
+  admin: {
+    useAsTitle: 'title',
+    defaultColumns: ['title', 'date', 'locationName', 'speciesCount', 'updatedAt'],
+    group: 'Birding',
+    description: 'Bird checklists created and managed in your CMS',
+
+    livePreview: {
+      url: ({ data, req }) => {
+        if (data?.private) {
+          return ''
+        }
+
+        return generatePreviewPath({
+          slug: data?.slug,
+          collection: 'bird-checklists',
+          req,
+        })
+      },
+    },
+
+    preview: (data, { req }) => {
+      if (data?.private) {
+        return ''
+      }
+
+      return generatePreviewPath({
+  slug: data?.slug as string | null | undefined,
+  collection: 'bird-checklists',
+  req,
+})
+    },
   },
 
-  preview: (data, { req }) =>
-    generatePreviewPath({
-      slug: data?.slug as string,
-      collection: 'bird-checklists',
-      req,
-    }),
-},
   access: {
     read: () => true,
   },
+
   fields: [
     // ─── File Upload Import ──────────────────────────────────────────
     {
@@ -43,12 +56,26 @@ admin: {
 
     // ─── Checklist Identifiers ───────────────────────────────────────
     {
+      name: 'private',
+      type: 'checkbox',
+      label: 'Private',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Private checklists will not have a public page.',
+      },
+    },
+
+    {
       name: 'ebirdChecklistId',
       type: 'text',
       label: 'eBird Checklist ID',
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+      },
       index: true,
     },
+
     {
       name: 'slug',
       type: 'text',
@@ -62,6 +89,11 @@ admin: {
       hooks: {
         beforeValidate: [
           ({ data }) => {
+            // Private checklists do not receive public URLs
+            if (data?.private) {
+              return null
+            }
+
             if (data?.ebirdChecklistId && !data.slug) {
               return data.ebirdChecklistId
             }
@@ -71,6 +103,7 @@ admin: {
         ],
       },
     },
+
     {
       name: 'title',
       type: 'text',
@@ -82,13 +115,22 @@ admin: {
       name: 'date',
       type: 'date',
       label: 'Date',
-      admin: { position: 'sidebar', date: { displayFormat: 'yyyy-MM-dd' } },
+      admin: {
+        position: 'sidebar',
+        date: {
+          displayFormat: 'yyyy-MM-dd',
+        },
+      },
     },
+
     {
       name: 'startTime',
       type: 'text',
       label: 'Start Time',
-      admin: { position: 'sidebar', width: '50%' },
+      admin: {
+        position: 'sidebar',
+        width: '50%',
+      },
     },
 
     // ─── Location ────────────────────────────────────────────────────
@@ -97,47 +139,61 @@ admin: {
       type: 'text',
       label: 'Location',
     },
+
     {
       name: 'locationId',
       type: 'text',
       label: 'eBird Location ID',
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+      },
     },
+
     {
       name: 'latitude',
       type: 'number',
       label: 'Latitude',
-      admin: { position: 'sidebar', width: '50%' },
+      admin: {
+        position: 'sidebar',
+        width: '50%',
+      },
     },
+
     {
       name: 'longitude',
       type: 'number',
       label: 'Longitude',
-      admin: { position: 'sidebar', width: '50%' },
+      admin: {
+        position: 'sidebar',
+        width: '50%',
+      },
     },
+
     {
       name: 'county',
       type: 'text',
       label: 'County',
     },
+
     {
       name: 'state',
       type: 'text',
       label: 'State/Province',
     },
+
     {
       name: 'region',
       type: 'text',
       label: 'Region',
     },
-    
-
-    // ─── Protocol / Effort ───────────────────────────────────────────
+        // ─── Protocol / Effort ───────────────────────────────────────────
     {
       name: 'protocol',
       type: 'select',
       label: 'Protocol',
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+      },
       options: [
         { label: 'Traveling', value: 'Traveling' },
         { label: 'Stationary', value: 'Stationary' },
@@ -146,29 +202,43 @@ admin: {
         { label: 'Area', value: 'Area' },
       ],
     },
+
     {
       name: 'duration',
       type: 'number',
       label: 'Duration (minutes)',
-      admin: { position: 'sidebar', width: '50%' },
+      admin: {
+        position: 'sidebar',
+        width: '50%',
+      },
     },
+
     {
       name: 'distance',
       type: 'number',
       label: 'Distance (miles)',
-      admin: { position: 'sidebar', width: '50%' },
+      admin: {
+        position: 'sidebar',
+        width: '50%',
+      },
     },
+
     {
       name: 'numberOfObservers',
       type: 'number',
       label: 'Number of Observers',
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+      },
     },
+
     {
       name: 'speciesCount',
       type: 'number',
       label: 'Total Species',
-      admin: { position: 'sidebar' },
+      admin: {
+        position: 'sidebar',
+      },
     },
 
     // ─── GPS Track ───────────────────────────────────────────────────
@@ -177,13 +247,15 @@ admin: {
       type: 'json',
       label: 'GPS Track Data',
       admin: {
-  description: 'Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.',
-  style: {
-    height: '300px',
-    overflow: 'auto',
-  },
-},
+        description:
+          'Array of track points: [{ lat, lng, timestamp? }, ...]. GeoJSON-compatible.',
+        style: {
+          height: '300px',
+          overflow: 'auto',
+        },
+      },
     },
+
     {
       name: 'trackDistanceKm',
       type: 'number',
@@ -196,12 +268,13 @@ admin: {
       type: 'json',
       label: 'Bird Species Observed',
       admin: {
-  description: 'Array of species: [{ commonName, scientificName, count, comments }, ...]. Imported from eBird CSV.',
-  style: {
-    height: '400px',
-    overflow: 'auto',
-  },
-},
+        description:
+          'Array of species: [{ commonName, scientificName, count, comments }, ...]. Imported from eBird CSV.',
+        style: {
+          height: '400px',
+          overflow: 'auto',
+        },
+      },
     },
 
     // ─── Notes ───────────────────────────────────────────────────────
@@ -210,7 +283,8 @@ admin: {
       type: 'textarea',
       label: 'Personal Notes',
       admin: {
-        description: 'Optional notes about this checklist (not overwritten on re-import).',
+        description:
+          'Optional notes about this checklist (not overwritten on re-import).',
       },
     },
 
@@ -222,14 +296,20 @@ admin: {
       admin: {
         position: 'sidebar',
         readOnly: true,
-        date: { displayFormat: 'yyyy-MM-dd HH:mm' },
+        date: {
+          displayFormat: 'yyyy-MM-dd HH:mm',
+        },
       },
     },
+
     {
       name: 'rawImportData',
       type: 'json',
       label: 'Raw Import Data',
-      admin: { readOnly: true, hidden: true },
+      admin: {
+        readOnly: true,
+        hidden: true,
+      },
     },
   ],
 }

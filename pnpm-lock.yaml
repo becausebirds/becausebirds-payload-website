@@ -24,8 +24,8 @@ importers:
         specifier: 3.84.1
         version: 3.84.1(kysely@0.29.2)(payload@3.84.1(graphql@16.14.0)(typescript@5.7.3))
       '@payloadcms/email-nodemailer':
-        specifier: ^3.85.2
-        version: 3.85.2(payload@3.84.1(graphql@16.14.0)(typescript@5.7.3))
+        specifier: 3.84.1
+        version: 3.84.1(payload@3.84.1(graphql@16.14.0)(typescript@5.7.3))
       '@payloadcms/live-preview-react':
         specifier: 3.84.1
         version: 3.84.1(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1688,11 +1688,11 @@ packages:
     peerDependencies:
       payload: 3.84.1
 
-  '@payloadcms/email-nodemailer@3.85.2':
-    resolution: {integrity: sha512-Xw5qOgWeG8JjH8b6vARkkAZOnjKDBpDzn8C8JRZpNIRz4Bhctn/TtHQdKFUO9EOMkCwN7nK7egxqhORJFDBMSA==}
+  '@payloadcms/email-nodemailer@3.84.1':
+    resolution: {integrity: sha512-pTXl9dfIoXLpdI2BbK0h64Y9I3RLGOG1QkWokSdCDWr+qkOiRkbO7W8dOEtK6Nh8eIwNOMJLA7Og3x4EbGMPxg==}
     engines: {node: ^18.20.2 || >=20.9.0}
     peerDependencies:
-      payload: 3.85.2
+      payload: 3.84.1
 
   '@payloadcms/graphql@3.84.1':
     resolution: {integrity: sha512-pVJdgihEEexpK+kANSozAMf3PQfd6p51/G3cK+rkPzSjghf7X+cQQ8NFOmAMDTpijM5YaowQYTuEje3KaLVXuQ==}
@@ -5265,6 +5265,10 @@ packages:
     peerDependencies:
       nodemailer: ^7.0.0 || ^8.0.0
 
+  nodemailer@7.0.12:
+    resolution: {integrity: sha512-H+rnK5bX2Pi/6ms3sN4/jRQvYSMltV6vqup/0SFOrxYYY/qoNvhXPlYq3e+Pm9RFJRwrMGbMIwi81M4dxpomhA==}
+    engines: {node: '>=6.0.0'}
+
   nodemailer@9.0.3:
     resolution: {integrity: sha512-n+YP+NKwR5zRWa60k3GiQ6Q3B4KXCoAw40dAKeCtYn020iNN74aWK2liXIC3ZEATeGql7we3tE3t8QwhY0eskw==}
     engines: {node: '>=6.0.0'}
@@ -7843,9 +7847,9 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@payloadcms/email-nodemailer@3.85.2(payload@3.84.1(graphql@16.14.0)(typescript@5.7.3))':
+  '@payloadcms/email-nodemailer@3.84.1(payload@3.84.1(graphql@16.14.0)(typescript@5.7.3))':
     dependencies:
-      nodemailer: 9.0.3
+      nodemailer: 7.0.12
       payload: 3.84.1(graphql@16.14.0)(typescript@5.7.3)
 
   '@payloadcms/graphql@3.84.1(graphql@16.14.0)(payload@3.84.1(graphql@16.14.0)(typescript@5.7.3))(typescript@5.7.3)':
@@ -11787,6 +11791,8 @@ snapshots:
     transitivePeerDependencies:
       - debug
       - supports-color
+
+  nodemailer@7.0.12: {}
 
   nodemailer@9.0.3: {}
 

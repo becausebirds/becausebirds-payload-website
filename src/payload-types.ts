@@ -992,6 +992,10 @@ export interface Visitor {
 export interface BirdChecklist {
   id: number;
   importField?: string | null;
+  /**
+   * Private checklists will not have a public page.
+   */
+  private?: boolean | null;
   ebirdChecklistId?: string | null;
   /**
    * Public URL slug. Automatically generated from eBird checklist ID.
@@ -2144,6 +2148,7 @@ export interface VisitorsSelect<T extends boolean = true> {
  */
 export interface BirdChecklistsSelect<T extends boolean = true> {
   importField?: T;
+  private?: T;
   ebirdChecklistId?: T;
   slug?: T;
   title?: T;
