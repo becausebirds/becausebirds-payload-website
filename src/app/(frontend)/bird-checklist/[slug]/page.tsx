@@ -93,6 +93,6 @@ export async function generateMetadata({
     title: `Jeff's Bird Checklist: ${checklist.locationName} | ${checklist.date.split('T')[0]}`,
     description: `A bird checklist by Jeff Mann from ${
       checklist.locationName ?? 'unknown location'
-    } with ${checklist.speciesCount ?? 0} species created on ${checklist.date.split('T')[0]}.`,
+    } in ${checklist.region} with ${checklist.speciesCount ?? 0} species created on ${checklist.date.split('T')[0]}.`,
   }
 }
