@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Maximize2,
   Globe,
+  Link,
 } from 'lucide-react'
 import ChecklistMapClient from './ChecklistMapClient'
 import { SpeciesListClient } from './SpeciesListClient'
@@ -317,12 +318,21 @@ export default async function BirdChecklistComponent({
 
           <div className="mt-2 text-center">
             <a
+              href={`/bird-checklist/${c.ebirdChecklistId}`}
+              target=""
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs underline font-bold text-foreground"
+            >
+            Permalink
+            <Link className="h-3 w-3" /> 
+            </a><span className="px-3">|</span>
+            <a
               href={`https://ebird.org/checklist/${c.ebirdChecklistId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-bold text-foreground"
+              className="inline-flex items-center gap-1.5 text-xs underline font-bold text-foreground"
             >
-              eBird Checklist
+              eBird
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
