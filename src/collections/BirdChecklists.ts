@@ -33,6 +33,28 @@ export const BirdChecklists: CollectionConfig = {
       index: true,
     },
     {
+      name: 'slug',
+      type: 'text',
+      label: 'Slug',
+      index: true,
+      admin: {
+        position: 'sidebar',
+        description: 'Public URL slug. Automatically generated from eBird checklist ID.',
+        readOnly: true,
+      },
+      hooks: {
+        beforeValidate: [
+          ({ data }) => {
+            if (data?.ebirdChecklistId && !data.slug) {
+              return data.ebirdChecklistId
+            }
+
+            return data?.slug
+          },
+        ],
+      },
+    },
+    {
       name: 'title',
       type: 'text',
       label: 'Title',
