@@ -59,6 +59,8 @@ export default async function BirdChecklistPage({
         <NavBar />
 
         <main className="pt-20 pb-16 container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-4">Bird Checklist</h2>
+          <span className='text-md'>Like a lot of birders, I create lists of the birds I see and hear. These lists often contain a GPS track of where I walked. This is one of those bird checklists.</span>
           <BirdChecklistComponent
             checklist={{
               id: checklist.id,
