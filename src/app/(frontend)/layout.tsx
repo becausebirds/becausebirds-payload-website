@@ -2,6 +2,8 @@ import { cn } from '@/utilities/ui'
 import { Public_Sans } from 'next/font/google'
 import type { Metadata } from 'next'
 import PlausibleProvider from 'next-plausible'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 
 const publicSans = Public_Sans({
   subsets: ['latin'],

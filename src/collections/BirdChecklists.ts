@@ -147,6 +147,7 @@ export const BirdChecklists: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
+      index:true,
     },
 
     {
@@ -173,18 +174,21 @@ export const BirdChecklists: CollectionConfig = {
       name: 'county',
       type: 'text',
       label: 'County',
+      index:true,
     },
 
     {
       name: 'state',
       type: 'text',
       label: 'State/Province',
+      index:true,
     },
 
     {
       name: 'region',
       type: 'text',
       label: 'Region',
+      index:true,
     },
         // ─── Protocol / Effort ───────────────────────────────────────────
     {
