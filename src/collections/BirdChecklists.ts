@@ -281,6 +281,47 @@ export const BirdChecklists: CollectionConfig = {
       },
     },
 
+// ─── Bird Species (Relationships) ───────────────────────────────
+{
+  name: 'speciesRecords',
+  type: 'array',
+  label: 'Bird Species (Linked)',
+  admin: {
+    description:
+      'Bird species linked to the Birds taxonomy collection. Replace the JSON field once migration is complete.',
+  },
+  fields: [
+    {
+      name: 'bird',
+      type: 'relationship',
+      relationTo: 'birds',
+      required: true,
+      label: 'Species',
+      admin: {
+        description: 'Linked bird species from the Birds collection.',
+      },
+    },
+    {
+      name: 'count',
+      type: 'text',
+      label: 'Count',
+      admin: {
+        width: '25%',
+        description: '"X" for eBird count, or text like "1", "12", "50+".',
+      },
+    },
+    {
+      name: 'comments',
+      type: 'text',
+      label: 'Comments',
+      admin: {
+        width: '50%',
+      },
+    },
+  ],
+},
+
+
     // ─── Notes ───────────────────────────────────────────────────────
     {
       name: 'notes',

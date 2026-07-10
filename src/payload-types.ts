@@ -71,9 +71,11 @@ export interface Config {
     pages: Page;
     quizzes: Quiz;
     media: Media;
+    'bird-media': BirdMedia;
     comments: Comment;
     visitors: Visitor;
     'bird-checklists': BirdChecklist;
+    birds: Bird;
     categories: Category;
     tags: Tag;
     products: Product;
@@ -100,9 +102,11 @@ export interface Config {
     pages: PagesSelect<false> | PagesSelect<true>;
     quizzes: QuizzesSelect<false> | QuizzesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'bird-media': BirdMediaSelect<false> | BirdMediaSelect<true>;
     comments: CommentsSelect<false> | CommentsSelect<true>;
     visitors: VisitorsSelect<false> | VisitorsSelect<true>;
     'bird-checklists': BirdChecklistsSelect<false> | BirdChecklistsSelect<true>;
+    birds: BirdsSelect<false> | BirdsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
@@ -954,34 +958,60 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Bird media — photos, audio recordings, and videos
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "comments".
+ * via the `definition` "bird-media".
  */
-export interface Comment {
+export interface BirdMedia {
   id: number;
-  author?: string | null;
-  email?: string | null;
-  date?: string | null;
-  content?: string | null;
-  replyPost?: (number | null) | Post;
-  replyComment?: (number | null) | Comment;
-  isApproved?: boolean | null;
+  /**
+   * Select the bird checklist this media is from.
+   */
+  checklistId?: (number | null) | BirdChecklist;
+  /**
+   * One or more bird species featured in this media.
+   */
+  species?: (number | Bird)[] | null;
+  /**
+   * Tag the types of sounds present in this audio recording.
+   */
+  soundTypeTags?: {
+    song?: boolean | null;
+    call?: boolean | null;
+    flightSong?: boolean | null;
+    flightCall?: boolean | null;
+    mechanicalSound?: boolean | null;
+    dawnSong?: boolean | null;
+    duet?: boolean | null;
+  };
+  /**
+   * Quality rating out of 5 stars.
+   */
+  rating?: number | null;
+  /**
+   * Recording equipment used (for audio clips).
+   */
+  equipment?: {
+    recorder?: string | null;
+    microphone?: string | null;
+    accessories?: string | null;
+  };
+  /**
+   * Any additional notes about this media file.
+   */
+  mediaNotes?: string | null;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "visitors".
- */
-export interface Visitor {
-  id: number;
-  name: string;
-  location: string;
-  favoriteBird: string;
-  message?: string | null;
-  date: string;
-  updatedAt: string;
-  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * Bird checklists created and managed in your CMS
@@ -1042,6 +1072,23 @@ export interface BirdChecklist {
     | boolean
     | null;
   /**
+   * Bird species linked to the Birds taxonomy collection. Replace the JSON field once migration is complete.
+   */
+  speciesRecords?:
+    | {
+        /**
+         * Linked bird species from the Birds collection.
+         */
+        bird: number | Bird;
+        /**
+         * "X" for eBird count, or text like "1", "12", "50+".
+         */
+        count?: string | null;
+        comments?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Optional notes about this checklist (not overwritten on re-import).
    */
   notes?: string | null;
@@ -1055,6 +1102,88 @@ export interface BirdChecklist {
     | number
     | boolean
     | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Bird species from the eBird/Clements taxonomy
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "birds".
+ */
+export interface Bird {
+  id: number;
+  /**
+   * 6-letter eBird code, e.g. "cangoo" for Canada Goose.
+   */
+  speciesCode: string;
+  sciName: string;
+  comName: string;
+  order?: string | null;
+  familyComName?: string | null;
+  familySciName?: string | null;
+  /**
+   * Lumped/split birds keep their entry for historical pages.
+   */
+  taxonomicStatus: 'current' | 'lumped' | 'split' | 'deprecated';
+  /**
+   * The single species this was lumped into. Old page stays live as a historical record.
+   */
+  lumpedInto?: (number | null) | Bird;
+  lumpedFrom?: (number | Bird)[] | null;
+  /**
+   * The species this was split into. Original stays live as a historical record.
+   */
+  splitInto?: (number | Bird)[] | null;
+  splitFrom?: (number | null) | Bird;
+  /**
+   * Auto-generated from common name. Pages at /birds/{slug}.
+   */
+  slug?: string | null;
+  /**
+   * Optional notes for the public species page.
+   */
+  description?: string | null;
+  lastSyncedAt?: string | null;
+  rawTaxonomyData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  author?: string | null;
+  email?: string | null;
+  date?: string | null;
+  content?: string | null;
+  replyPost?: (number | null) | Post;
+  replyComment?: (number | null) | Comment;
+  isApproved?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visitors".
+ */
+export interface Visitor {
+  id: number;
+  name: string;
+  location: string;
+  favoriteBird: string;
+  message?: string | null;
+  date: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1514,6 +1643,10 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'bird-media';
+        value: number | BirdMedia;
+      } | null)
+    | ({
         relationTo: 'comments';
         value: number | Comment;
       } | null)
@@ -1524,6 +1657,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'bird-checklists';
         value: number | BirdChecklist;
+      } | null)
+    | ({
+        relationTo: 'birds';
+        value: number | Bird;
       } | null)
     | ({
         relationTo: 'categories';
@@ -2116,6 +2253,45 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bird-media_select".
+ */
+export interface BirdMediaSelect<T extends boolean = true> {
+  checklistId?: T;
+  species?: T;
+  soundTypeTags?:
+    | T
+    | {
+        song?: T;
+        call?: T;
+        flightSong?: T;
+        flightCall?: T;
+        mechanicalSound?: T;
+        dawnSong?: T;
+        duet?: T;
+      };
+  rating?: T;
+  equipment?:
+    | T
+    | {
+        recorder?: T;
+        microphone?: T;
+        accessories?: T;
+      };
+  mediaNotes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "comments_select".
  */
 export interface CommentsSelect<T extends boolean = true> {
@@ -2169,9 +2345,40 @@ export interface BirdChecklistsSelect<T extends boolean = true> {
   gpsTrack?: T;
   trackDistanceKm?: T;
   species?: T;
+  speciesRecords?:
+    | T
+    | {
+        bird?: T;
+        count?: T;
+        comments?: T;
+        id?: T;
+      };
   notes?: T;
   lastImportedAt?: T;
   rawImportData?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "birds_select".
+ */
+export interface BirdsSelect<T extends boolean = true> {
+  speciesCode?: T;
+  sciName?: T;
+  comName?: T;
+  order?: T;
+  familyComName?: T;
+  familySciName?: T;
+  taxonomicStatus?: T;
+  lumpedInto?: T;
+  lumpedFrom?: T;
+  splitInto?: T;
+  splitFrom?: T;
+  slug?: T;
+  description?: T;
+  lastSyncedAt?: T;
+  rawTaxonomyData?: T;
   updatedAt?: T;
   createdAt?: T;
 }

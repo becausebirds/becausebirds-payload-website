@@ -28,6 +28,8 @@ import { getServerSideURL } from './utilities/getURL'
 import { QuizBlock } from '@/blocks/Quiz/config'
 import { BirdChecklists } from './collections/BirdChecklists'
 import { BirdChecklistBlock } from './blocks/BirdChecklist'
+import { Birds } from './collections/Birds'
+import { BirdMedia } from './collections/BirdMedia'
 
 
 const filename = fileURLToPath(import.meta.url)
@@ -75,8 +77,8 @@ export default buildConfig({
     },
     push: true,
   }),
-  collections: [Posts, Pages, Quizzes, Media, Comments, Visitors,
-BirdChecklists, Categories,
+  collections: [Posts, Pages, Quizzes, Media, BirdMedia, Comments, Visitors,
+BirdChecklists, Birds, Categories,
   Tags, Products, Users, Microposts],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
