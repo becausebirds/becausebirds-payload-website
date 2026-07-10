@@ -102,8 +102,9 @@ shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
 
 <h1 className="
 text-3xl
-font-black
+text-black
 uppercase
+font-bold
 flex gap-3
 items-center
 ">
@@ -112,7 +113,7 @@ Bird Checklist Explorer
 </h1>
 
 
-<p className="mt-3 font-base">
+<p className="mt-3 font-base text-black">
 Explore my {publicChecklists.length} birding checklists by using the map or list below.
 </p>
 
@@ -160,6 +161,7 @@ className="
 border-2 border-black
 mb-4
 bg-gray-100
+dark:bg-gray-800
 "
 >
 
@@ -197,7 +199,8 @@ className="
 border-2
 border-black
 mb-3
-bg-white
+bg-background
+text-foreground
 "
 >
 
@@ -215,7 +218,7 @@ font-bold
 </summary>
 
 
-<div className="p-3">
+<div className="p-3 pl-8 sm:pl-6">
 
 
 {Object.entries(counties)
@@ -273,6 +276,7 @@ border-black
 p-3
 mb-3
 bg-green-100
+dark:bg-green-900
 "
 >
 
@@ -284,7 +288,6 @@ items-center
 gap-2
 ">
 
-<MapPin size={18}/>
 
 {location}
 

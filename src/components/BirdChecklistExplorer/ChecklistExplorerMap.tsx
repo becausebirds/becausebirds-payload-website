@@ -32,7 +32,7 @@ function ZoomOutButton(){
         border-black
         px-3
         py-2
-        font-black
+        text-black
         shadow-[3px_3px_0_black]
       "
       onClick={()=>map.setZoom(3)}
