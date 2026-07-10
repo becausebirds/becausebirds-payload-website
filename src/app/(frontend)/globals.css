@@ -180,3 +180,6 @@ html[data-theme='light'] {
   opacity: initial;
 }
 
+.marker-cluster {
+  color: #000 !important;
+}
