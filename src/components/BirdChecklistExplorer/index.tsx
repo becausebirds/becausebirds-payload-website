@@ -1,4 +1,5 @@
 import BirdChecklistExplorerClient from './BirdChecklistExplorerClient'
+import type { Metadata } from 'next'
 
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
@@ -23,6 +24,18 @@ async function getChecklists() {
   const data = await res.json()
 
   return data.docs
+}
+
+
+export const metadata: Metadata = {
+  title: "Jeff's Bird Checklist Explorer",
+  description:
+    'Explore all of the bird checklists I created while birdwatching.',
+  openGraph: {
+    title: "Jeff's Bird Checklist Explorer",
+    description:
+      'Explore all of the bird checklists I have created while birdwatching.',
+  },
 }
 
 

@@ -1,5 +1,6 @@
 'use client'
 
+
 import {
   Bird,
   MapPin,
@@ -23,6 +24,8 @@ const ChecklistExplorerMap = dynamic(
     )
   }
 )
+
+
 
 export default function BirdChecklistExplorerClient({
   checklists,
