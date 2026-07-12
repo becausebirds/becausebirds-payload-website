@@ -74,7 +74,7 @@ export default function SpeciesMapClient({ pins }: SpeciesMapClientProps) {
             <strong>${pin.name}</strong><br/>
             <span style="font-size: 0.8rem; color: #666;">${dateStr}</span>
             <div style="margin-top: 8px;">
-              <a href="/bird-checklists/${checklistSlug}"
+              <a href="/bird-checklist/${checklistSlug}"
                  style="display: inline-block; padding: 4px 12px; font-size: 0.75rem; font-weight: 700;
                         border: 2px solid #000; border-radius: 8px;
                         background: #a5f3fc; color: #000; text-decoration: none;
