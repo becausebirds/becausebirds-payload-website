@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardList } from 'lucide-react'
 
 interface BirdChecklist {
   id: string
@@ -31,8 +31,8 @@ export default function BirdChecklistsSection({
   return (
     <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
       <div className="border-b-2 border-black bg-purple-100 px-5 py-3 md:px-6">
-        <h2 className="font-black uppercase text-sm tracking-wide md:text-base">
-          📋 Checklist Dates ({totalCount})
+        <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+          <ClipboardList className="h-4 w-4" />  Included on these checklists ({totalCount})
         </h2>
       </div>
       <div className="divide-y-2 divide-black">

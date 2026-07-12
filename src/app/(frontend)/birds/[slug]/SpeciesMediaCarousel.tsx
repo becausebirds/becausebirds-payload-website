@@ -17,17 +17,22 @@ interface PhotoItem {
   alt?: string | null
   rating?: number | null
   mediaNotes?: string | null
+  locationName?: string | null
+  date?: string | null
 }
 
 interface SpeciesMediaCarouselProps {
   photos: PhotoItem[]
 }
 
-export default function SpeciesMediaCarousel({ photos }: SpeciesMediaCarouselProps) {
+export default function SpeciesMediaCarousel({ photos }: 
+SpeciesMediaCarouselProps) {
   if (photos.length === 0) {
     return (
-      <div className="flex h-[250px] w-full items-center justify-center rounded-lg border-2 border-black bg-white md:h-[300px]">
-        <p className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
+      <div className="flex h-[250px] w-full items-center justify-center rounded-
+lg border-2 border-black bg-white md:h-[300px]">
+        <p className="flex items-center gap-2 text-sm font-bold text-muted-
+foreground">
           <ImageIcon className="h-4 w-4" />
           No photos available
         </p>
@@ -49,8 +54,10 @@ export default function SpeciesMediaCarousel({ photos }: SpeciesMediaCarouselPro
             return (
               <CarouselItem key={photo.id}>
                 <div className="p-[10px]">
-                  <Card className="border-2 border-black bg-white p-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                    <CardContent className="flex aspect-[4/3] items-center justify-center p-0">
+                  <Card className="border-2 border-black bg-white p-0 
+shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <CardContent className="flex aspect-[4/3] items-center 
+justify-center p-0">
                       <img
                         src={src}
                         alt={photo.alt ?? photo.filename ?? 'Bird photo'}
@@ -59,10 +66,16 @@ export default function SpeciesMediaCarousel({ photos }: SpeciesMediaCarouselPro
                     </CardContent>
                   </Card>
                 </div>
-                {/* Caption row */}
+                {/* Caption row — shows location and date */}
                 <div className="mt-2 flex items-center justify-between px-3">
                   <p className="text-xs font-semibold text-muted-foreground">
-                    {photo.filename ?? `Photo ${photos.indexOf(photo) + 1}`}
+                    {photo.locationName && photo.date
+                      ? `${photo.locationName} • ${photo.date}`
+                      : photo.locationName
+                        ? photo.locationName
+                        : photo.date
+                          ? photo.date
+                          : `Photo ${photos.indexOf(photo) + 1}`}
                   </p>
                   {photo.rating && (
                     <div className="flex items-center gap-0.5">

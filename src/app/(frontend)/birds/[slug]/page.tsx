@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 import SpeciesMapClient from './SpeciesMapClient'
@@ -7,6 +8,7 @@ import SpeciesMediaCarousel from './SpeciesMediaCarousel'
 import SpeciesAudioPlayer from './SpeciesAudioPlayer'
 import BirdChecklistsSection from './BirdChecklistsSection'
 import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Camera, Mic, Pin, Binoculars, ClipboardList } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -70,7 +72,11 @@ interface BirdMediaItem {
     accessories?: string | null
   } | null
   mediaNotes?: string | null
-  checklistId?: string | { id: string; date?: string } | null
+  checklistId?: string | { id: string; date?: string; locationName?: string } | null
+  /** Added: populated from checklistId relationship */
+  locationName?: string | null
+  /** Added: formatted date string from checklistId relationship */
+  date?: string | null
 }
 
 export interface LocationPin {
@@ -79,6 +85,7 @@ export interface LocationPin {
   name: string
   date: string
   checklistId: string
+  ebirdChecklistId?: string | null
 }
 
 /* ── Data Fetching ────────────────────────── */
@@ -105,7 +112,7 @@ async function getChecklistsForBird(birdId: string): Promise<BirdChecklist[]> {
 
 async function getMediaForBird(birdId: string): Promise<BirdMediaItem[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-media?where[species][equals]=${birdId}&depth=1&limit=100`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-media?where[species][equals]=${birdId}&depth=2&limit=100`,
     { next: { revalidate: 60 } },
   )
   if (!res.ok) return []
@@ -126,7 +133,27 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
     getMediaForBird(bird.id),
   ])
 
-  const photos = media.filter((m) => m.mimeType?.startsWith('image/'))
+  // ── Map photos to include location & date from checklistId ──
+  const photos = media
+    .filter((m) => m.mimeType?.startsWith('image/'))
+    .map((m) => {
+      const checklist =
+        typeof m.checklistId === 'object' && m.checklistId !== null
+          ? (m.checklistId as { id: string; date?: string; locationName?: string })
+          : null
+      return {
+        ...m,
+        locationName: checklist?.locationName ?? null,
+        date: checklist?.date
+          ? new Date(checklist.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })
+          : null,
+      }
+    })
+
   const audioRecordings = media.filter((m) => m.mimeType?.startsWith('audio/'))
 
   // Build unique location pins
@@ -144,6 +171,7 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           name: cl.locationName,
           date: cl.date,
           checklistId: cl.id,
+          ebirdChecklistId: cl.ebirdChecklistId,
         })
       }
     }
@@ -151,6 +179,28 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
 
   const firstSighting = checklists.length > 0 ? checklists[0] : null
   const checklistCount = checklists.length
+
+  // ── Find the oldest photo (earliest date) for the first sighting thumbnail ──
+  const oldestPhoto = photos.length > 0
+    ? photos.reduce((oldest, photo) => {
+        if (!photo.url) return oldest
+        if (!oldest || !oldest.url) return photo
+        // Compare raw date strings (ISO format sorts lexicographically)
+        const checklistOldest =
+          typeof oldest.checklistId === 'object' && oldest.checklistId !== null
+            ? (oldest.checklistId as { date?: string }).date
+            : null
+        const checklistPhoto =
+          typeof photo.checklistId === 'object' && photo.checklistId !== null
+            ? (photo.checklistId as { date?: string }).date
+            : null
+        if (!checklistPhoto) return oldest
+        if (!checklistOldest) return photo
+        return checklistPhoto < checklistOldest ? photo : oldest
+      }, null as (typeof photos)[0] | null)
+    : null
+
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
@@ -165,11 +215,20 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
       <div className="relative z-10 mx-auto w-full max-w-full bg-white dark:bg-card border-2 border-black dark:border-border overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_hsl(var(--border))] sm:border-2 md:border-4 md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:md:shadow-[12px_12px_0px_0px_hsl(var(--border))] min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-4rem)]">
         <NavBar />
 
-        <main className="pt-20 pb-16 container mx-auto px-4 space-y-6">
+        <main className="pt-10 pb-16 container mx-auto px-4 space-y-6">
+
+          {/* ── View All Birds Button ─────────────────────────── */}
+          <Link
+            href="/birds"
+            className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-green-400 px-3 py-1.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            View All Birds
+          </Link>
+
           {/* ── Bird Hero ──────────────────────────────────── */}
           <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
             <div className="border-b-2 border-black bg-lime-100 px-5 py-4 md:px-6 md:py-5">
-              <button></button>
               <h1 className="text-3xl font-black tracking-tight uppercase md:text-4xl">
                 {bird.comName}
               </h1>
@@ -221,8 +280,8 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           {photos.length > 0 && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="border-b-2 border-black bg-pink-100 px-5 py-3 md:px-6">
-                <h2 className="font-black uppercase text-sm tracking-wide md:text-base">
-                  📸 Photos ({photos.length})
+                <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+                  <Camera className="h-4 w-4" /> Photos ({photos.length})
                 </h2>
               </div>
               <div className="p-5 md:p-6">
@@ -235,8 +294,8 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           {audioRecordings.length > 0 && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="border-b-2 border-black bg-fuchsia-100 px-5 py-3 md:px-6">
-                <h2 className="font-black uppercase text-sm tracking-wide md:text-base">
-                  🎙️ Audio Recordings ({audioRecordings.length})
+                <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+                  <Mic className="h-4 w-4" />  Audio Recordings ({audioRecordings.length})
                 </h2>
               </div>
               <div className="p-5 md:p-6">
@@ -249,8 +308,8 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           {locationPins.length > 0 && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="border-b-2 border-black bg-sky-100 px-5 py-3 md:px-6">
-                <h2 className="font-black uppercase text-sm tracking-wide md:text-base">
-                  📍 Sightings Map ({locationPins.length} locations)
+                <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+                  <Pin className="h-4 w-4" />  Sightings Map ({locationPins.length} locations)
                 </h2>
               </div>
               <div className="p-4 md:p-5">
@@ -262,15 +321,30 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           {/* ── First Sighting ──────────────────────────────── */}
           {firstSighting && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6">
-                <h2 className="font-black uppercase text-sm tracking-wide md:text-base">
-                  🥇 First Sighting
-                </h2>
-              </div>
+           <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6">
+  <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+    <Binoculars className="h-4 w-4" /> First Sighting
+  </h2>
+</div>
+
               <div className="p-5 md:p-6">
                 <div className="flex items-center gap-4">
-                  <div className="rounded-lg border-2 border-black bg-emerald-200 p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                    <span className="text-3xl">🦜</span>
+                  <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    {oldestPhoto?.url ? (
+                      <img
+                        src={
+                          oldestPhoto.url.startsWith('http')
+                            ? oldestPhoto.url
+                            : `${baseUrl}${oldestPhoto.url}`
+                        }
+                        alt={oldestPhoto.alt ?? oldestPhoto.filename ?? 'Oldest photo'}
+                        className="h-14 w-14 object-cover md:h-16 md:w-16"
+                      />
+                    ) : (
+                      <span className="flex h-14 w-14 items-center justify-center text-3xl md:h-16 md:w-16">
+                        🦜
+                      </span>
+                    )}
                   </div>
                   <div>
                     <p className="text-lg font-bold">

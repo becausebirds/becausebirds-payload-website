@@ -66,7 +66,7 @@ export default function SpeciesMapClient({ pins }: SpeciesMapClientProps) {
           fillOpacity: 1,
         }).addTo(map)
 
-        const checklistSlug = pin.checklistId
+        const checklistSlug = pin.ebirdChecklistId
 
         // Popup content with a link button
         const popupContent = `
