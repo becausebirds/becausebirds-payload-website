@@ -29,6 +29,19 @@ interface Species {
   comments?: string
 }
 
+type SpeciesRecord = {
+  bird?:
+    | {
+        id: number
+        comName?: string
+        sciName?: string
+        slug?: string
+      }
+    | number
+  count?: number | string | null
+  comments?: string | null
+}
+
 interface TrackPoint {
   lat: number
   lng: number
@@ -37,7 +50,7 @@ interface TrackPoint {
 
 async function getChecklist(id: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists/${id}`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists/${id}?depth=1`,
     { next: { revalidate: 60 } },
   )
   if (!res.ok) return null
@@ -71,7 +84,31 @@ export default async function BirdChecklistComponent({
     )
   }
 
-  const species: Species[] = c.species ?? []
+  // ── Normalize species from the new speciesRecords field ─────────
+  const species: Species[] = []
+
+  if (Array.isArray(c.speciesRecords) && c.speciesRecords.length > 0) {
+    for (const record of c.speciesRecords as SpeciesRecord[]) {
+      const bird = typeof record.bird === 'object' ? record.bird : null
+      species.push({
+        commonName: bird?.comName ?? 'Unknown',
+        scientificName: bird?.sciName ?? '',
+        count: String(record.count ?? ''),
+        comments: record.comments ?? undefined,
+      })
+    }
+  } else if (Array.isArray(c.species) && c.species.length > 0) {
+    // Fallback: old JSON format during migration
+    for (const s of c.species as Species[]) {
+      species.push({
+        commonName: s.commonName,
+        scientificName: s.scientificName,
+        count: s.count,
+        comments: s.comments,
+      })
+    }
+  }
+
   const trackPoints: TrackPoint[] = c.gpsTrack ?? []
   const totalSpecies = c.speciesCount ?? species.length
   const totalCount = species.reduce(
@@ -166,24 +203,23 @@ export default async function BirdChecklistComponent({
           <div className="bg-gray-100 px-5 pt-4 pb-4 md:p-6">
             {/* Small Map Clipped Preview */}
             {(showMap && trackPoints.length > 1) ||
-            (showMap && trackPoints.length === 1 && c.latitude && c.longitude) ?
-              (
-                <div className="overflow-hidden rounded-lg border-2 border-black bg-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  {/* We force a small height here to create the "truncated" effect */}
-                  <div className="h-36 md:h-44 [&_div]:!h-full [&_div]:!min-h-0">
-                    {trackPoints.length > 1 ? (
-                      <ChecklistMapClient trackPoints={trackPoints} />
-                    ) : (
-                      <ChecklistMapClient
-                        trackPoints={[
-                          { lat: c.latitude, lng: c.longitude },
-                          { lat: c.latitude + 0.001, lng: c.longitude + 0.001 },
-                        ]}
-                      />
-                    )}
-                  </div>
+            (showMap && trackPoints.length === 1 && c.latitude && c.longitude) ? (
+              <div className="overflow-hidden rounded-lg border-2 border-black bg-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                {/* We force a small height here to create the "truncated" effect */}
+                <div className="h-36 md:h-44 [&_div]:!h-full [&_div]:!min-h-0">
+                  {trackPoints.length > 1 ? (
+                    <ChecklistMapClient trackPoints={trackPoints} />
+                  ) : (
+                    <ChecklistMapClient
+                      trackPoints={[
+                        { lat: c.latitude, lng: c.longitude },
+                        { lat: c.latitude + 0.001, lng: c.longitude + 0.001 },
+                      ]}
+                    />
+                  )}
                 </div>
-              ) : null}
+              </div>
+            ) : null}
 
             {/* Expand Checklist Button */}
             <div className="mt-4 text-center">

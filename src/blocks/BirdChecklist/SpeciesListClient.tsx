@@ -3,6 +3,26 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
+type SpeciesRecord = {
+  bird?:
+    | {
+        id: string
+        comName?: string
+        sciName?: string
+        slug?: string
+      }
+    | string
+  count?: number | string | null
+  comments?: string | null
+}
+
+type OldSpecies = {
+  commonName?: string
+  scientificName?: string
+  count?: number | string | null
+  comments?: string | null
+}
+
 interface Species {
   commonName: string
   scientificName: string
@@ -10,16 +30,67 @@ interface Species {
   comments?: string
 }
 
-export function SpeciesListClient({ species }: { species: Species[] }) {
+// Anything with "sp.", "Domestic type", "hybrid", "/" (slash), or " x " (hybrid notation)
+// is NOT a real species.
+function isRealSpecies(sciName: string): boolean {
+  const lower = sciName.toLowerCase()
+  if (!lower) return false
+  if (lower.includes('sp.') || lower === 'sp') return false
+  if (lower.includes('domestic type')) return false
+  if (lower.includes('hybrid')) return false
+  if (lower.includes(' x ')) return false
+  if (lower.includes('/')) return false
+  return true
+}
+
+export function SpeciesListClient({
+  speciesRecords,
+  species,
+}: {
+  speciesRecords?: SpeciesRecord[]
+  species?: Species[]
+}) {
   const [showAll, setShowAll] = useState(false)
   const ITEMS_PER_PAGE = 5
-  const displayed = showAll ? species : species.slice(0, ITEMS_PER_PAGE)
+
+  // Normalize data: prefer new relationship field, fall back to old format
+  let speciesList: Species[]
+
+  if (speciesRecords && speciesRecords.length > 0) {
+    speciesList = speciesRecords.map((record) => {
+      const bird = typeof record.bird === 'object' ? record.bird : null
+      return {
+        commonName: bird?.comName ?? 'Unknown',
+        scientificName: bird?.sciName ?? '',
+        count: String(record.count ?? ''),
+        comments: record.comments ?? undefined,
+      }
+    })
+  } else if (species && species.length > 0) {
+    speciesList = species.map((s) => ({
+      commonName: s.commonName,
+      scientificName: s.scientificName,
+      count: s.count,
+      comments: s.comments,
+    }))
+  } else {
+    speciesList = []
+  }
+
+  // Count only real species for the header
+  const realSpeciesCount = speciesList.filter((s) =>
+    isRealSpecies(s.scientificName),
+  ).length
+
+  const displayed = showAll ? speciesList : speciesList.slice(0, ITEMS_PER_PAGE)
+
+  if (speciesList.length === 0) return null
 
   return (
     <div className="mb-6">
       <h3 className="mb-3 text-lg font-black uppercase tracking-wide">
         Species Observed{' '}
-        <span className="text-muted-foreground">({species.length})</span>
+        <span className="text-muted-foreground">({realSpeciesCount})</span>
       </h3>
 
       <div className="divide-y-2 divide-black rounded-lg border-2 border-black bg-background shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -51,7 +122,7 @@ export function SpeciesListClient({ species }: { species: Species[] }) {
         ))}
       </div>
 
-      {species.length > ITEMS_PER_PAGE && (
+      {speciesList.length > ITEMS_PER_PAGE && (
         <button
           onClick={() => setShowAll(!showAll)}
           className="mx-auto mt-4 flex items-center gap-2 rounded-lg border-2 border-black bg-cyan-200 px-5 py-2 font-bold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
@@ -62,7 +133,7 @@ export function SpeciesListClient({ species }: { species: Species[] }) {
             </>
           ) : (
             <>
-              Show all {species.length} species <ChevronDown className="h-4 w-4" />
+              Show all species <ChevronDown className="h-4 w-4" />
             </>
           )}
         </button>

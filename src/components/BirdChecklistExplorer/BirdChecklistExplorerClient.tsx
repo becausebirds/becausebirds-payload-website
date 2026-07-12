@@ -117,7 +117,7 @@ Bird Checklist Explorer
 
 
 <p className="mt-3 font-base text-black">
-Explore my {publicChecklists.length} birding checklists by using the map or list below.
+Explore my {publicChecklists.length} birding checklists by using the map or list below. Click to zoom in to see bird checklists I created at specific locations.
 </p>
 
 
@@ -149,7 +149,7 @@ uppercase
 mb-5
 ">
 
-Regions
+Explore by region
 
 </h2>
 

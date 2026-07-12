@@ -6,11 +6,29 @@ import { MapPin, Calendar, Clock, Bird, ChevronDown, ChevronUp } from 'lucide-re
 import type { BirdChecklist } from '@/payload-types'
 import type { TrackPoint } from './ChecklistMapClient'
 
-type Species = {
+type SpeciesRecord = {
+  bird?: {
+    id: string
+    comName?: string
+    sciName?: string
+    slug?: string
+  } | string
+  count?: number | string | null
+  comments?: string | null
+}
+
+type OldSpecies = {
   commonName?: string
   scientificName?: string
   count?: number | string | null
   comments?: string | null
+}
+
+type DisplaySpecies = {
+  commonName: string
+  scientificName: string
+  count: string
+  comments: string
 }
 
 const ChecklistMapClient = dynamic(() => import('./ChecklistMapClient'), {
@@ -54,16 +72,41 @@ export const BirdChecklistBlock: React.FC<BirdChecklistBlockProps> = ({
     )
   }
 
-  const speciesArray = (Array.isArray(checklist.species)
-  ? checklist.species
-  : []) as Species[]  
-const trackPoints: TrackPoint[] = Array.isArray(checklist.gpsTrack) ? (checklist.gpsTrack as TrackPoint[]) : []
-const totalSpecies = checklist.speciesCount ?? speciesArray.length
+  // ── Build display species from the new relationship field ─────────────
+  // Falls back to the old JSON species field during migration
+  const speciesArray: DisplaySpecies[] = []
+
+  if (Array.isArray(checklist.speciesRecords) && checklist.speciesRecords.length > 0) {
+    for (const record of checklist.speciesRecords as unknown as SpeciesRecord[]) {      const bird = typeof record.bird === 'object' ? record.bird : null
+      speciesArray.push({
+        commonName: bird?.comName ?? 'Unknown',
+        scientificName: bird?.sciName ?? '',
+        count: String(record.count ?? ''),
+        comments: record.comments ?? '',
+      })
+    }
+  } else if (Array.isArray(checklist.species)) {
+    // Fallback: old JSON format (remove once migration is complete)
+    for (const s of checklist.species as OldSpecies[]) {
+      speciesArray.push({
+        commonName: s.commonName ?? 'Unknown',
+        scientificName: s.scientificName ?? '',
+        count: String(s.count ?? ''),
+        comments: s.comments ?? '',
+      })
+    }
+  }
+
+  const trackPoints: TrackPoint[] = Array.isArray(checklist.gpsTrack)
+    ? (checklist.gpsTrack as TrackPoint[])
+    : []
+
+  const totalSpecies = checklist.speciesCount ?? speciesArray.length
   const totalCount = speciesArray.reduce(
-  (sum: number, s: Species) =>
-    sum + (parseInt(String(s.count), 10) || 0),
-  0,
-)
+    (sum: number, s: DisplaySpecies) =>
+      sum + (parseInt(s.count, 10) || 0),
+    0,
+  )
 
   const ITEMS_PER_PAGE = 5
   const displayedSpecies = showAllSpecies
@@ -194,8 +237,7 @@ const totalSpecies = checklist.speciesCount ?? speciesArray.length
                 <span className="text-muted-foreground">({speciesArray.length})</span>
               </h3>
               <div className="divide-y-2 divide-black rounded-lg border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                {displayedSpecies.map(
-                (species: Species, idx: number) => (
+                {displayedSpecies.map((species: DisplaySpecies, idx: number) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between bg-white px-4 py-3 transition-colors hover:bg-accent/20"
