@@ -133,6 +133,8 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
     getMediaForBird(bird.id),
   ])
 
+if (checklists.length === 0) notFound()
+
   // ── Map photos to include location & date from checklistId ──
   const photos = media
     .filter((m) => m.mimeType?.startsWith('image/'))
@@ -378,6 +380,34 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
   )
 }
 
+/* ── Static Generation ────────────────────── */
+
+export async function generateStaticParams() {
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+
+  // Fetch all checklists with bird slugs embedded (shallow depth, minimal fields)
+  const res = await fetch(
+    `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
+    { next: { revalidate: 60 } },
+  )
+  if (!res.ok) return []
+
+  const data = await res.json()
+  const seenSlugs = new Set<string>()
+
+  for (const checklist of data.docs ?? []) {
+    for (const record of checklist.speciesRecords ?? []) {
+      // record.bird could be a string (just the ID) or an object with slug
+      if (typeof record.bird === 'object' && record.bird?.slug) {
+        seenSlugs.add(record.bird.slug)
+      }
+    }
+  }
+
+  return Array.from(seenSlugs).map((slug) => ({ slug }))
+}
+
+
 /* ── Metadata ───────────────────────────────── */
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -389,7 +419,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${bird.comName} (${bird.sciName}) | Jeff's Birding`,
+    title: `${bird.comName} | Because Birds`,
     description: `Sightings, photos, and audio recordings of ${bird.comName} (${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family` : ''}.`,
   }
 }
