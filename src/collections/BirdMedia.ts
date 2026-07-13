@@ -16,6 +16,7 @@ export const BirdMedia: CollectionConfig = {
 
   upload: {
     mimeTypes: ['image/*', 'audio/*', 'video/*'],
+    staticDir: 'birdmedia',
   },
 
   fields: [
