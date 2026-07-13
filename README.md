@@ -150,6 +150,63 @@ The blog's **guestbook** — public signings from site visitors.
 
 > **Notifications:** An `afterChange` hook sends an admin notification when a new guestbook entry is submitted.
 
+
 ---
 
-## 🔗 Entity Relationship Diagram
+## 🧩 Page–Collection Mapping
+
+| Page | Primary Collection(s) | Key Relationships Used |
+|---|---|---|
+| `/` (home) | `posts` | `heroImage → media`, `categories` |
+| `/{post-slug}` (blog/page) | `posts` / `pages` | Rich content, hero image |
+| `/archive` | `posts` | Filtered by category |
+| `/bird-checklists` (explore) | `bird-checklists` | Public checklists list |
+| `/bird-checklists/{slug}` | `bird-checklists`, `bird-media`, `birds` | Checklist details + map + linked species + media gallery |
+| `/birds/{slug}` | `birds`, `bird-media` | Species info + taxonomy history + related media |
+| `/gifts` | `products` | Affiliate product listings |
+| `/guestbook` | `visitors` | Guestbook form + entries |
+| `/metrics` | (iframe) | Embedded analytics dashboard |
+| `/quiz/{slug}` | `quizzes` | Personality quiz engine |
+
+---
+
+## ⚙️ Technical Stack
+
+- **Framework:** [Next.js](https://nextjs.org/) (App Router)
+- **CMS:** [Payload CMS](https://payloadcms.com/) — headless, TypeScript-native
+- **Styling:** Tailwind CSS with neobrutalism design system
+- **Data Source:** [eBird API](https://ebird.org/science/use-ebird-data/download-ebird-data-products) for taxonomy + checklist imports
+- **Media Storage:** Local filesystem (`public/birdmedia/`)
+- **UI Components:** Custom `shadcn/ui`-style components, neobrutalism card system
+
+---
+
+## 🚀 Key Features
+
+- **eBird Integration** — Import checklists directly; auto-sync species taxonomy; handle eBird lumps/splits gracefully with historical record preservation
+- **Rich Media Support** — Photos, audio recordings (with sound-type tagging like song/call/dawn song), and video — all linked to checklists and species
+- **GPS Track Visualization** — Checklists store GeoJSON-compatible GPS tracks for route mapping
+- **Taxonomy Change Tracking** — Full self-referential relationship graph for species splits, lumps, and deprecations (historical pages stay live)
+- **Bird Quiz Engine** — Personality quizzes with image support and flexible answer-to-personality mapping
+- **Guestbook** — Public signings with admin notifications
+- **Affiliate Gift Shop** — Product catalog with external purchase links, categories, and tagging
+
+---
+
+## 🛠️ Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Run database migrations
+pnpm payload migrate
+
+
+
