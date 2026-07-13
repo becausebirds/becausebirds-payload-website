@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Play, Pause, Headphones, Calendar, MapPin, Clock, ChevronDown, ChevronUp, Music } from 'lucide-react'
+import { Play, Pause, Headphones, Calendar, MapPin, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 
 interface SoundTypeTags {
@@ -53,6 +53,7 @@ const SOUND_TYPE_LABELS: Record<string, string> = {
 }
 
 const ITEMS_PER_PAGE = 5
+const INCREMENT = 10
 
 function formatDuration(seconds: number): string {
   if (!seconds || !isFinite(seconds)) return '--:--'
@@ -67,40 +68,29 @@ export default function SpeciesAudioPlayer({ recordings }: SpeciesAudioPlayerPro
   const [currentTime, setCurrentTime] = useState(0)
   const [playbackDuration, setPlaybackDuration] = useState(0)
   const [progressActive, setProgressActive] = useState(false)
-  const [showAll, setShowAll] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const animFrameRef = useRef<number | null>(null)
   const pauseTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
-  // ── Sort recordings by date, most recent first ──────────────
-const sorted = [...recordings].sort((a, b) => {
-  const dateA =
-    typeof a.checklistId === 'object' && a.checklistId !== null
-      ? (a.checklistId as ChecklistRef).date
-      : null
-  const dateB =
-    typeof b.checklistId === 'object' && b.checklistId !== null
-      ? (b.checklistId as ChecklistRef).date
-      : null
+  // Sort by rating, highest first (unrated recordings go last)
+  const sorted = [...recordings].sort((a, b) => {
+    const ratingA = a.rating ?? -1
+    const ratingB = b.rating ?? -1
+    return ratingB - ratingA
+  })
 
-  if (!dateA && !dateB) return 0
-  if (!dateA) return 1   // items without a date go last
-  if (!dateB) return -1
+  const displayed = sorted.slice(0, visibleCount)
+  const hasMore = sorted.length > visibleCount
+  const isExpanded = visibleCount > ITEMS_PER_PAGE
 
-  return dateB.localeCompare(dateA)  // descending = most recent first
-})
-
-const displayed = showAll ? sorted : sorted.slice(0, ITEMS_PER_PAGE)
-const hasMore = recordings.length > ITEMS_PER_PAGE
-
-
-  // ── Preload all durations on mount ─────────────────────────
+  // Preload durations for visible items
   useEffect(() => {
     const els: HTMLAudioElement[] = []
 
-    recordings.forEach((rec) => {
+    displayed.forEach((rec) => {
       if (!rec.url) return
       const src = rec.url.startsWith('http') ? rec.url : `${baseUrl}${rec.url}`
 
@@ -123,9 +113,9 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
     return () => {
       els.forEach((a) => a.remove())
     }
-  }, [recordings, baseUrl])
+  }, [displayed, baseUrl])
 
-  // ── Smooth progress loop ──
+  // Smooth progress loop
   useEffect(() => {
     if (!currentlyPlaying) {
       if (animFrameRef.current) {
@@ -151,7 +141,7 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
     }
   }, [currentlyPlaying])
 
-  // ── Show/hide progress bar on play/pause with cooldown ──────
+  // Show/hide progress bar on play/pause with cooldown
   useEffect(() => {
     if (currentlyPlaying) {
       if (pauseTimerRef.current) clearTimeout(pauseTimerRef.current)
@@ -169,7 +159,7 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
     }
   }, [currentlyPlaying])
 
-  // ── Cleanup on unmount ──────────────────────────────────────
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
@@ -178,7 +168,7 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
     }
   }, [])
 
-  // ── Play / Pause ──────────────────────────────────────────
+  // Play / Pause
   const handlePlayPause = useCallback(
     (id: string, url: string | null | undefined) => {
       if (!url) return
@@ -219,7 +209,7 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
     [currentlyPlaying, baseUrl],
   )
 
-  // ── Helpers ───────────────────────────────────────────────
+  // Helpers
   const getActiveSoundTypes = (tags: SoundTypeTags | null | undefined): string[] => {
     if (!tags) return []
     return Object.entries(tags)
@@ -227,7 +217,7 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
       .map(([key]) => SOUND_TYPE_LABELS[key] ?? key)
   }
 
-  // ── Empty state ───────────────────────────────────────────
+  // Empty state
   if (recordings.length === 0) {
     return (
       <div className="flex h-[150px] w-full items-center justify-center rounded-lg border-2 border-black bg-white">
@@ -239,10 +229,9 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
     )
   }
 
-   // ── Render ────────────────────────────────────────────────
   return (
     <>
-      <div className="divide-y-2 bg-background divide-black">
+      <div className="divide-y-2 divide-black bg-background">
         {displayed.map((rec) => {
           const soundTypes = getActiveSoundTypes(rec.soundTypeTags)
           const isPlaying = currentlyPlaying === rec.id
@@ -284,12 +273,12 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
                 isPlaying ? 'bg-background' : 'hover:bg-accent/20'
               }`}
             >
-              <div className="flex bg-background items-start gap-3">
+              <div className="flex items-start gap-3 bg-background">
                 {/* Play Button */}
                 <button
                   onClick={() => handlePlayPause(rec.id, rec.url)}
                   disabled={!rec.url}
-                  className={`mt-0.5 flex h-10 w-10 shrink-0 items-center text-black justify-center rounded-full border-2 border-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none ${
+                  className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none ${
                     isPlaying ? 'bg-red-500' : 'bg-fuchsia-500'
                   }`}
                   aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -310,7 +299,7 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
                         {soundTypes.map((type) => (
                           <span
                             key={type}
-                            className="inline-block rounded-md border-2 border-black bg-fuchsia-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                            className="inline-block rounded-md border-2 border-black bg-fuchsia-200 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] dark:text-gray-900"
                           >
                             {type}
                           </span>
@@ -350,15 +339,15 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
 
                   {/* Progress bar (only when playing this track) */}
                   {showProgress && (
-                    <div className="flex items-center gap-3 pt-1 bg-background">
-                      <span className="text-[10px] font-mono font-bold text-muted-foreground tabular-nums">
+                    <div className="flex items-center gap-3 bg-background pt-1">
+                      <span className="font-mono text-[10px] font-bold text-muted-foreground tabular-nums">
                         {formatDuration(displayTime)}
                       </span>
                       <Progress
                         value={displayProgress}
                         className="h-2 flex-1 border-2 border-black bg-background [&>div]:bg-fuchsia-500"
                       />
-                      <span className="text-[10px] font-mono font-bold text-muted-foreground tabular-nums">
+                      <span className="font-mono text-[10px] font-bold text-muted-foreground tabular-nums">
                         {durations[rec.id] ?? formatDuration(playbackDuration)}
                       </span>
                     </div>
@@ -388,21 +377,26 @@ const hasMore = recordings.length > ITEMS_PER_PAGE
         })}
       </div>
 
-      {hasMore && (
-        <div className="p-4 text-center bg-background md:p-5">
+      {/* Show less — resets back to ITEMS_PER_PAGE */}
+      {isExpanded && (
+        <div className="flex justify-center bg-background p-4 md:p-5">
           <button
-            onClick={() => setShowAll(!showAll)}
-            className="inline-flex items-center gap-2 text-black rounded-lg border-2 border-black bg-purple-300 px-4 py-2 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            onClick={() => setVisibleCount(ITEMS_PER_PAGE)}
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-purple-300 px-5 py-2.5 text-sm font-bold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
-            {showAll ? (
-              <>
-                Show less <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                View all {recordings.length} recordings <ChevronDown className="h-4 w-4" />
-              </>
-            )}
+            Show less <ChevronUp className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* View more — increments by INCREMENT */}
+      {hasMore && (
+        <div className="flex justify-center bg-background p-4 md:p-5">
+          <button
+            onClick={() => setVisibleCount((prev) => prev + INCREMENT)}
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-emerald-200 px-5 py-2.5 text-sm font-bold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+          >
+            View more <ChevronDown className="h-4 w-4" />
           </button>
         </div>
       )}

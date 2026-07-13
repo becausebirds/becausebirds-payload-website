@@ -86,7 +86,7 @@ export default function SpeciesMapClient({ pins }: SpeciesMapClientProps) {
                         border: 2px solid #000; border-radius: 8px;
                         background: #a5f3fc; color: #000; text-decoration: none;
                         box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);">
-                View Checklist →
+                View checklist →
               </a>
             </div>
           </div>
