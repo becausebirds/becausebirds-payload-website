@@ -2,7 +2,14 @@
 
 import { useEffect, useRef } from 'react'
 import { MapPin } from 'lucide-react'
-import type { LocationPin } from './page'
+
+ interface LocationPin {
+   lat: number
+   lng: number
+   date: string | Date
+   name: string
+   ebirdChecklistId?: string | null | undefined
+ }
 
 interface SpeciesMapClientProps {
   pins: LocationPin[]

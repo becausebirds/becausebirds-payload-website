@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react' // ✨ added useMemo
+import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp, ClipboardList } from 'lucide-react'
 
 interface BirdChecklist {
@@ -11,7 +11,7 @@ interface BirdChecklist {
   locationName?: string | null
   region?: string | null
   county?: string | null
-  state?: string | null       // ✨ added state/province
+  state?: string | null
 }
 
 interface BirdChecklistsSectionProps {
@@ -23,17 +23,19 @@ export default function BirdChecklistsSection({
   checklists,
   totalCount,
 }: BirdChecklistsSectionProps) {
-  const ITEMS_PER_PAGE = 5
-  const [showAll, setShowAll] = useState(false)
+const ITEMS_PER_PAGE = 5
+const INCREMENT = 10
+const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
 
-  // ✨ Sort newest to oldest by date
-  const sorted = useMemo(
-    () => [...checklists].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [checklists],
-  )
+const sorted = useMemo(
+  () => [...checklists].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+  [checklists],
+)
 
-  const displayed = showAll ? sorted : sorted.slice(0, ITEMS_PER_PAGE) // ✨ use sorted
-  const hasMore = sorted.length > ITEMS_PER_PAGE                        // ✨ use sorted
+const displayed = sorted.slice(0, visibleCount)
+const hasMore = sorted.length > visibleCount
+const isExpanded = visibleCount > ITEMS_PER_PAGE
+
 
   return (
     <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -59,37 +61,28 @@ export default function BirdChecklistsSection({
               </p>
               <p className="truncate text-xs font-semibold text-muted-foreground">
                 {cl.locationName}
-                {cl.state && <> · {cl.state}</>}        {/* ✨ state first */}
+                {cl.state && <> · {cl.state}</>}
                 {cl.county && <> · {cl.county}</>}
                 {cl.region && <> · {cl.region}</>}
               </p>
             </div>
             <a
-              href={`/bird-checklist/${cl.slug ?? cl.ebirdChecklistId ?? 
-cl.id}`}
+              href={`/bird-checklist/${cl.slug ?? cl.ebirdChecklistId ?? cl.id}`}
               className="ml-3 shrink-0 rounded-lg border-2 border-black bg-cyan-200 px-3 py-1.5 text-xs text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
             >
-              View Checklist →
+              View checklist →
             </a>
           </div>
         ))}
       </div>
 
-      {hasMore && (
-        <div className="p-4 bg-background text-center md:p-5">
+            {hasMore && (
+        <div className="flex bg-background justify-center p-4 md:p-5">
           <button
-            onClick={() => setShowAll(!showAll)}
-            className="inline-flex items-center gap-2 rounded-lg border-2 border-black text-black bg-cyan-200 px-4 py-2 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+            onClick={() => setVisibleCount((prev) => prev + INCREMENT)}
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-black text-black bg-emerald-200 px-5 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
-            {showAll ? (
-              <>
-                Show less <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                View all {sorted.length} checklists <ChevronDown className="h-4 w-4" />
-              </>
-            )}
+            View more <ChevronDown className="h-4 w-4" />
           </button>
         </div>
       )}
