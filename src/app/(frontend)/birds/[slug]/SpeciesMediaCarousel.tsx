@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel'
 import { Card, CardContent } from '@/components/ui/card'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, Star } from 'lucide-react'
 
 interface PhotoItem {
   id: string
@@ -42,11 +42,22 @@ foreground">
 
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
+  // Default to highest rated, then newest first
+  const sortedPhotos = [...photos].sort((a, b) => {
+    const ratingA = a.rating ?? 0
+    const ratingB = b.rating ?? 0
+    if (ratingB !== ratingA) return ratingB - ratingA
+
+    const dateA = a.date ?? ''
+    const dateB = b.date ?? ''
+    return dateB.localeCompare(dateA)
+  })
+
   return (
     <div className="flex w-full flex-col items-center gap-4">
       <Carousel className="w-full max-w-sm md:max-w-md lg:max-w-lg">
         <CarouselContent>
-          {photos.map((photo) => {
+          {sortedPhotos.map((photo) => {
             const src = photo.url?.startsWith('http')
               ? photo.url
               : `${baseUrl}${photo.url ?? ''}`
@@ -75,13 +86,12 @@ justify-center p-0">
                         ? photo.locationName
                         : photo.date
                           ? photo.date
-                          : `Photo ${photos.indexOf(photo) + 1}`}
+                          : `Photo ${sortedPhotos.indexOf(photo) + 1}`}
                   </p>
                   {photo.rating && (
-                    <div className="flex items-center gap-0.5">
-                      {Array.from({ length: photo.rating }).map((_, i) => (
-                        <span key={i} className="text-sm">⭐</span>
-                      ))}
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                      <span className="text-xs font-semibold">{photo.rating}</span>
                     </div>
                   )}
                 </div>

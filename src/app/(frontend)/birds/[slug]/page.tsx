@@ -222,7 +222,7 @@ if (checklists.length === 0) notFound()
           {/* ── View All Birds Button ─────────────────────────── */}
           <Link
             href="/birds"
-            className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-green-400 px-3 py-1.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+            className="inline-flex items-center gap-1.5 rounded-lg border-2 font-black dark:text-gray-800 font-foreground border-black bg-green-400 px-3 py-1.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             View All Birds
@@ -230,21 +230,21 @@ if (checklists.length === 0) notFound()
 
           {/* ── Bird Hero ──────────────────────────────────── */}
           <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div className="border-b-2 border-black bg-lime-100 px-5 py-4 md:px-6 md:py-5">
-              <h1 className="text-3xl font-black tracking-tight uppercase md:text-4xl">
+            <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-4 md:px-6 md:py-5">
+              <h1 className="text-3xl text-gray-800 dark:text-white tracking-tight uppercase md:text-4xl">
                 {bird.comName}
               </h1>
-              <p className="mt-1 text-lg italic text-muted-foreground">
+              <p className="mt-1 text-lg dark:text-white text-gray-800 italic text-muted-foreground">
                 {bird.sciName}
               </p>
               {bird.familyComName && (
-                <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                <p className="mt-1 text-sm text-gray-800 dark:text-white  font-semibold text-muted-foreground">
                   {bird.familyComName}
                   {bird.order && <> · {bird.order}</>}
                 </p>
               )}
               {bird.taxonomicStatus !== 'current' && (
-                <div className="mt-2 inline-block rounded-lg border-2 border-black bg-yellow-200 px-3 py-1 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <div className="mt-2 inline-block rounded-lg dark:text-white  text-gray-800 border-2 border-black bg-yellow-200 px-3 py-1 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {bird.taxonomicStatus === 'lumped'
                     ? '🔄 Lumped'
                     : bird.taxonomicStatus === 'split'
@@ -262,7 +262,7 @@ if (checklists.length === 0) notFound()
             )}
 
             {/* ── Stats Row (Badges) ─────────────────────────── */}
-            <div className="flex flex-wrap gap-2 p-5 md:px-6 md:pb-6">
+            <div className="flex flex-wrap bg-background gap-2 p-5 md:px-6 md:pb-6">
               <Badge className="border-2 border-black bg-emerald-300 px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 {checklistCount} checklists
               </Badge>
@@ -282,11 +282,11 @@ if (checklists.length === 0) notFound()
           {photos.length > 0 && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="border-b-2 border-black bg-pink-100 px-5 py-3 md:px-6">
-                <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+                <h2 className="flex items-center gap-1.5 font-black dark:text-gray-800 uppercase text-sm tracking-wide md:text-base">
                   <Camera className="h-4 w-4" /> Photos ({photos.length})
                 </h2>
               </div>
-              <div className="p-5 md:p-6">
+              <div className="bg-background p-5 md:p-6">
                 <SpeciesMediaCarousel photos={photos} />
               </div>
             </section>
@@ -295,12 +295,12 @@ if (checklists.length === 0) notFound()
           {/* ── Audio Recordings ────────────────────────────── */}
           {audioRecordings.length > 0 && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="border-b-2 border-black bg-fuchsia-100 px-5 py-3 md:px-6">
+              <div className="border-b-2 border-black bg-fuchsia-100 dark:bg-gray-800 px-5 py-3 md:px-6">
                 <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
                   <Mic className="h-4 w-4" />  Audio Recordings ({audioRecordings.length})
                 </h2>
               </div>
-              <div className="p-5 md:p-6">
+              <div className="px-0">
                 <SpeciesAudioPlayer recordings={audioRecordings} />
               </div>
             </section>
@@ -308,9 +308,9 @@ if (checklists.length === 0) notFound()
 
           {/* ── Map Section ──────────────────────────────────── */}
           {locationPins.length > 0 && (
-            <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+            <section className="border-2 border-black bg-background shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="border-b-2 border-black bg-sky-100 px-5 py-3 md:px-6">
-                <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+                <h2 className="flex items-center gap-1.5 font-black dark:text-gray-800 uppercase text-sm tracking-wide md:text-base">
                   <Pin className="h-4 w-4" />  Sightings Map ({locationPins.length} locations)
                 </h2>
               </div>
@@ -324,12 +324,12 @@ if (checklists.length === 0) notFound()
           {firstSighting && (
             <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
            <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6">
-  <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+  <h2 className="flex items-center gap-1.5 font-black dark:text-gray-800 uppercase text-sm tracking-wide md:text-base">
     <Binoculars className="h-4 w-4" /> First Sighting
   </h2>
 </div>
 
-              <div className="p-5 md:p-6">
+              <div className="p-5 bg-background md:p-6">
                 <div className="flex items-center gap-4">
                   <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                     {oldestPhoto?.url ? (
@@ -349,14 +349,14 @@ if (checklists.length === 0) notFound()
                     )}
                   </div>
                   <div>
-                    <p className="text-lg font-bold">
+                    <p className="text-lg font-black dark:text-gray-100 font-bold">
                       {new Date(firstSighting.date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
                       })}
                     </p>
-                    <p className="text-sm font-semibold text-muted-foreground">
+                    <p className="text-sm font-black dark:text-gray-100 font-semibold text-muted-foreground">
                       {firstSighting.locationName}
                       {firstSighting.county && <> · {firstSighting.county}</>}
                       {firstSighting.state && <> · {firstSighting.state}</>}
@@ -383,9 +383,9 @@ if (checklists.length === 0) notFound()
 /* ── Static Generation ────────────────────── */
 
 export async function generateStaticParams() {
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+  if (process.env.NODE_ENV === 'development') return []
 
-  // Fetch all checklists with bird slugs embedded (shallow depth, minimal fields)
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const res = await fetch(
     `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
     { next: { revalidate: 60 } },
