@@ -65,16 +65,16 @@ foreground">
             return (
               <CarouselItem key={photo.id}>
                 <div className="p-[10px]">
-                  <Card className="border-2 border-black bg-white p-0 
+                  <Card className="mx-auto w-fit border-2 border-black bg-white p-0 
 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                    <CardContent className="flex aspect-[4/3] items-center 
-justify-center p-0">
-                      <img
-                        src={src}
-                        alt={photo.alt ?? photo.filename ?? 'Bird photo'}
-                        className="h-full w-full rounded-[inherit] object-cover"
-                      />
-                    </CardContent>
+                    <CardContent className="flex items-center justify-center p-0">
+  <img
+    src={src}
+    alt={photo.alt ?? photo.filename ?? 'Bird photo'}
+    className="max-h-[250px] w-auto rounded-[inherit] md:max-h-[300px]"
+  />
+</CardContent>
+
                   </Card>
                 </div>
                 {/* Caption row — shows location and date */}

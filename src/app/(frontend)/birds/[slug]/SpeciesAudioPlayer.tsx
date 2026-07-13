@@ -74,8 +74,27 @@ export default function SpeciesAudioPlayer({ recordings }: SpeciesAudioPlayerPro
 
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
-  const displayed = showAll ? recordings : recordings.slice(0, ITEMS_PER_PAGE)
-  const hasMore = recordings.length > ITEMS_PER_PAGE
+  // ── Sort recordings by date, most recent first ──────────────
+const sorted = [...recordings].sort((a, b) => {
+  const dateA =
+    typeof a.checklistId === 'object' && a.checklistId !== null
+      ? (a.checklistId as ChecklistRef).date
+      : null
+  const dateB =
+    typeof b.checklistId === 'object' && b.checklistId !== null
+      ? (b.checklistId as ChecklistRef).date
+      : null
+
+  if (!dateA && !dateB) return 0
+  if (!dateA) return 1   // items without a date go last
+  if (!dateB) return -1
+
+  return dateB.localeCompare(dateA)  // descending = most recent first
+})
+
+const displayed = showAll ? sorted : sorted.slice(0, ITEMS_PER_PAGE)
+const hasMore = recordings.length > ITEMS_PER_PAGE
+
 
   // ── Preload all durations on mount ─────────────────────────
   useEffect(() => {

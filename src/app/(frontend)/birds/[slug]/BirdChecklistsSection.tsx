@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react' // ✨ added useMemo
 import { ChevronDown, ChevronUp, ClipboardList } from 'lucide-react'
 
 interface BirdChecklist {
@@ -11,6 +11,7 @@ interface BirdChecklist {
   locationName?: string | null
   region?: string | null
   county?: string | null
+  state?: string | null       // ✨ added state/province
 }
 
 interface BirdChecklistsSectionProps {
@@ -25,8 +26,14 @@ export default function BirdChecklistsSection({
   const ITEMS_PER_PAGE = 5
   const [showAll, setShowAll] = useState(false)
 
-  const displayed = showAll ? checklists : checklists.slice(0, ITEMS_PER_PAGE)
-  const hasMore = checklists.length > ITEMS_PER_PAGE
+  // ✨ Sort newest to oldest by date
+  const sorted = useMemo(
+    () => [...checklists].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [checklists],
+  )
+
+  const displayed = showAll ? sorted : sorted.slice(0, ITEMS_PER_PAGE) // ✨ use sorted
+  const hasMore = sorted.length > ITEMS_PER_PAGE                        // ✨ use sorted
 
   return (
     <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -52,12 +59,14 @@ export default function BirdChecklistsSection({
               </p>
               <p className="truncate text-xs font-semibold text-muted-foreground">
                 {cl.locationName}
-                {cl.region && <> · {cl.region}</>}
+                {cl.state && <> · {cl.state}</>}        {/* ✨ state first */}
                 {cl.county && <> · {cl.county}</>}
+                {cl.region && <> · {cl.region}</>}
               </p>
             </div>
             <a
-              href={`/bird-checklist/${cl.slug ?? cl.ebirdChecklistId ?? cl.id}`}
+              href={`/bird-checklist/${cl.slug ?? cl.ebirdChecklistId ?? 
+cl.id}`}
               className="ml-3 shrink-0 rounded-lg border-2 border-black bg-cyan-200 px-3 py-1.5 text-xs text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
             >
               View Checklist →
@@ -78,7 +87,7 @@ export default function BirdChecklistsSection({
               </>
             ) : (
               <>
-                View all {checklists.length} checklists <ChevronDown className="h-4 w-4" />
+                View all {sorted.length} checklists <ChevronDown className="h-4 w-4" />
               </>
             )}
           </button>
