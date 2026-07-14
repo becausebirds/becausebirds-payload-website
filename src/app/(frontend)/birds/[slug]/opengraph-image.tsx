@@ -6,7 +6,22 @@ export const alt = 'Bird Species';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-export default async function Image({ params }: { params: { slug: string } }) {
+// Helper to convert lat/lng to tile coordinates
+function lngLatToTile(lng, lat, zoom) {
+  const n = Math.pow(2, zoom);
+  const x = Math.floor(((lng + 180) / 360) * n);
+  const y = Math.floor(
+    ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * n
+  );
+  return { x, y, z: zoom };
+}
+
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
   const MAPTILER_KEY = process.env.MAPTILER_KEY;
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
@@ -26,51 +41,31 @@ export default async function Image({ params }: { params: { slug: string } }) {
 
   const { docs: birds } = await payload.find({
     collection: 'birds',
-    where: { slug: { equals: params.slug } },
+    where: { slug: { equals: slug } },
     limit: 1,
     depth: 0,
   });
 
   const bird = birds?.[0];
+
   if (!bird) {
     return new ImageResponse(
-      (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%',
-            backgroundColor: '#fde047',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 48,
-              fontWeight: 900,
-              color: '#000',
-              fontFamily: '"Inter", sans-serif',
-            }}
-          >
-            Bird Not Found
-          </span>
-        </div>
-      ),
-      {
-        width: 1200,
-        height: 630,
-        fonts: fontData
-          ? [{ name: 'Inter', data: fontData, weight: 900, style: 'normal' }]
-          : undefined,
-      },
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#fde047' }}>
+        <span style={{ fontSize: 48, fontWeight: 900, color: '#000', fontFamily: '"Inter", sans-serif' }}>bird not found</span>
+      </div>,
+      { width: 1200, height: 630 }
     );
   }
 
   // ─── Fetch highest-rated bird photo ─────────────────────────
   const { docs: mediaItems } = await payload.find({
     collection: 'bird-media',
-    where: { species: { contains: bird.id } },
+    where: { 
+      and: [
+        { species: { contains: bird.id } },
+        { 'mimeType': { like: 'image/' } }
+      ]
+    },
     sort: '-rating',
     limit: 1,
     depth: 0,
@@ -78,143 +73,168 @@ export default async function Image({ params }: { params: { slug: string } }) {
 
   const topMedia = mediaItems?.[0];
   const imageUrl = topMedia?.url
-    ? topMedia.url.startsWith('http')
-      ? topMedia.url
-      : `${SITE_URL}${topMedia.url}`
+    ? topMedia.url.startsWith('http') ? topMedia.url : `${SITE_URL}${topMedia.url}`
     : null;
 
-  // ─── Fetch checklists with coordinates for this species ─────
+  // ─── Fetch checklists with coordinates ──────────────────────
   const { docs: checklists } = await payload.find({
     collection: 'bird-checklists',
     where: {
-      AND: [
-        { 'speciesRecords.bird': { equals: bird.id } },
-        { latitude: { not_equals: null } },
-        { longitude: { not_equals: null } },
-      ],
+      'speciesRecords.bird': { equals: bird.id },
+      latitude: { exists: true },
+      longitude: { exists: true },
     },
-    limit: 30,
+    limit: 5,
     depth: 0,
   });
 
-  const coords = checklists.filter(
-    (c): c is { latitude: number; longitude: number } & typeof c =>
-      typeof c.latitude === 'number' && typeof c.longitude === 'number',
+  const validChecklists = checklists.filter(
+    (c) => typeof c.latitude === 'number' && typeof c.longitude === 'number'
   );
 
-  // ─── Build MapTiler static map URL ──────────────────────────
-  let mapUrl: string;
+  // ─── Calculate map bounds and center ─────────────────────────
+  let mapCenter = { lng: -98.5, lat: 29.3 };
+  let zoom = 10;
 
-  if (coords.length > 0) {
-    // Calculate center point (average of all coordinates)
-    const centerLat =
-      coords.reduce((sum, c) => sum + c.latitude, 0) / coords.length;
-    const centerLng =
-      coords.reduce((sum, c) => sum + c.longitude, 0) / coords.length;
-    const zoom = coords.length === 1 ? 9 : coords.length <= 3 ? 6 : 4;
+  if (validChecklists.length > 0) {
+    const lngs = validChecklists.map((c) => c.longitude);
+    const lats = validChecklists.map((c) => c.latitude);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
 
-    // Build marker pins - MapTiler uses pin-m+hexcolor(Lng,Lat) syntax
-    const markers = coords
-      .map((c) => `pin-m+eb4a4a(${c.longitude.toFixed(5)},${c.latitude.toFixed(5)})`)
-      .join(',');
+    mapCenter = {
+      lng: (minLng + maxLng) / 2,
+      lat: (minLat + maxLat) / 2,
+    };
 
-    mapUrl = `https://api.maptiler.com/maps/outdoor/static/${markers}/${centerLng.toFixed(5)},${centerLat.toFixed(5)},${zoom}/1200x630@2x.png?key=${MAPTILER_KEY}`;
-  } else {
-    // Fallback: broad world view
-    mapUrl = `https://api.maptiler.com/maps/outdoor/static/0,20,2/1200x630@2x.png?key=${MAPTILER_KEY}`;
+    const lngDiff = maxLng - minLng;
+    const latDiff = maxLat - minLat;
+    const maxDiff = Math.max(lngDiff, latDiff);
+    zoom = Math.max(8, Math.floor(11 - Math.log2(maxDiff * 1.2)));
   }
+
+  // ─── Build tile URLs for the map ─────────────────────────────
+  const tileSize = 256;
+  const mapWidth = 1200;
+  const mapHeight = 630;
+  const tilesX = Math.ceil(mapWidth / tileSize) + 1;
+  const tilesY = Math.ceil(mapHeight / tileSize) + 1;
+
+  const centerTile = lngLatToTile(mapCenter.lng, mapCenter.lat, zoom);
+
+  const tileUrls = [];
+  for (let ty = 0; ty < tilesY; ty++) {
+    for (let tx = 0; tx < tilesX; tx++) {
+      const x = centerTile.x - Math.floor(tilesX / 2) + tx;
+      const y = centerTile.y - Math.floor(tilesY / 2) + ty;
+      const url = `https://api.maptiler.com/maps/outdoor/${zoom}/${x}/${y}.png?key=${MAPTILER_KEY}`;
+      tileUrls.push({ url, x, y, tx, ty });
+    }
+  }
+
+  // ─── Build absolute logo URL ────────────────────────────────
+  const logoUrl = `${SITE_URL}/media/cropped-because-birds-logo-bird-2.png`;
 
   // ─── Render OG image ────────────────────────────────────────
   return new ImageResponse(
     (
-      <div
-        style={{
-          width: 1200,
-          height: 630,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundImage: `url(${mapUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          position: 'relative',
-        }}
-      >
-        {/* Dark gradient overlay for readability */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            background:
-              'linear-gradient(180deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.50) 100%)',
-          }}
-        />
-
-        {/* Bird photo in a circle */}
-        {imageUrl && (
-          <div
-            style={{
-              width: 260,
-              height: 260,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '5px solid #ffffff',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
-              zIndex: 1,
-              display: 'flex',
-            }}
-          >
+      <div style={{ width: 1200, height: 630, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#e0e0e0', overflow: 'hidden' }}>
+        {/* Map tiles background */}
+        <div style={{ position: 'absolute', top: 0, left: 0, width: 1200, height: 630, display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
+          {tileUrls.map((tile, idx) => (
             <img
-              src={imageUrl}
-              width={260}
-              height={260}
-              style={{ objectFit: 'cover', display: 'block' }}
+              key={idx}
+              src={tile.url}
+              width={256}
+              height={256}
+              loading="eager"
+              style={{
+                position: 'absolute',
+                left: tile.tx * 256,
+                top: tile.ty * 256,
+                width: 256,
+                height: 256,
+              }}
             />
-          </div>
-        )}
-
-        {/* Species name — navbar style (yellow bg + black shadow + bold text) */}
-        <div
-          style={{
-            marginTop: 24,
-            padding: '14px 36px',
-            backgroundColor: '#fde047',    // tailwind bg-yellow-300
-            border: '3px solid #000000',
-            borderRadius: 8,
-            boxShadow: '8px 8px 0px 0px #000000',
-            zIndex: 1,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 40,
-              fontWeight: 900,
-              color: '#000000',
-              letterSpacing: '-0.025em',   // tracking-tight
-              lineHeight: 1.2,
-              whiteSpace: 'nowrap',
-              fontFamily: '"Inter", sans-serif',
-            }}
-          >
-            {bird.comName}
-          </span>
+          ))}
         </div>
 
-        {/* Map attribution (required for MapTiler/OSM) */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 6,
-            right: 12,
-            fontSize: 10,
-            color: 'rgba(255,255,255,0.6)',
-            zIndex: 1,
-          }}
-        >
+        {/* Overlay - lighter fade */}
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
+          {/* Bird image circle */}
+          {imageUrl && (
+            <div style={{ 
+              width: 300, 
+              height: 300, 
+              borderRadius: 140, 
+              overflow: 'hidden', 
+              border: '6px solid #ffffff', 
+              boxShadow: '8px 8px 0px 0px #000000',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              flexShrink: 0,
+              position: 'relative'
+            }}>
+              <img 
+                src={imageUrl} 
+                width={280} 
+                height={280} 
+                loading="eager"
+                style={{ 
+                  objectFit: 'cover', 
+                  width: '100%', 
+                  height: '100%',
+                  display: 'block',
+                  borderRadius: 140,
+                }} 
+              />
+            </div>
+          )}
+
+          {/* Bird name label */}
+          <div style={{ 
+            marginTop: 28, 
+            padding: '10px 36px 10px 16px', 
+            backgroundColor: '#fde047', 
+            border: '3px solid #000000', 
+            borderRadius: 0, 
+            boxShadow: '8px 8px 0px 0px #000000', 
+            display: 'flex', 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            gap: 12,
+          }}>
+            {/* Rotated inner content (logo + text) */}
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'row', 
+              alignItems: 'center', 
+              gap: 12,
+              transform: 'rotate(-3deg)',
+            }}>
+              <img 
+                src={logoUrl}
+                width={110}
+                height={100}
+                loading="eager"
+                style={{ 
+                  display: 'block',
+                  flexShrink: 0,
+                  marginTop: -44,
+                  marginBottom: -6,
+                  marginLeft: -8,
+                }} 
+              />
+              <span style={{ fontSize: 50, fontWeight: 900, color: '#000000', fontFamily: '"Inter", sans-serif' }}>{bird.comName.toLowerCase()}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Attribution */}
+        <div style={{ position: 'absolute', bottom: 6, right: 12, fontSize: 10, color: 'rgba(255,255,255,0.7)', display: 'flex', zIndex: 10 }}>
           © MapTiler © OpenStreetMap contributors
         </div>
       </div>
@@ -222,9 +242,7 @@ export default async function Image({ params }: { params: { slug: string } }) {
     {
       width: 1200,
       height: 630,
-      fonts: fontData
-        ? [{ name: 'Inter', data: fontData, weight: 900, style: 'normal' }]
-        : undefined,
+      fonts: fontData ? [{ name: 'Inter', data: fontData, weight: 900, style: 'normal' }] : undefined,
     },
   );
 }
