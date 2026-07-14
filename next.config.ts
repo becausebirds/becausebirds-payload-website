@@ -7,6 +7,8 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 import { redirects } from './redirects'
 
+const NEXT_PUBLIC_SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['194.163.176.129'],
   sassOptions: {
@@ -30,16 +32,24 @@ const nextConfig: NextConfig = {
     ],
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
+        protocol: new URL(NEXT_PUBLIC_SERVER_URL).protocol.replace(':', '') as 'http' | 'https',
+        hostname: new URL(NEXT_PUBLIC_SERVER_URL).hostname,
+        pathname: '/api/media/**',
+      },
+      {
+        protocol: new URL(NEXT_PUBLIC_SERVER_URL).protocol.replace(':', '') as 'http' | 'https',
+        hostname: new URL(NEXT_PUBLIC_SERVER_URL).hostname,
         pathname: '/api/bird-media/**',
       },
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/api/media/**',
+        protocol: new URL(NEXT_PUBLIC_SERVER_URL).protocol.replace(':', '') as 'http' | 'https',
+        hostname: new URL(NEXT_PUBLIC_SERVER_URL).hostname,
+        pathname: '/media/**',
+      },
+      {
+        protocol: new URL(NEXT_PUBLIC_SERVER_URL).protocol.replace(':', '') as 'http' | 'https',
+        hostname: new URL(NEXT_PUBLIC_SERVER_URL).hostname,
+        pathname: '/birdmedia/**',
       },
     ],
     qualities: [75],
@@ -54,9 +64,6 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   redirects,
-  turbopack: {
-    root: path.resolve(dirname),
-  },
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })
