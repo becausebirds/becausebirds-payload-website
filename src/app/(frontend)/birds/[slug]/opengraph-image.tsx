@@ -7,11 +7,12 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 // Helper to convert lat/lng to tile coordinates
-function lngLatToTile(lng, lat, zoom) {
+function lngLatToTile(lng: number, lat: number, zoom: number) {
   const n = Math.pow(2, zoom);
   const x = Math.floor(((lng + 180) / 360) * n);
   const y = Math.floor(
-    ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * n
+    ((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * 
+    Math.PI) / 180)) / Math.PI) / 2) * n
   );
   return { x, y, z: zoom };
 }
@@ -50,8 +51,10 @@ export default async function Image({
 
   if (!bird) {
     return new ImageResponse(
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#fde047' }}>
-        <span style={{ fontSize: 48, fontWeight: 900, color: '#000', fontFamily: '"Inter", sans-serif' }}>bird not found</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 
+      'center', width: '100%', height: '100%', backgroundColor: '#fde047' }}>
+        <span style={{ fontSize: 48, fontWeight: 900, color: '#000', fontFamily:
+        '"Inter", sans-serif' }}>bird not found</span>
       </div>,
       { width: 1200, height: 630 }
     );
@@ -73,7 +76,8 @@ export default async function Image({
 
   const topMedia = mediaItems?.[0];
   const imageUrl = topMedia?.url
-    ? topMedia.url.startsWith('http') ? topMedia.url : `${SITE_URL}${topMedia.url}`
+    ? topMedia.url.startsWith('http') ? topMedia.url : 
+    `${SITE_URL}${topMedia.url}`
     : null;
 
   // ─── Fetch checklists with coordinates ──────────────────────
@@ -89,7 +93,8 @@ export default async function Image({
   });
 
   const validChecklists = checklists.filter(
-    (c) => typeof c.latitude === 'number' && typeof c.longitude === 'number'
+    (c): c is typeof c & { latitude: number; longitude: number } =>
+      typeof c.latitude === 'number' && typeof c.longitude === 'number'
   );
 
   // ─── Calculate map bounds and center ─────────────────────────
@@ -97,8 +102,8 @@ export default async function Image({
   let zoom = 10;
 
   if (validChecklists.length > 0) {
-    const lngs = validChecklists.map((c) => c.longitude);
-    const lats = validChecklists.map((c) => c.latitude);
+    const lngs: number[] = validChecklists.map((c) => c.longitude);
+    const lats: number[] = validChecklists.map((c) => c.latitude);
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
     const minLat = Math.min(...lats);
@@ -140,9 +145,12 @@ export default async function Image({
   // ─── Render OG image ────────────────────────────────────────
   return new ImageResponse(
     (
-      <div style={{ width: 1200, height: 630, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', backgroundColor: '#e0e0e0', overflow: 'hidden' }}>
+      <div style={{ width: 1200, height: 630, display: 'flex', flexDirection: 
+      'column', alignItems: 'center', justifyContent: 'center', position: 'relative', 
+      backgroundColor: '#e0e0e0', overflow: 'hidden' }}>
         {/* Map tiles background */}
-        <div style={{ position: 'absolute', top: 0, left: 0, width: 1200, height: 630, display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: 1200, 
+        height: 630, display: 'flex', flexWrap: 'wrap', overflow: 'hidden' }}>
           {tileUrls.map((tile, idx) => (
             <img
               key={idx}
@@ -162,7 +170,9 @@ export default async function Image({
         </div>
 
         {/* Overlay - lighter fade */}
-        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 
+        0, display: 'flex', flexDirection: 'column', alignItems: 'center', 
+        justifyContent: 'center', background: 'rgba(0,0,0,0.25)' }}>
           {/* Bird image circle */}
           {imageUrl && (
             <div style={{ 
@@ -228,13 +238,15 @@ export default async function Image({
                   marginLeft: -8,
                 }} 
               />
-              <span style={{ fontSize: 50, fontWeight: 900, color: '#000000', fontFamily: '"Inter", sans-serif' }}>{bird.comName.toLowerCase()}</span>
+              <span style={{ fontSize: 50, fontWeight: 900, color: '#000000', 
+              fontFamily: '"Inter", sans-serif' }}>{bird.comName.toLowerCase()}</span>
             </div>
           </div>
         </div>
 
         {/* Attribution */}
-        <div style={{ position: 'absolute', bottom: 6, right: 12, fontSize: 10, color: 'rgba(255,255,255,0.7)', display: 'flex', zIndex: 10 }}>
+        <div style={{ position: 'absolute', bottom: 6, right: 12, fontSize: 10, 
+        color: 'rgba(255,255,255,0.7)', display: 'flex', zIndex: 10 }}>
           © MapTiler © OpenStreetMap contributors
         </div>
       </div>
@@ -242,7 +254,8 @@ export default async function Image({
     {
       width: 1200,
       height: 630,
-      fonts: fontData ? [{ name: 'Inter', data: fontData, weight: 900, style: 'normal' }] : undefined,
+      fonts: fontData ? [{ name: 'Inter', data: fontData, weight: 900, style: 
+      'normal' }] : undefined,
     },
   );
 }
