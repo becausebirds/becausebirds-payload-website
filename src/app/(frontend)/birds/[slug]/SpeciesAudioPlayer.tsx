@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Play, Pause, Headphones, Calendar, MapPin, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+import { Play, Pause, Headphones, Calendar, MapPin, Clock, ChevronDown, ChevronUp, Star } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 
 interface SoundTypeTags {
@@ -313,12 +313,13 @@ export default function SpeciesAudioPlayer({ recordings }: SpeciesAudioPlayerPro
                       </span>
                     )}
                     {rec.rating && (
-                      <span className="flex items-center gap-0.5">
-                        {Array.from({ length: rec.rating }).map((_, i) => (
-                          <span key={i} className="text-xs">⭐</span>
-                        ))}
-                      </span>
-                    )}
+  <span className="flex items-center gap-0.5">
+    {Array.from({ length: rec.rating }).map((_, i) => (
+      <Star key={i} className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+    ))}
+  </span>
+)}
+
                   </div>
 
                   {/* Date + Location */}

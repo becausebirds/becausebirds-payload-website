@@ -29,7 +29,7 @@ export default async function BirdHeroSection({ bird }: { bird: Bird }) {
 
       <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-4 md:px-6 md:py-5">
-          <h1 className="text-3xl text-gray-800 dark:text-white tracking-tight uppercase md:text-4xl">
+          <h1 className="text-3xl text-gray-800 font-bold dark:text-white tracking-tight uppercase md:text-4xl">
             {bird.comName}
           </h1>
           <p className="mt-1 text-lg dark:text-white text-gray-800 italic text-muted-foreground">

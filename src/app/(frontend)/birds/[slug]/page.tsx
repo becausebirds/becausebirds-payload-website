@@ -13,7 +13,7 @@ interface PageProps {
 
 async function getBird(slug: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}&depth=1`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}&depth=2`,
     { next: { revalidate: 60 } },
   )
   if (!res.ok) return null

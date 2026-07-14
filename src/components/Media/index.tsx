@@ -1,3 +1,4 @@
+//components/Media index.tsx
 import React, { Fragment } from 'react'
 
 import type { Props } from './types'

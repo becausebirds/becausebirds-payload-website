@@ -1,3 +1,4 @@
+// RichText index.tsx
 import PersonalityQuizWrapper from '@/components/PersonalityQuizWrapper'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import BarChartBlock from '@/blocks/BarChart/Component'

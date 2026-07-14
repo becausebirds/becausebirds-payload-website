@@ -80,7 +80,7 @@ async function getChecklistsForBird(birdId: string): Promise<BirdChecklist[]> {
 
 async function getMediaForBird(birdId: string): Promise<BirdMediaItem[]> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-media?where[species][equals]=${birdId}&depth=0&limit=50&fields=id,filename,mimeType,url,alt,rating,soundTypeTags,equipment,mediaNotes,checklistId,locationName,date`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-media?where[species][equals]=${birdId}&depth=1&limit=50&fields=id,filename,mimeType,url,alt,rating,soundTypeTags,equipment,mediaNotes,checklistId,locationName,date`,
     { next: { revalidate: 60 } },
   )
   if (!res.ok) return []

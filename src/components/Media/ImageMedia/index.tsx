@@ -1,3 +1,5 @@
+//components/Media/ImageMedia/ index.tsx
+
 'use client'
 
 import type { StaticImageData } from 'next/image'
@@ -70,9 +72,10 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
     height = fullHeight!
     alt = altFromResource || ''
 
-    const cacheTag = resource.updatedAt
 
-    src = getMediaUrl(url, cacheTag)
+const fullUrl = getMediaUrl(url);
+
+src = fullUrl.replace(/^https?:\/\/[^\/]+/, ''); 
   }
 
   const loading = loadingFromProps || (!priority ? 'lazy' : undefined)
@@ -94,7 +97,7 @@ export const ImageMedia: React.FC<MediaProps> = (props) => {
         placeholder="blur"
         blurDataURL={placeholderBlur}
         priority={priority}
-        quality={100}
+        quality={75}
         loading={loading}
         sizes={sizes}
         src={src}

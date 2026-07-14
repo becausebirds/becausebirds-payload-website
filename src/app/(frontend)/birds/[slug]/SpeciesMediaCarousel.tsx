@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+import Link from 'next/link'
 import {
   Carousel,
   CarouselContent,
@@ -10,6 +12,14 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { ImageIcon, Star } from 'lucide-react'
 
+interface ChecklistInfo {
+  id: string
+  slug?: string | null
+  ebirdChecklistId?: string | null
+  date?: string | null
+  locationName?: string | null
+}
+
 interface PhotoItem {
   id: string
   url?: string | null
@@ -19,20 +29,19 @@ interface PhotoItem {
   mediaNotes?: string | null
   locationName?: string | null
   date?: string | null
+  checklistId?: ChecklistInfo | string | null
+  ebirdChecklistId?: string | null
 }
 
 interface SpeciesMediaCarouselProps {
   photos: PhotoItem[]
 }
 
-export default function SpeciesMediaCarousel({ photos }: 
-SpeciesMediaCarouselProps) {
+export default function SpeciesMediaCarousel({ photos }: SpeciesMediaCarouselProps) {
   if (photos.length === 0) {
     return (
-      <div className="flex h-[250px] w-full items-center justify-center rounded-
-lg border-2 border-black bg-white md:h-[300px]">
-        <p className="flex items-center gap-2 text-sm font-bold text-muted-
-foreground">
+      <div className="flex h-[250px] w-full items-center justify-center rounded-lg border-2 border-black bg-white md:h-[300px]">
+        <p className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
           <ImageIcon className="h-4 w-4" />
           No photos available
         </p>
@@ -40,53 +49,80 @@ foreground">
     )
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
-
-  // Default to highest rated, then newest first
   const sortedPhotos = [...photos].sort((a, b) => {
     const ratingA = a.rating ?? 0
     const ratingB = b.rating ?? 0
     if (ratingB !== ratingA) return ratingB - ratingA
-
     const dateA = a.date ?? ''
     const dateB = b.date ?? ''
     return dateB.localeCompare(dateA)
   })
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  }
 
   return (
     <div className="flex w-full flex-col items-center gap-4">
       <Carousel className="w-full max-w-sm md:max-w-md lg:max-w-lg">
         <CarouselContent>
           {sortedPhotos.map((photo) => {
+            // Get checklist data from populated relationship or flattened fields
+            const checklist =
+              photo.checklistId && typeof photo.checklistId === 'object'
+                ? photo.checklistId
+                : null
+
+            const dateStr = checklist?.date ?? photo.date
+            const locationName = checklist?.locationName ?? photo.locationName
+            const checklistSlug =
+              photo.ebirdChecklistId ??
+              checklist?.ebirdChecklistId ??
+              checklist?.slug ??
+              null
+
+            // Use relative path - remove the domain if it exists
             const src = photo.url?.startsWith('http')
-              ? photo.url
-              : `${baseUrl}${photo.url ?? ''}`
+              ? photo.url.replace(/^https?:\/\/[^\/]+/, '')
+              : photo.url ?? ''
 
             return (
               <CarouselItem key={photo.id}>
                 <div className="p-[10px]">
-                  <Card className="mx-auto w-fit border-2 border-black bg-white p-0 
-shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <Card className="mx-auto w-fit border-2 border-black bg-white p-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                     <CardContent className="flex items-center justify-center p-0">
-  <img
-    src={src}
-    alt={photo.alt ?? photo.filename ?? 'Bird photo'}
-    className="max-h-[250px] w-auto rounded-[inherit] md:max-h-[300px]"
-  />
-</CardContent>
-
+                      <Image
+                        src={src}
+                        alt={photo.alt ?? photo.filename ?? 'Bird photo'}
+                        width={1000}
+                        height={600}
+                        quality={85}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 500px, 500px"
+                        className="max-h-[250px] w-auto rounded-[inherit] md:max-h-[300px]"
+                      />
+                    </CardContent>
                   </Card>
                 </div>
-                {/* Caption row — shows location and date */}
                 <div className="mt-2 flex items-center justify-between px-3">
                   <p className="text-xs font-semibold text-muted-foreground">
-                    {photo.locationName && photo.date
-                      ? `${photo.locationName} • ${photo.date}`
-                      : photo.locationName
-                        ? photo.locationName
-                        : photo.date
-                          ? photo.date
-                          : `Photo ${sortedPhotos.indexOf(photo) + 1}`}
+                    {dateStr ? formatDate(dateStr) : 'Date unknown'}
+                    {locationName && <> · {locationName}</>}
+                    {checklistSlug && (
+                      <>
+                        {' · '}
+                        <Link
+                          href={`/bird-checklist/${checklistSlug}`}
+                          className="font-bold underline hover:underline"
+                        >
+                          View checklist
+                        </Link>
+                      </>
+                    )}
                   </p>
                   {photo.rating && (
                     <div className="flex items-center gap-1">
