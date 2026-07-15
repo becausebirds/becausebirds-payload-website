@@ -13,7 +13,8 @@ interface PageProps {
 
 async function getBird(slug: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}&depth=2`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}
+&depth=2`,
     { next: { revalidate: 60 } },
   )
   if (!res.ok) return null
@@ -113,37 +114,51 @@ export async function generateStaticParams() {
   if (process.env.NODE_ENV === 'development') return []
 
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
-  const res = await fetch(
-    `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
-    { next: { revalidate: 60 } },
-  )
-  if (!res.ok) return []
 
-  const data = await res.json()
-  const seenSlugs = new Set<string>()
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
+      { next: { revalidate: 60 } },
+    )
+    if (!res.ok) return []
 
-  for (const checklist of data.docs ?? []) {
-    for (const record of checklist.speciesRecords ?? []) {
-      if (typeof record.bird === 'object' && record.bird?.slug) {
-        seenSlugs.add(record.bird.slug)
+    const data = await res.json()
+    const seenSlugs = new Set<string>()
+
+    for (const checklist of data.docs ?? []) {
+      for (const record of checklist.speciesRecords ?? []) {
+        if (typeof record.bird === 'object' && record.bird?.slug) {
+          seenSlugs.add(record.bird.slug)
+        }
       }
     }
-  }
 
-  return Array.from(seenSlugs).map((slug) => ({ slug }))
+    return Array.from(seenSlugs).map((slug) => ({ slug }))
+  } catch {
+    // Payload server not available during Docker build — skip pre-generation
+    return []
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
-  const res = await fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`, { next: { revalidate: 60 } })
-  const data = await res.json()
-  const bird = data.docs?.[0] ?? null
 
-  if (!bird) return { title: 'Bird Species Not Found' }
+  try {
+    const res = await fetch(
+      `${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`,
+      { next: { revalidate: 60 } },
+    )
+    const data = await res.json()
+    const bird = data.docs?.[0] ?? null
 
-  return {
-    title: `${bird.comName} | Because Birds`,
-    description: `Sightings, photos, and audio recordings of ${bird.comName} (${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family` : ''}.`,
+    if (!bird) return { title: 'Bird Species Not Found' }
+
+    return {
+      title: `${bird.comName} | Because Birds`,
+      description: `Sightings, photos, and audio recordings of ${bird.comName} (${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family` : ''}.`,
+    }
+  } catch {
+    return { title: 'Bird Species Not Found' }
   }
 }
