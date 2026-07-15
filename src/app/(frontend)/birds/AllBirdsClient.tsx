@@ -47,7 +47,9 @@ interface BirdDetail {
 interface Props {
   birds: Bird[]
   baseUrl: string
+  initialDetails?: Record<string, BirdDetail>
 }
+
 
 /* ── Config ────────────────────────────────── */
 
@@ -87,12 +89,13 @@ function getPhotoUrl(
 
 /* ── Component ────────────────────────────── */
 
-export default function AllBirdsClient({ birds, baseUrl }: Props) {
+export default function AllBirdsClient({ birds, baseUrl, initialDetails }: Props) {
   /* ── Derived data ───────────────────────── */
   const filteredBirds = useMemo(
-    () => birds.filter((b) => !b.comName.includes('sp.')),
-    [birds],
-  )
+  () => birds, // DEBUG: Removed filter to see if birds appear
+  [birds],
+)
+
 
   const faveMarqueeItems = useMemo(
     () =>
@@ -102,18 +105,20 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
         .map((b) => b.comName),
     [birds],
   )
-
+console.log(birds)
   /* ── View state ─────────────────────────── */
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   /* ── Data state ─────────────────────────── */
-  const [details, setDetails] = useState<Map<string, BirdDetail>>(new Map())
-  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
+const [details, setDetails] = useState<Map<string, BirdDetail>>(
+  () => new Map(Object.entries(initialDetails ?? {}))
+)
+const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
 
-  // Ref-based guard so loadDetail never re-fetches what's already loaded
-  const loadedRef = useRef<Set<string>>(new Set())
+// Seed loadedRef with everything already loaded on the server
+const loadedRef = useRef<Set<string>>(new Set(Object.keys(initialDetails ?? {})))
 
   /* ── Controls state (shared by BOTH views) ── */
   const [search, setSearch] = useState('')
@@ -208,93 +213,7 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
     viewMode === 'grid'
       ? visibleCount < searchFilteredBirds.length
       : visibleCount < processedListBirds.length
-
-  /* ── Load bird detail data ───────────────── */
-  const loadDetail = useCallback(
-    async (birdId: string) => {
-      if (loadedRef.current.has(birdId)) return
-      loadedRef.current.add(birdId)
-
-      setLoadingIds((prev) => new Set(prev).add(birdId))
-
-      try {
-        const [checklistsRes, mediaRes] = await Promise.all([
-          fetch(
-            `${baseUrl}/api/bird-checklists?where[speciesRecords.bird][equals]=${birdId}&depth=1&limit=200&sort=-date`,
-          ),
-          fetch(
-            `${baseUrl}/api/bird-media?where[species][equals]=${birdId}&depth=2&limit=50`,
-          ),
-        ])
-
-        const checklistsData = await checklistsRes.json()
-        const mediaData = await mediaRes.json()
-        const checklists: any[] = checklistsData.docs ?? []
-        const media: any[] = mediaData.docs ?? []
-
-        // Best photo by rating
-        const photos = media
-          .filter((m: any) => m.mimeType?.startsWith('image/'))
-          .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
-        const topPhoto = photos[0]
-
-        // Audio count
-        const audios = media.filter((m: any) =>
-          m.mimeType?.startsWith('audio/'),
-        )
-
-        // With sort=-date, newest checklist is first, oldest is last
-        const newestChecklist = checklists[0] ?? null
-        const oldestChecklist = checklists[checklists.length - 1] ?? null
-        const lastDateRaw = newestChecklist?.date ?? null
-
-        // Collect unique locations (using state from checklists)
-        const locations = [
-          ...new Set(
-            checklists
-              .map((c: any) => c.state)
-              .filter((s: string | undefined) => s),
-          ),
-        ]
-
-        setDetails((prev) => {
-          const next = new Map(prev)
-          next.set(birdId, {
-            topPhotoUrl: topPhoto?.url ?? null,
-            firstLocation: oldestChecklist?.locationName ?? null,
-            firstDate: oldestChecklist?.date
-              ? formatDate(oldestChecklist.date)
-              : null,
-            lastDate: lastDateRaw,
-            lastDateFormatted: lastDateRaw
-              ? formatDate(lastDateRaw)
-              : null,
-            checklistCount: checklists.length,
-            photoCount: photos.length,
-            audioCount: audios.length,
-            locations,
-          })
-          return next
-        })
-      } catch (err) {
-        console.error('Failed to load bird details:', err)
-      } finally {
-        setLoadingIds((prev) => {
-          const next = new Set(prev)
-          next.delete(birdId)
-          return next
-        })
-      }
-    },
-    [baseUrl],
-  )
-
-  /* ── Trigger detail loads ───────────────── */
-  useEffect(() => {
-    const idsToLoad = new Set<string>()
-    visibleBirds.forEach((b) => idsToLoad.add(b.id))
-    idsToLoad.forEach((id) => loadDetail(id))
-  }, [visibleBirds, loadDetail])
+ 
 
   /* ── Handlers ───────────────────────────── */
   const handleToggleView = (mode: ViewMode) => {
