@@ -5,7 +5,7 @@ import AllBirdsClient from './AllBirdsClient'
 
 export const metadata: Metadata = {
   title: 'All Birds | Because Birds',
-  description: 'Browse all bird species with sightings, photos, and recordings.',
+  description: 'Browse all my bird species with sightings, photos, and recordings.',
 }
 
 /* ── Types ────────────────────────────────── */
@@ -133,6 +133,7 @@ export default async function AllBirdsPage() {
 
   console.log(`📊 Page received ${birds.length} birds`)
 
+  
   return (
     <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
       <div
@@ -144,17 +145,11 @@ export default async function AllBirdsPage() {
       <div className="relative z-10 mx-auto w-full max-w-full bg-white dark:bg-card border-2 border-black dark:border-border overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_hsl(var(--border))] sm:border-2 md:border-4 md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:md:shadow-[12px_12px_0px_0px_hsl(var(--border))] min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-4rem)]">
         <NavBar />
 
-        <main className="pt-10 pb-16 container mx-auto px-4 space-y-8">
-          <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-4 md:px-6 md:py-5">
-              <h1 className="text-3xl text-gray-800 dark:text-white tracking-tight uppercase md:text-4xl">
-                All Birds
-              </h1>
-              <p className="mt-1 text-sm text-gray-800 dark:text-white font-semibold">
-                {birds.length} species &middot; Click a bird to see details
-              </p>
-            </div>
-          </section>
+        <main className="pt-10 pb-16 container mx-auto px-4 space-y-4">
+         <h1 className='text-3xl font-bold'>All Birds </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            Here is every bird I've ever seen. Each bird has its own page with my photos, recordings and observations of it.
+          </p>
 
           <AllBirdsClient birds={birds} baseUrl={baseUrl} />
         </main>

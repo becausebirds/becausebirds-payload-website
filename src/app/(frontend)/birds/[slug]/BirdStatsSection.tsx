@@ -231,12 +231,11 @@ export default async function BirdStatsSection({ birdId }: BirdStatsSectionProps
               <div className="relative flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                 {oldestPhoto?.url ? (
                   <Image
-                    src={oldestPhoto.url.startsWith('http') ? oldestPhoto.url : `${baseUrl}${oldestPhoto.url}`}
+                    src={oldestPhoto.url.startsWith('http') ? oldestPhoto.url.replace(/^https?:\/\/[^\/]+/, '') : oldestPhoto.url}
                     alt={oldestPhoto.alt ?? oldestPhoto.filename ?? 'Oldest photo'}
                     width={64}
                     height={64}
                     className="aspect-square object-cover"
-                    unoptimized={oldestPhoto.url.startsWith('http')}
                   />
                 ) : (
                   <span className="flex h-14 w-14 items-center justify-center text-3xl md:h-16 md:w-16">🦜</span>
