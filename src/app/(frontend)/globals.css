@@ -52,6 +52,28 @@
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 86rem;
   --font-sans: var(--font-public-sans);
+
+  /* ── Marquee animations ── */
+  --animate-marquee: marquee 20s linear infinite;
+  --animate-marquee2: marquee2 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes marquee2 {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
 }
 
 @layer utilities {
