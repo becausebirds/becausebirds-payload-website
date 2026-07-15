@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile
 
 FROM deps AS builder
 COPY . .
-RUN pnpm build --no-turbopack
+RUN pnpm build
 
 FROM base AS runner
 COPY package.json pnpm-lock.yaml ./
