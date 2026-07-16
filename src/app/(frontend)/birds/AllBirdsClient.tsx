@@ -70,9 +70,11 @@ function formatDate(dateStr: string | null | undefined): string {
   })
 }
 
-function getPhotoUrl(detail: BirdDetail | undefined, baseUrl: string): string | null {
+function getPhotoUrl(detail: BirdDetail | undefined, baseUrl: string): string | 
+null {
   if (!detail?.topPhotoUrl) return null
-  if (detail.topPhotoUrl.startsWith('http') || detail.topPhotoUrl.startsWith('/')) {
+  if (detail.topPhotoUrl.startsWith('http') || 
+detail.topPhotoUrl.startsWith('/')) {
     return detail.topPhotoUrl
   }
   return `${baseUrl}${detail.topPhotoUrl}`
@@ -185,10 +187,12 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
       try {
         const [checklistsRes, mediaRes] = await Promise.all([
           fetch(
-            `${baseUrl}/api/bird-checklists?where[speciesRecords.bird][equals]=${birdId}&depth=1&limit=200&sort=date`,
+            `${baseUrl}/api/bird-checklists?where[speciesRecords.bird][equals]=$
+{birdId}&depth=1&limit=200&sort=date`,
           ),
           fetch(
-            `${baseUrl}/api/bird-media?where[species][equals]=${birdId}&depth=2&limit=50`,
+            `${baseUrl}/api/bird-
+media?where[species][equals]=${birdId}&depth=2&limit=50`,
           ),
         ])
 
@@ -232,7 +236,8 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
               : null,
             checklistCount: checklists.length,
             photoCount: photos.length,
-            audioCount: media.filter((m: any) => m.mimeType?.startsWith('audio/')).length,
+            audioCount: media.filter((m: any) => 
+m.mimeType?.startsWith('audio/')).length,
             locations,
           })
           return next
@@ -262,7 +267,8 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
   }
 
   const showMore = () => {
-    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, sortBirds(searchFilteredBirds).length))
+    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, 
+sortBirds(searchFilteredBirds).length))
   }
 
   /* ── Sorting: Birds with images first ──── */
@@ -282,33 +288,52 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
     const photoUrl = getPhotoUrl(detail, baseUrl)
 
     return (
-      <div className="my-2 w-full border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6">
-          <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+      <div className="relative z-50 my-2 w-full overflow-hidden border-2 border-
+black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 
+dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch 
+sm:gap-6">
+          <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 
+border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-
+gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] sm:self-stretch sm:w-48">
             {photoUrl ? (
-              <img src={photoUrl} alt={bird.comName} className="h-24 w-24 object-cover md:h-28 md:w-28" />
-            ) : (
-              <span className="flex h-24 w-24 items-center justify-center text-4xl md:h-28 md:w-28">🦜</span>
-            )}
+  <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
+) : (
+  <span className="flex h-full w-full items-center justify-center text-4xl">🦜</span>
+)}
+
           </div>
           <div className="flex-1 space-y-1.5">
             <div>
-              <h3 className="text-lg font-black uppercase text-gray-800">{bird.comName}</h3>
-              <p className="text-sm italic text-gray-500">{bird.sciName}</p>
+              <h3 className="text-lg font-black uppercase text-gray-800 
+dark:text-gray-100">{bird.comName}</h3>
+              <p className="text-sm italic text-gray-500 
+dark:text-gray-400">{bird.sciName}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-600">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-
+semibold text-gray-600 dark:text-gray-400">
               <Binoculars className="h-3.5 w-3.5 text-amber-500" />
-              <span>{detail?.firstDate ?? '—'} &middot; {detail?.firstLocation ?? 'Unknown location'}</span>
+              <span>{detail?.firstDate ?? '—'} &middot;{' '}
+                {detail?.firstLocation ?? 'Unknown location'}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-2 border-black bg-emerald-300 px-2.5 py-1 text-[11px] font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                {detail?.checklistCount ?? '…'} observation{(detail?.checklistCount ?? 0) !== 1 ? 's' : ''}
+              <Badge className="border-2 border-black bg-emerald-300 px-2.5 py-1
+ text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] 
+dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+                {detail?.checklistCount ?? '…'}{' '}
+                observation{(detail?.checklistCount ?? 0) !== 1 ? 's' : ''}
               </Badge>
-              <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 px-2.5 py-1 text-[11px] font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <Badge className="flex items-center gap-1 border-2 border-black 
+bg-sky-200 px-2.5 py-1 text-[11px] font-black text-gray-800 
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 
+dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                 <Camera className="h-3 w-3" />
                 {detail?.photoCount ?? '…'}
               </Badge>
-              <Badge className="flex items-center gap-1 border-2 border-black bg-purple-200 px-2.5 py-1 text-[11px] font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <Badge className="flex items-center gap-1 border-2 border-black 
+bg-purple-200 px-2.5 py-1 text-[11px] font-black text-gray-800 
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 
+dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                 <Mic className="h-3 w-3" />
                 {detail?.audioCount ?? '…'}
               </Badge>
@@ -316,10 +341,13 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
           </div>
           <Link
             href={`/birds/${bird.slug}`}
-            className="inline-flex items-center gap-1.5 self-start rounded-lg border-2 border-black bg-sky-400 px-4 py-2 text-xs font-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+            className="inline-flex items-center gap-1.5 self-start rounded-lg 
+border-2 border-black bg-sky-400 px-4 py-2 text-xs font-black text-white 
+shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px 
+hover:translate-y-px hover:shadow-none dark:border-gray-600 
+dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
           >
             View Bird
-            <ExternalLink className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>
@@ -331,18 +359,23 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
       {/* Search */}
       <div className="relative min-w-0 flex-[2]">
-        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 
+w-3.5 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search birds…"
-          className="w-full rounded-md border-2 border-black bg-white py-1.5 pl-7 pr-7 text-xs font-semibold text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-lime-400"
+          className="w-full rounded-md border-2 border-black bg-white py-1.5 
+pl-7 pr-7 text-xs font-semibold text-gray-800 
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 
+focus:ring-lime-400"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400
+ hover:text-gray-600"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -351,26 +384,35 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
 
       {/* Sort dropdown */}
       <div className="relative shrink-0">
-        <ArrowUpDown className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+        <ArrowUpDown className="pointer-events-none absolute left-2 top-1/2 
+h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
         <select
           value={sortMode}
           onChange={(e) => setSortMode(e.target.value as SortMode)}
-          className="appearance-none rounded-md border-2 border-black bg-white py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-lime-400"
+          className="appearance-none rounded-md border-2 border-black bg-white 
+py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 
+focus:ring-lime-400"
         >
           <option value="name">Name</option>
           <option value="date">Last Reported</option>
           <option value="observations">Times Observed</option>
         </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 
+h-3 w-3 -translate-y-1/2 text-gray-400" />
       </div>
 
       {/* Location filter dropdown */}
       <div className="relative shrink-0">
-        <Filter className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+        <Filter className="pointer-events-none absolute left-2 top-1/2 h-3.5 
+w-3.5 -translate-y-1/2 text-gray-400" />
         <select
           value={locationFilter}
           onChange={(e) => setLocationFilter(e.target.value)}
-          className="appearance-none rounded-md border-2 border-black bg-white py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-lime-400"
+          className="appearance-none rounded-md border-2 border-black bg-white 
+py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 
+focus:ring-lime-400"
         >
           <option value="">All Locations</option>
           {locationOptions.map((loc) => (
@@ -379,7 +421,8 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 
+h-3 w-3 -translate-y-1/2 text-gray-400" />
       </div>
     </div>
   )
@@ -450,7 +493,8 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
 
                   return (
                     <div key={bird.id} className="flex flex-col items-center px-0.5">
-                      <button onClick={() => toggleExpand(bird.id)} className="group relative">
+                      <button onClick={() => toggleExpand(bird.id)} 
+className="group relative">
                         <div
                           className={`h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-full border-2 transition-all duration-300 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${
                             isExpanded
@@ -459,7 +503,8 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
                           }`}
                         >
                           {photoUrl ? (
-                            <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
+                            <img src={photoUrl} alt={bird.comName} 
+className="h-full w-full object-cover" />
                           ) : (
                             <span className="flex h-full w-full items-center justify-center bg-gray-100 p-1 text-center">
                               {isLoading ? (
@@ -498,7 +543,8 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
         <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
           <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6">
             <h2 className="flex items-center gap-1.5 font-black text-gray-800 uppercase text-sm tracking-wide md:text-base">
-              <Heart className="h-4 w-4 fill-red-500 text-red-500" /> Jeff&apos;s Fave Five
+              <Heart className="h-4 w-4 fill-red-500 text-red-500" /> 
+Jeff&apos;s Fave Five
             </h2>
           </div>
           <div className="bg-background p-4 md:p-6">
