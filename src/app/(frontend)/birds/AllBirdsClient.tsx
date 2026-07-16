@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ChevronDown,
   ExternalLink,
@@ -15,8 +16,12 @@ import {
   X,
   Camera,
   Mic,
+  Grid3x3,
+  List,
+  Eye,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import Marquee from '@/components/ui/marquee'
 
 /* ── Types ────────────────────────────────── */
 
@@ -45,21 +50,22 @@ interface Props {
   baseUrl: string
 }
 
-/* ── Config ────────────────────────────────── */
+/* ── Config ────────────────────────────── */
 
-const FAVE_FIVE_SLUGS: string[] = [
-  'bald-eagle',
-  'northern-cardinal',
-  'american-robin',
-  'blue-jay',
-  'ruby-throated-hummingbird',
+const FAVE_SLUGS: string[] = [
+  'great-tailed-grackle',
+  'laughing-gull',
+  'scissor-tailed-flycatcher',
+  'northern-mockingbird',
+  'canyon-wren',
 ]
 
 const ITEMS_PER_PAGE = 30
 
 type SortMode = 'name' | 'date' | 'observations'
+type ViewMode = 'grid' | 'list'
 
-/* ── Helpers ──────────────────────────── */
+/* ── Helpers ──────────────────────── */
 
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '—'
@@ -70,11 +76,9 @@ function formatDate(dateStr: string | null | undefined): string {
   })
 }
 
-function getPhotoUrl(detail: BirdDetail | undefined, baseUrl: string): string |
-null {
+function getPhotoUrl(detail: BirdDetail | undefined, baseUrl: string): string | null {
   if (!detail?.topPhotoUrl) return null
-  if (detail.topPhotoUrl.startsWith('http') ||
-detail.topPhotoUrl.startsWith('/')) {
+  if (detail.topPhotoUrl.startsWith('http') || detail.topPhotoUrl.startsWith('/')) {
     return detail.topPhotoUrl
   }
   return `${baseUrl}${detail.topPhotoUrl}`
@@ -86,8 +90,12 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
   /* ── Fetch lifers instead of using all birds ── */
   const [lifersLoading, setLifersLoading] = useState(true)
   const [liferBirds, setLiferBirds] = useState<Bird[]>([])
+  const lifersLoadedRef = useRef(false)
 
   useEffect(() => {
+    if (lifersLoadedRef.current) return
+    lifersLoadedRef.current = true
+
     const fetchLifers = async () => {
       setLifersLoading(true)
       try {
@@ -112,18 +120,50 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
   }, [liferBirds])
 
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [details, setDetails] = useState<Map<string, BirdDetail>>(new Map())
-  const [loadingIds, setLoadingIds] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>('name')
-  const [locationFilter, setLocationFilter] = useState('')
+  const [regionFilter, setRegionFilter] = useState('')
+  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const faveFive = filteredBirds.filter((b) => FAVE_FIVE_SLUGS.includes(b.slug))
+  /* ── Fetch all distinct regions upfront ── */
+  const [allRegions, setAllRegions] = useState<string[]>([])
+  const regionsLoadedRef = useRef(false)
+
+  useEffect(() => {
+    if (regionsLoadedRef.current) return
+    regionsLoadedRef.current = true
+
+    const fetchAllRegions = async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/bird-checklists?depth=0&limit=1000&sort=region`)
+        const data = await res.json()
+        const regions = Array.from(
+          new Set((data.docs ?? []).map((c: any) => c.region).filter(Boolean))
+        )
+        setAllRegions(regions.sort())
+      } catch (err) {
+        console.error('Failed to fetch regions:', err)
+      }
+    }
+    fetchAllRegions()
+  }, [baseUrl])
+
+  const faveFive = filteredBirds.filter((b) => FAVE_SLUGS.includes(b.slug))
+
+  const faveMarqueeItems = useMemo(
+    () =>
+      filteredBirds
+        .filter((b) => FAVE_SLUGS.includes(b.slug))
+        .sort((a, b) => FAVE_SLUGS.indexOf(a.slug) - FAVE_SLUGS.indexOf(b.slug))
+        .map((b) => b.comName),
+    [filteredBirds],
+  )
 
   /* ── Reset pagination when filters change ── */
   const prevFilterKey = useRef('')
-  const filterKey = `${search}|${locationFilter}|${sortMode}`
+  const filterKey = `${search}|${regionFilter}|${sortMode}`
 
   useEffect(() => {
     if (prevFilterKey.current !== filterKey) {
@@ -133,14 +173,7 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
     }
   }, [filterKey])
 
-  /* ── Available location options ── */
-  const locationOptions = useMemo(() => {
-    const set = new Set<string>()
-    details.forEach((d) => d.locations.forEach((l) => set.add(l)))
-    return Array.from(set).sort()
-  }, [details])
-
-  /* ── Apply search + location filter ──────── */
+  /* ── Apply search + region filter ──────── */
   const searchFilteredBirds = useMemo(() => {
     let list = [...filteredBirds]
 
@@ -153,15 +186,15 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
       )
     }
 
-    if (locationFilter) {
+    if (regionFilter) {
       list = list.filter((b) => {
         const detail = details.get(b.id)
-        return detail?.locations.includes(locationFilter) ?? false
+        return detail?.locations.includes(regionFilter) ?? false
       })
     }
 
     return list
-  }, [filteredBirds, search, locationFilter, details])
+  }, [filteredBirds, search, regionFilter, details])
 
   /* ── Sort helper ──────────────────────────── */
   const sortBirds = useCallback(
@@ -193,17 +226,22 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
   /* ── Visible birds (pagination-aware) ────── */
   const visibleBirdsProcessed = useMemo(
     () => sortBirds(searchFilteredBirds).slice(0, visibleCount),
-    [searchFilteredBirds, visibleCount, sortBirds],
+    [searchFilteredBirds, visibleCount, sortMode, details],
   )
 
   const hasMoreFiltered = visibleCount < sortBirds(searchFilteredBirds).length
 
-  /* ── Load bird detail data ────────────────── */
+  /* ── Load bird detail data (on-demand) ────────────────── */
+  const loadedBirdsRef = useRef<Set<string>>(new Set())
+  const loadingRef = useRef<Set<string>>(new Set())
 
   const loadDetail = useCallback(
     async (birdId: string) => {
-      if (details.has(birdId) || loadingIds.has(birdId)) return
-      setLoadingIds((prev) => new Set(prev).add(birdId))
+      if (loadedBirdsRef.current.has(birdId) || loadingRef.current.has(birdId)) {
+        return
+      }
+
+      loadingRef.current.add(birdId)
 
       try {
         const [checklistsRes, mediaRes] = await Promise.all([
@@ -228,16 +266,15 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
         const firstSighting = checklists[0] ?? null
         const lastSighting = checklists[checklists.length - 1] ?? null
 
-        // Collect unique locations
         const locations = Array.from(
-          new Set(checklists.map((c: any) => c.locationName).filter(Boolean))
+          new Set(checklists.map((c: any) => c.region).filter(Boolean))
         )
 
         setDetails((prev) => {
           const next = new Map(prev)
           next.set(birdId, {
             topPhotoUrl: topPhoto?.url ?? null,
-            firstLocation: firstSighting?.locationName ?? null,
+            firstLocation: firstSighting?.region ?? null,
             firstDate: firstSighting?.date
               ? new Date(firstSighting.date).toLocaleDateString('en-US', {
                   year: 'numeric',
@@ -255,37 +292,57 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
               : null,
             checklistCount: checklists.length,
             photoCount: photos.length,
-            audioCount: media.filter((m: any) =>
-m.mimeType?.startsWith('audio/')).length, locations,})
+            audioCount: media.filter((m: any) => m.mimeType?.startsWith('audio/')).length,
+            locations,
+          })
           return next
         })
+
+        loadedBirdsRef.current.add(birdId)
       } catch (err) {
         console.error('Failed to load bird details:', err)
       } finally {
-        setLoadingIds((prev) => {
-          const next = new Set(prev)
-          next.delete(birdId)
-          return next
-        })
+        loadingRef.current.delete(birdId)
       }
     },
-    [baseUrl, details, loadingIds],
+    [baseUrl],
   )
 
+  /* ── Load images for the currently visible birds ── */
   useEffect(() => {
     visibleBirdsProcessed.forEach((bird) => loadDetail(bird.id))
-    faveFive.forEach((bird) => loadDetail(bird.id))
-  }, [visibleCount, loadDetail, faveFive, visibleBirdsProcessed])
+  }, [visibleBirdsProcessed, loadDetail])
+
+  /* ── Toggle expanded detail when a grid bird is clicked ── */
+  const handleGridBirdClick = useCallback(
+    (birdId: string) => {
+      setExpandedId((prev) => (prev === birdId ? null : birdId))
+      loadDetail(birdId)
+    },
+    [loadDetail],
+  )
+
+  /* ── Click-outside to dismiss expanded detail ── */
+  const expandedRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!expandedId) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        expandedRef.current &&
+        !expandedRef.current.contains(e.target as Node)
+      ) {
+        setExpandedId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [expandedId])
 
   /* ── Handlers ────────────────────────────── */
 
-  const toggleExpand = (birdId: string) => {
-    setExpandedId((prev) => (prev === birdId ? null : birdId))
-  }
-
   const showMore = () => {
-    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE,
-sortBirds(searchFilteredBirds).length))
+    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, sortBirds(searchFilteredBirds).length))
   }
 
   /* ── Sorting: Birds with images first ──── */
@@ -305,11 +362,11 @@ sortBirds(searchFilteredBirds).length))
     const photoUrl = getPhotoUrl(detail, baseUrl)
 
     return (
-      <div className="relative z-50 my-2 w-full overflow-hidden border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+      <div ref={expandedRef} className="relative z-50 my-2 w-full overflow-hidden border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch sm:gap-6">
-          <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] sm:self-stretch sm:w-48">
+          <div className="relative flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] sm:self-stretch sm:w-48">
             {photoUrl ? (
-              <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
+              <Image src={photoUrl} alt={bird.comName} fill className="object-cover" sizes="(max-width: 640px) 100vw, 192px" />
             ) : (
               <span className="flex h-full w-full items-center justify-center text-4xl">🦜</span>
             )}
@@ -321,13 +378,11 @@ sortBirds(searchFilteredBirds).length))
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
               <Binoculars className="h-3.5 w-3.5 text-amber-500" />
-              <span>{detail?.firstDate ?? '—'} &middot;{' '}
-                {detail?.firstLocation ?? 'Unknown location'}</span>
+              <span>{detail?.firstDate ?? '—'} &middot; {detail?.firstLocation ?? 'Unknown location'}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="border-2 border-black bg-emerald-300 px-2.5 py-1 text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                {detail?.checklistCount ?? '…'}{' '}
-                observation{(detail?.checklistCount ?? 0) !== 1 ? 's' : ''}
+                {detail?.checklistCount ?? '…'} observation{(detail?.checklistCount ?? 0) !== 1 ? 's' : ''}
               </Badge>
               <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 px-2.5 py-1 text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                 <Camera className="h-3 w-3" />
@@ -341,11 +396,7 @@ sortBirds(searchFilteredBirds).length))
           </div>
           <Link
             href={`/birds/${bird.slug}`}
-            className="inline-flex items-center gap-1.5 self-start rounded-lg
-border-2 border-black bg-sky-400 px-4 py-2 text-xs font-black text-white
-shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px
-hover:translate-y-px hover:shadow-none dark:border-gray-600
-dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
+            className="inline-flex items-center gap-1.5 self-start rounded-lg border-2 border-black bg-sky-400 px-4 py-2 text-xs font-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
           >
             View Bird
           </Link>
@@ -389,31 +440,25 @@ dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
           <option value="date">Last Reported</option>
           <option value="observations">Times Observed</option>
         </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2
-h-3 w-3 -translate-y-1/2 text-gray-400" />
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
       </div>
 
-      {/* Location filter dropdown */}
+      {/* Region filter dropdown */}
       <div className="relative shrink-0">
-        <Filter className="pointer-events-none absolute left-2 top-1/2 h-3.5
-w-3.5 -translate-y-1/2 text-gray-400" />
+        <Filter className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
         <select
-          value={locationFilter}
-          onChange={(e) => setLocationFilter(e.target.value)}
-          className="appearance-none rounded-md border-2 border-black bg-white
-py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800
-shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2
-focus:ring-lime-400"
+          value={regionFilter}
+          onChange={(e) => setRegionFilter(e.target.value)}
+          className="appearance-none rounded-md border-2 border-black bg-white py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-lime-400"
         >
-          <option value="">All Locations</option>
-          {locationOptions.map((loc) => (
-            <option key={loc} value={loc}>
-              {loc}
+          <option value="">All Regions</option>
+          {allRegions.map((region) => (
+            <option key={region} value={region}>
+              {region}
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2
-h-3 w-3 -translate-y-1/2 text-gray-400" />
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
       </div>
     </div>
   )
@@ -425,7 +470,7 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
 
     let msg = `${showing} of ${total} species`
     if (search) msg += ` matching "${search}"`
-    if (locationFilter) msg += ` in ${locationFilter}`
+    if (regionFilter) msg += ` in ${regionFilter}`
 
     return (
       <p className="px-1 mb-2 text-xs font-semibold text-gray-500">
@@ -433,6 +478,141 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
       </p>
     )
   }
+
+  /* ── Render: Grid View ──────────────────── */
+  const renderGridView = () => (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-start justify-center gap-1">
+        {sortedVisibleBirds.map((bird) => {
+          const isExpanded = expandedId === bird.id
+          const isLoading = loadingRef.current.has(bird.id)
+          const detail = details.get(bird.id)
+          const photoUrl = getPhotoUrl(detail, baseUrl)
+
+          if (isExpanded) {
+            return (
+              <div key={bird.id} className="w-full">
+                {renderExpandedDetail(bird)}
+              </div>
+            )
+          }
+
+          return (
+            <div key={bird.id} className="flex flex-col items-center py-0.5 px-0.5">
+              <button onClick={() => handleGridBirdClick(bird.id)} className="group relative">
+                <div
+                  className={`relative h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-full border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 ${
+                    isExpanded
+                      ? 'border-lime-400 ring-2 ring-lime-400 ring-inset'
+                      : 'border-black hover:border-lime-400'
+                  }`}
+                >
+                  {photoUrl ? (
+                    <Image src={photoUrl} alt={bird.comName} fill className="object-cover" sizes="80px" />
+                  ) : (
+                    <span className="flex h-full w-full items-center justify-center bg-gray-100 p-1 text-center">
+                      {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                      ) : (
+                        <span className="text-[7px] font-semibold text-gray-600 uppercase break-all px-0.5">
+                          {bird.comName}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {hasMoreFiltered && (
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={showMore}
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-green-400 px-6 py-2.5 text-sm font-black text-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+          >
+            Show More
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+
+  /* ── Render: List View ──────────────────── */
+  const renderListView = () => (
+    <div className="space-y-2">
+      {sortedVisibleBirds.map((bird) => {
+        const detail = details.get(bird.id)
+        const photoUrl = getPhotoUrl(detail, baseUrl)
+
+        return (
+          <div
+            key={bird.id}
+            className="flex items-center gap-3 border-2 border-black bg-white p-3 sm:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:transition sm:hover:shadow-none sm:hover:translate-x-px sm:hover:translate-y-px"
+          >
+            {/* Thumbnail */}
+            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded border-2 border-black">
+              {photoUrl ? (
+                <Image src={photoUrl} alt={bird.comName} fill className="object-cover" sizes="48px" />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center bg-gray-100 text-lg">
+                  🦜
+                </span>
+              )}
+            </div>
+
+            {/* Bird info */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-black text-gray-800 truncate">{bird.comName}</h3>
+              <p className="text-xs text-gray-500 italic truncate">{bird.sciName}</p>
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <Badge className="flex items-center gap-1 border border-gray-300 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
+                  <Eye className="h-2.5 w-2.5" />
+                  {detail?.checklistCount ?? '…'}
+                </Badge>
+                <Badge className="flex items-center gap-0.5 border border-gray-300 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
+                  <Camera className="h-2.5 w-2.5" />
+                  {detail?.photoCount ?? '…'}
+                </Badge>
+                <Badge className="flex items-center gap-0.5 border border-gray-300 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
+                  <Mic className="h-2.5 w-2.5" />
+                  {detail?.audioCount ?? '…'}
+                </Badge>
+                {detail?.lastDateFormatted && (
+                  <Badge className="border border-gray-300 bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700">
+                    {detail.lastDateFormatted}
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            {/* View button */}
+            <Link
+              href={`/birds/${bird.slug}`}
+              className="flex-shrink-0 rounded border-2 border-black bg-sky-300 px-3 py-2 text-xs font-black text-gray-800 transition hover:bg-sky-400"
+            >
+              View
+            </Link>
+          </div>
+        )
+      })}
+
+      {hasMoreFiltered && (
+        <div className="flex justify-center pt-4">
+          <button
+            onClick={showMore}
+            className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-green-400 px-6 py-2.5 text-sm font-black text-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+          >
+            Show More
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
 
   /* ── Main render ──────────────────────────── */
 
@@ -442,6 +622,37 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
         {/* Header with search/filter controls */}
         <div className="border-b-2 border-black bg-pink-100 px-3 py-2 sm:px-5 sm:py-2.5">
           {renderControls()}
+        </div>
+
+        {/* View mode toggle - centered below pink bar */}
+        <div className="flex justify-center border-b-2 border-black bg-white px-3 py-3 sm:px-5">
+          <div className="flex shrink-0 gap-1 rounded-md border-2 border-black bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-4 py-2 transition font-semibold text-sm ${
+                viewMode === 'grid'
+                  ? 'bg-lime-300 text-gray-800'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              title="Grid view"
+            >
+              <Grid3x3 className="h-4 w-4 inline mr-1" />
+              Grid
+            </button>
+            <div className="border-r border-gray-300" />
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 transition font-semibold text-sm ${
+                viewMode === 'list'
+                  ? 'bg-lime-300 text-gray-800'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+              title="List view"
+            >
+              <List className="h-4 w-4 inline mr-1" />
+              List
+            </button>
+          </div>
         </div>
 
         <div className="bg-background px-1 py-2 md:p-6">
@@ -457,12 +668,12 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
             </div>
           ) : sortBirds(searchFilteredBirds).length === 0 ? (
             <p className="py-8 text-center text-sm font-semibold text-gray-500">
-              {search || locationFilter ? 'No birds match your filters.' : 'No birds found.'}
-              {(search || locationFilter) && (
+              {search || regionFilter ? 'No birds match your filters.' : 'No birds found.'}
+              {(search || regionFilter) && (
                 <button
                   onClick={() => {
                     setSearch('')
-                    setLocationFilter('')
+                    setRegionFilter('')
                   }}
                   className="ml-2 underline hover:text-gray-700"
                 >
@@ -470,123 +681,25 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
                 </button>
               )}
             </p>
+          ) : viewMode === 'grid' ? (
+            renderGridView()
           ) : (
-            <div className="space-y-2">
-              {/* ── Flexbox layout — circles flow naturally into rows ── */}
-              <div className="flex flex-wrap items-start justify-center gap-1">
-                {sortedVisibleBirds.map((bird) => {
-                  const isExpanded = expandedId === bird.id
-                  const isLoading = loadingIds.has(bird.id)
-                  const detail = details.get(bird.id)
-                  const photoUrl = getPhotoUrl(detail, baseUrl)
-
-                  if (isExpanded) {
-                    // When expanded, render the full-width detail card
-                    return (
-                      <div key={bird.id} className="w-full">
-                        {renderExpandedDetail(bird)}
-                      </div>
-                    )
-                  }
-
-                  return (
-                    <div key={bird.id} className="flex flex-col items-center px-0.5">
-                      <button onClick={() => toggleExpand(bird.id)}
-className="group relative">
-                        <div
-                          className={`h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-full border-2 transition-all duration-300 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${
-                            isExpanded
-                              ? 'border-lime-400 ring-2 ring-lime-400 ring-inset'
-                              : 'border-black'
-                          }`}
-                        >
-                          {photoUrl ? (
-                            <img src={photoUrl} alt={bird.comName}
-className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="flex h-full w-full items-center
-justify-center bg-gray-100 p-1 text-center">
-                              {isLoading ? (
-                                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-                              ) : (
-                                <span className="text-[7px] font-semibold text-gray-600 uppercase break-all px-0.5">
-                                  {bird.comName}
-                                </span>
-                              )}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {hasMoreFiltered && (
-                <div className="flex justify-center pt-4">
-                  <button
-                    onClick={showMore}
-                    className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-green-400 px-6 py-2.5 text-sm font-black text-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
-                  >
-                    Show More
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-            </div>
+            renderListView()
           )}
         </div>
       </section>
 
+      {/* ── Fave Birds Marquee ── */}
       {faveFive.length > 0 && (
-        <section className="border-2 border-black bg-white
-shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="border-b-2 border-black bg-amber-100 px-5 py-3
-md:px-6">
-            <h2 className="flex items-center gap-1.5 font-black text-gray-800 uppercase text-sm tracking-wide md:text-base">
-              <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-Jeff&apos;s Fave Five
+        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6">
+            <h2 className="flex items-center gap-1.5 text-sm font-black uppercase tracking-wide text-gray-800 md:text-base">
+              <Heart className="h-4 w-4 fill-red-500 text-red-500" /> 
+              Jeff&apos;s Fave Birds
             </h2>
           </div>
           <div className="bg-background p-4 md:p-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-              {faveFive.map((bird) => {
-                const detail = details.get(bird.id)
-                const photoUrl = getPhotoUrl(detail, baseUrl)
-                return (
-                  <div
-                    key={bird.id}
-                    className="flex flex-col items-center rounded-lg border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition
-hover:translate-x-px hover:translate-y-px hover:shadow-none"
-                  >
-                    <div className="h-20 w-20 overflow-hidden rounded-full
-border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                      {photoUrl ? (
-                        <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="flex h-full w-full items-center justify-center bg-gray-100 p-1 text-center">
-                          <span className="text-[9px] leading-tight font-semibold text-gray-600 uppercase break-all px-0.5">
-                            {bird.comName}
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="mt-2 text-center text-sm font-black uppercase text-gray-800">{bird.comName}</h3>
-                    <p className="text-xs italic text-gray-500">{bird.sciName}</p>
-                    <Badge className="mt-2 border-2 border-black bg-emerald-300 px-2 py-1 text-[10px] font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                      {detail?.checklistCount ?? '…'} obs
-                    </Badge>
-                    <Link
-                      href={`/birds/${bird.slug}`}
-                      className="mt-3 inline-flex items-center gap-1 rounded-lg border-2 border-black bg-sky-400 px-3 py-1.5 text-[11px] font-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
-                    >
-                      View Bird
-                      <ExternalLink className="h-3 w-3" />
-                    </Link>
-                  </div>
-                )
-              })}
-            </div>
+            <Marquee items={faveMarqueeItems} />
           </div>
         </section>
       )}
