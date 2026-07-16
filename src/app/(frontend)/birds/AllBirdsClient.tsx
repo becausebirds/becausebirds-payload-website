@@ -70,10 +70,10 @@ function formatDate(dateStr: string | null | undefined): string {
   })
 }
 
-function getPhotoUrl(detail: BirdDetail | undefined, baseUrl: string): string | 
+function getPhotoUrl(detail: BirdDetail | undefined, baseUrl: string): string |
 null {
   if (!detail?.topPhotoUrl) return null
-  if (detail.topPhotoUrl.startsWith('http') || 
+  if (detail.topPhotoUrl.startsWith('http') ||
 detail.topPhotoUrl.startsWith('/')) {
     return detail.topPhotoUrl
   }
@@ -83,9 +83,33 @@ detail.topPhotoUrl.startsWith('/')) {
 /* ── Component ────────────────────────── */
 
 export default function AllBirdsClient({ birds, baseUrl }: Props) {
+  /* ── Fetch lifers instead of using all birds ── */
+  const [lifersLoading, setLifersLoading] = useState(true)
+  const [liferBirds, setLiferBirds] = useState<Bird[]>([])
+
+  useEffect(() => {
+    const fetchLifers = async () => {
+      setLifersLoading(true)
+      try {
+        const res = await fetch(`${baseUrl}/api/lifers?depth=1&limit=1000`)
+        const data = await res.json()
+        const birdsData = (data.docs ?? [])
+          .map((lifer: any) => lifer.bird)
+          .filter(Boolean)
+        setLiferBirds(birdsData)
+      } catch (err) {
+        console.error('Failed to fetch lifers:', err)
+        setLiferBirds([])
+      } finally {
+        setLifersLoading(false)
+      }
+    }
+    fetchLifers()
+  }, [baseUrl])
+
   const filteredBirds = useMemo(() => {
-    return birds.filter((b) => !b.comName.includes('sp.'))
-  }, [birds])
+    return liferBirds.filter((b) => !b.comName.includes('sp.'))
+  }, [liferBirds])
 
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -94,9 +118,6 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
   const [search, setSearch] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>('name')
   const [locationFilter, setLocationFilter] = useState('')
-
-  const visibleBirds = filteredBirds.slice(0, visibleCount)
-  const hasMore = visibleCount < filteredBirds.length
 
   const faveFive = filteredBirds.filter((b) => FAVE_FIVE_SLUGS.includes(b.slug))
 
@@ -187,12 +208,10 @@ export default function AllBirdsClient({ birds, baseUrl }: Props) {
       try {
         const [checklistsRes, mediaRes] = await Promise.all([
           fetch(
-            `${baseUrl}/api/bird-checklists?where[speciesRecords.bird][equals]=$
-{birdId}&depth=1&limit=200&sort=date`,
+            `${baseUrl}/api/bird-checklists?where[speciesRecords.bird][equals]=${birdId}&depth=1&limit=200&sort=date`,
           ),
           fetch(
-            `${baseUrl}/api/bird-
-media?where[species][equals]=${birdId}&depth=2&limit=50`,
+            `${baseUrl}/api/bird-media?where[species][equals]=${birdId}&depth=2&limit=50`,
           ),
         ])
 
@@ -236,10 +255,8 @@ media?where[species][equals]=${birdId}&depth=2&limit=50`,
               : null,
             checklistCount: checklists.length,
             photoCount: photos.length,
-            audioCount: media.filter((m: any) => 
-m.mimeType?.startsWith('audio/')).length,
-            locations,
-          })
+            audioCount: media.filter((m: any) =>
+m.mimeType?.startsWith('audio/')).length, locations,})
           return next
         })
       } catch (err) {
@@ -267,7 +284,7 @@ m.mimeType?.startsWith('audio/')).length,
   }
 
   const showMore = () => {
-    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, 
+    setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE,
 sortBirds(searchFilteredBirds).length))
   }
 
@@ -288,52 +305,35 @@ sortBirds(searchFilteredBirds).length))
     const photoUrl = getPhotoUrl(detail, baseUrl)
 
     return (
-      <div className="relative z-50 my-2 w-full overflow-hidden border-2 border-
-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 
-dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
-        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch 
-sm:gap-6">
-          <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 
-border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-
-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] sm:self-stretch sm:w-48">
+      <div className="relative z-50 my-2 w-full overflow-hidden border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-stretch sm:gap-6">
+          <div className="flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] sm:self-stretch sm:w-48">
             {photoUrl ? (
-  <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
-) : (
-  <span className="flex h-full w-full items-center justify-center text-4xl">🦜</span>
-)}
-
+              <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center text-4xl">🦜</span>
+            )}
           </div>
           <div className="flex-1 space-y-1.5">
             <div>
-              <h3 className="text-lg font-black uppercase text-gray-800 
-dark:text-gray-100">{bird.comName}</h3>
-              <p className="text-sm italic text-gray-500 
-dark:text-gray-400">{bird.sciName}</p>
+              <h3 className="text-lg font-black uppercase text-gray-800 dark:text-gray-100">{bird.comName}</h3>
+              <p className="text-sm italic text-gray-500 dark:text-gray-400">{bird.sciName}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-
-semibold text-gray-600 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400">
               <Binoculars className="h-3.5 w-3.5 text-amber-500" />
               <span>{detail?.firstDate ?? '—'} &middot;{' '}
                 {detail?.firstLocation ?? 'Unknown location'}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-2 border-black bg-emerald-300 px-2.5 py-1
- text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] 
-dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+              <Badge className="border-2 border-black bg-emerald-300 px-2.5 py-1 text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                 {detail?.checklistCount ?? '…'}{' '}
                 observation{(detail?.checklistCount ?? 0) !== 1 ? 's' : ''}
               </Badge>
-              <Badge className="flex items-center gap-1 border-2 border-black 
-bg-sky-200 px-2.5 py-1 text-[11px] font-black text-gray-800 
-shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 
-dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+              <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 px-2.5 py-1 text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                 <Camera className="h-3 w-3" />
                 {detail?.photoCount ?? '…'}
               </Badge>
-              <Badge className="flex items-center gap-1 border-2 border-black 
-bg-purple-200 px-2.5 py-1 text-[11px] font-black text-gray-800 
-shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 
-dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+              <Badge className="flex items-center gap-1 border-2 border-black bg-purple-200 px-2.5 py-1 text-[11px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                 <Mic className="h-3 w-3" />
                 {detail?.audioCount ?? '…'}
               </Badge>
@@ -341,10 +341,10 @@ dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
           </div>
           <Link
             href={`/birds/${bird.slug}`}
-            className="inline-flex items-center gap-1.5 self-start rounded-lg 
-border-2 border-black bg-sky-400 px-4 py-2 text-xs font-black text-white 
-shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px 
-hover:translate-y-px hover:shadow-none dark:border-gray-600 
+            className="inline-flex items-center gap-1.5 self-start rounded-lg
+border-2 border-black bg-sky-400 px-4 py-2 text-xs font-black text-white
+shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px
+hover:translate-y-px hover:shadow-none dark:border-gray-600
 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
           >
             View Bird
@@ -359,23 +359,18 @@ dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
       {/* Search */}
       <div className="relative min-w-0 flex-[2]">
-        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 
-w-3.5 -translate-y-1/2 text-gray-400" />
+        <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search birds…"
-          className="w-full rounded-md border-2 border-black bg-white py-1.5 
-pl-7 pr-7 text-xs font-semibold text-gray-800 
-shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 
-focus:ring-lime-400"
+          className="w-full rounded-md border-2 border-black bg-white py-1.5 pl-7 pr-7 text-xs font-semibold text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-lime-400"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400
- hover:text-gray-600"
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -384,34 +379,30 @@ focus:ring-lime-400"
 
       {/* Sort dropdown */}
       <div className="relative shrink-0">
-        <ArrowUpDown className="pointer-events-none absolute left-2 top-1/2 
-h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+        <ArrowUpDown className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
         <select
           value={sortMode}
           onChange={(e) => setSortMode(e.target.value as SortMode)}
-          className="appearance-none rounded-md border-2 border-black bg-white 
-py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 
-shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 
-focus:ring-lime-400"
+          className="appearance-none rounded-md border-2 border-black bg-white py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 focus:ring-lime-400"
         >
           <option value="name">Name</option>
           <option value="date">Last Reported</option>
           <option value="observations">Times Observed</option>
         </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2
 h-3 w-3 -translate-y-1/2 text-gray-400" />
       </div>
 
       {/* Location filter dropdown */}
       <div className="relative shrink-0">
-        <Filter className="pointer-events-none absolute left-2 top-1/2 h-3.5 
+        <Filter className="pointer-events-none absolute left-2 top-1/2 h-3.5
 w-3.5 -translate-y-1/2 text-gray-400" />
         <select
           value={locationFilter}
           onChange={(e) => setLocationFilter(e.target.value)}
-          className="appearance-none rounded-md border-2 border-black bg-white 
-py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800 
-shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2 
+          className="appearance-none rounded-md border-2 border-black bg-white
+py-1.5 pl-7 pr-6 text-xs font-semibold text-gray-800
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-2
 focus:ring-lime-400"
         >
           <option value="">All Locations</option>
@@ -421,7 +412,7 @@ focus:ring-lime-400"
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2
 h-3 w-3 -translate-y-1/2 text-gray-400" />
       </div>
     </div>
@@ -457,7 +448,14 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
           {/* Results count */}
           {renderResultsCount()}
 
-          {sortBirds(searchFilteredBirds).length === 0 ? (
+          {lifersLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <span className="ml-2 text-sm font-semibold text-gray-500">
+                Loading your lifers…
+              </span>
+            </div>
+          ) : sortBirds(searchFilteredBirds).length === 0 ? (
             <p className="py-8 text-center text-sm font-semibold text-gray-500">
               {search || locationFilter ? 'No birds match your filters.' : 'No birds found.'}
               {(search || locationFilter) && (
@@ -493,7 +491,7 @@ h-3 w-3 -translate-y-1/2 text-gray-400" />
 
                   return (
                     <div key={bird.id} className="flex flex-col items-center px-0.5">
-                      <button onClick={() => toggleExpand(bird.id)} 
+                      <button onClick={() => toggleExpand(bird.id)}
 className="group relative">
                         <div
                           className={`h-16 w-16 md:h-20 md:w-20 overflow-hidden rounded-full border-2 transition-all duration-300 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${
@@ -503,10 +501,11 @@ className="group relative">
                           }`}
                         >
                           {photoUrl ? (
-                            <img src={photoUrl} alt={bird.comName} 
+                            <img src={photoUrl} alt={bird.comName}
 className="h-full w-full object-cover" />
                           ) : (
-                            <span className="flex h-full w-full items-center justify-center bg-gray-100 p-1 text-center">
+                            <span className="flex h-full w-full items-center
+justify-center bg-gray-100 p-1 text-center">
                               {isLoading ? (
                                 <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                               ) : (
@@ -540,10 +539,12 @@ className="h-full w-full object-cover" />
       </section>
 
       {faveFive.length > 0 && (
-        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6">
+        <section className="border-2 border-black bg-white
+shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div className="border-b-2 border-black bg-amber-100 px-5 py-3
+md:px-6">
             <h2 className="flex items-center gap-1.5 font-black text-gray-800 uppercase text-sm tracking-wide md:text-base">
-              <Heart className="h-4 w-4 fill-red-500 text-red-500" /> 
+              <Heart className="h-4 w-4 fill-red-500 text-red-500" />
 Jeff&apos;s Fave Five
             </h2>
           </div>
@@ -555,9 +556,11 @@ Jeff&apos;s Fave Five
                 return (
                   <div
                     key={bird.id}
-                    className="flex flex-col items-center rounded-lg border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+                    className="flex flex-col items-center rounded-lg border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition
+hover:translate-x-px hover:translate-y-px hover:shadow-none"
                   >
-                    <div className="h-20 w-20 overflow-hidden rounded-full border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="h-20 w-20 overflow-hidden rounded-full
+border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
                       {photoUrl ? (
                         <img src={photoUrl} alt={bird.comName} className="h-full w-full object-cover" />
                       ) : (
