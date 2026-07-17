@@ -93,7 +93,7 @@ export default function AllBirdsClient({
 
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
   const [search, setSearch] = useState('')
-  const [sortMode, setSortMode] = useState<SortMode>('date')
+  const [sortMode, setSortMode] = useState<SortMode>('observations')
   const [regionFilter, setRegionFilter] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [expandedId, setExpandedId] = useState<string | null>(null)
