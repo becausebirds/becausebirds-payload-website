@@ -66,10 +66,21 @@ export default async function AllBirdsPage() {
       limit: 1000,
     })
 
+    // NOTE: Payload/DB ids are sometimes numbers (e.g. Postgres serial ids)
+    // rather than strings. Every id is normalized to a string here and used
+    // consistently below so that Map/Set lookups never silently fail due to
+    // a type mismatch (string !== number). This was the root cause of bird
+    // data (photos, checklist counts, dates) not appearing until a bird was
+    // clicked: the comparisons below were comparing strings against an
+    // array of numeric ids and always failing, so every server-computed
+    // summary came back empty, and only the client's on-demand fetch
+    // (triggered by clicking) ever populated real data.
     birds = birdsResult.docs
       .filter((b: any) => b.comName && !b.comName.includes('sp.'))
+      .map((b: any) => ({ ...b, id: String(b.id) }))
 
-    const birdIds = birds.map((b: any) => b.id)
+    const birdIds: string[] = birds.map((b: any) => b.id)
+    const birdIdSet = new Set(birdIds)
 
     // ── Fetch media for all sighted birds ──
     const mediaResult = await payload.find({
@@ -90,7 +101,7 @@ export default async function AllBirdsPage() {
       const speciesRecords = checklist.speciesRecords ?? []
       for (const sr of speciesRecords) {
         const birdId = String(typeof sr.bird === 'object' ? sr.bird.id : sr.bird)
-        if (!birdId || !birdIds.includes(birdId)) continue
+        if (!birdId || !birdIdSet.has(birdId)) continue
         if (!checklistsByBird.has(birdId)) checklistsByBird.set(birdId, [])
         checklistsByBird.get(birdId)!.push(checklist)
         if (checklist.region) allRegionsSet.add(checklist.region)
@@ -99,11 +110,12 @@ export default async function AllBirdsPage() {
 
     for (const item of mediaResult.docs) {
       const speciesEntry = Array.isArray(item.species) ? item.species[0] : item.species
-      const speciesId =
+      const speciesId = String(
         speciesEntry && typeof speciesEntry === 'object'
           ? (speciesEntry as any).id
           : speciesEntry
-      if (!speciesId || !birdIds.includes(String(speciesId))) continue
+      )
+      if (!speciesId || speciesId === 'null' || speciesId === 'undefined' || !birdIdSet.has(speciesId)) continue
       if (!mediaByBird.has(speciesId)) mediaByBird.set(speciesId, [])
       mediaByBird.get(speciesId)!.push(item)
     }

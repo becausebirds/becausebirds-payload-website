@@ -252,10 +252,6 @@ export default function AllBirdsClient({
     [baseUrl, details],
   )
 
-  useEffect(() => {
-    visibleBirdsProcessed.forEach((bird) => loadDetail(bird.id))
-  }, [visibleBirdsProcessed, loadDetail])
-
   const handleGridBirdClick = useCallback(
     (birdId: string) => {
       setExpandedId((prev) => {
@@ -287,14 +283,6 @@ export default function AllBirdsClient({
       Math.min(prev + ITEMS_PER_PAGE, sortBirds(searchFilteredBirds).length)
     )
   }
-
-  const sortedVisibleBirds = useMemo(() => {
-    return [...visibleBirdsProcessed].sort((a, b) => {
-      const aHasImage = details.get(a.id)?.topPhotoUrl ? 1 : 0
-      const bHasImage = details.get(b.id)?.topPhotoUrl ? 1 : 0
-      return bHasImage - aHasImage
-    })
-  }, [visibleBirdsProcessed, details])
 
   /* ── Render expanded detail card ──────────────── */
   const renderExpandedDetail = (bird: Bird) => {
@@ -438,7 +426,7 @@ export default function AllBirdsClient({
   const renderGridView = () => (
     <div className="space-y-2">
       <div className="flex flex-wrap items-start justify-center gap-1">
-        {sortedVisibleBirds.map((bird) => {
+        {visibleBirdsProcessed.map((bird, index) => {
           const isExpanded = expandedId === bird.id
           const detail = details.get(bird.id)
           const photoUrl = getPhotoUrl(detail, baseUrl)
@@ -463,6 +451,8 @@ export default function AllBirdsClient({
                       fill
                       className="object-cover"
                       sizes="80px"
+                      priority={index < 15}
+                      loading={index < 15 ? 'eager' : 'lazy'}
                     />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center bg-gray-100 p-1 text-center dark:bg-gray-700">
@@ -511,7 +501,7 @@ export default function AllBirdsClient({
 
   const renderListView = () => (
     <div className="space-y-2">
-      {sortedVisibleBirds.map((bird) => {
+      {visibleBirdsProcessed.map((bird) => {
         const detail = details.get(bird.id)
         const photoUrl = getPhotoUrl(detail, baseUrl)
         return (
