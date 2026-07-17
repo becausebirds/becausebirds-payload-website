@@ -33,45 +33,53 @@ function normalizeMediaUrl(url: unknown): string | null {
 export default async function AllBirdsPage() {
   const payload = await getPayload({ config })
 
-  // ── Fetch all lifers (depth=1 populates the bird relationship) ──
-  const lifersResult = await payload.find({
-    collection: 'lifers',
-    depth: 1,
-    limit: 1000,
+  // ── Fetch all checklists to determine which birds have sightings ──
+  const checklistsResult = await payload.find({
+    collection: 'bird-checklists',
+    limit: 10000,
   })
 
-  const birds = lifersResult.docs
-    .map((lifer: any) => lifer.bird)
-    .filter(Boolean)
-    .filter((b: any) => b.comName && !b.comName.includes('sp.'))
+  // Extract unique bird IDs from speciesRecords across all checklists
+  const birdIdsFromChecklists = new Set<string>()
+  for (const checklist of checklistsResult.docs) {
+    const speciesRecords = checklist.speciesRecords ?? []
+    for (const sr of speciesRecords) {
+      const birdId = String(typeof sr.bird === 'object' ? sr.bird.id : sr.bird)
+      if (birdId) birdIdsFromChecklists.add(birdId)
+    }
+  }
 
-  const birdIds = birds.map((b: any) => b.id).join(',')
+  const allBirdIds = Array.from(birdIdsFromChecklists)
 
   // ── Default empty state if no birds ──
+  let birds: any[] = []
   let summaries: Record<string, any> = {}
   let allRegions: string[] = []
 
-  if (birdIds) {
-    const idList = birdIds.split(',')
+  if (allBirdIds.length > 0) {
+    // ── Fetch bird records for every bird that appears in a checklist ──
+    const birdsResult = await payload.find({
+      collection: 'birds',
+      where: {
+        id: { in: allBirdIds },
+      },
+      limit: 1000,
+    })
 
-    // ── Fetch ALL checklists + media for every lifer bird ──
-    const [checklistsResult, mediaResult] = await Promise.all([
-      payload.find({
-        collection: 'bird-checklists',
-        where: {
-          'speciesRecords.bird': { in: idList },
-        },
-        limit: 10000,
-      }),
-      payload.find({
-        collection: 'bird-media',
-        where: {
-          species: { in: idList },
-        },
-        depth: 2,
-        limit: 10000,
-      }),
-    ])
+    birds = birdsResult.docs
+      .filter((b: any) => b.comName && !b.comName.includes('sp.'))
+
+    const birdIds = birds.map((b: any) => b.id)
+
+    // ── Fetch media for all sighted birds ──
+    const mediaResult = await payload.find({
+      collection: 'bird-media',
+      where: {
+        species: { in: birdIds },
+      },
+      depth: 2,
+      limit: 10000,
+    })
 
     // ── Group checklists and media by bird ID ──
     const checklistsByBird = new Map<string, any[]>()
@@ -82,7 +90,7 @@ export default async function AllBirdsPage() {
       const speciesRecords = checklist.speciesRecords ?? []
       for (const sr of speciesRecords) {
         const birdId = String(typeof sr.bird === 'object' ? sr.bird.id : sr.bird)
-        if (!birdId || !birdIds.includes(String(birdId))) continue
+        if (!birdId || !birdIds.includes(birdId)) continue
         if (!checklistsByBird.has(birdId)) checklistsByBird.set(birdId, [])
         checklistsByBird.get(birdId)!.push(checklist)
         if (checklist.region) allRegionsSet.add(checklist.region)
@@ -101,7 +109,7 @@ export default async function AllBirdsPage() {
     }
 
     // ── Compute summary for each bird ──
-    for (const id of birdIds.split(',')) {
+    for (const id of birdIds) {
       const birdChecklists = (checklistsByBird.get(id) ?? []).sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
       )
@@ -173,11 +181,11 @@ export default async function AllBirdsPage() {
 
         <main className="pt-10 pb-16 container mx-auto px-4 space-y-8">
           <h1 className="text-3xl mb-2 text-gray-800 dark:text-white font-bold tracking-tight uppercase md:text-4xl">
-                All Birds
-              </h1>
+            All Birds
+          </h1>
           <p className="text-sm text-gray-800 dark:text-white">
-                This is every bird I've ever seen. Explore them below to see my observations, photos, and recordings.
-              </p>
+            This is every bird I've ever seen. Explore them below to see my observations, photos, and recordings.
+          </p>
 
           <AllBirdsClient
             birds={birds}

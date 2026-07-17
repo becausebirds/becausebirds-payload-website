@@ -56,6 +56,7 @@ const NavBar = () => {
     { label: 'Contact', href: '/contact' },
     { label: 'Guest book', href: '/guestbook' },
     { label: 'Bird lists', href: '/bird-checklists' },
+    { label: 'All birds', href: '/birds' },
   ];
 
   return (
@@ -102,25 +103,26 @@ tracking-tight text-black pb-1">
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center text-base lg:text-lg space-x-4">
+          <div className="hidden md:flex items-center text-sm lg:text-base gap-1.5">
   {navLinks.map((link) => (
     <Link
       key={link.href}
       href={link.href}
-      className="px-4 py-2 font-bold text-black bg-[#76fbd9] rounded-base
-        border-2 border-black
-        shadow-[4px_4px_0px_0px_#000000]
-        hover:translate-x-0.5 hover:translate-y-0.5 
-        hover:shadow-[2px_2px_0px_0px_#000000]
-        active:translate-x-1 active:translate-y-1 
+      className="px-2.5 py-1.5 font-bold text-black bg-[#76fbd9] rounded-base
+        border-2 border-black text-xs lg:text-sm
+        shadow-[3px_3px_0px_0px_#000000]
+        hover:translate-x-0.5 hover:translate-y-0.5
+        hover:shadow-[1.5px_1.5px_0px_0px_#000000]
+        active:translate-x-1 active:translate-y-1
         active:shadow-none
         transition-all duration-100
-        transform"
+        transform whitespace-nowrap"
     >
       {link.label}
     </Link>
   ))}
 </div>
+
 
           {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center gap-4">
@@ -144,7 +146,7 @@ transition-transform
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="fixed top-[90px] sm:top-[110px] z-50 w-full px-2 
+        <div className="fixed top-[90px] sm:top-[110px] z-9000 w-full px-2 
 sm:px-4" ref={menuRef}>
           <div
             className="w-full max-w-4xl mx-auto bg-yellow-300 p-4

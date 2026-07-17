@@ -30,8 +30,6 @@ import { BirdChecklists } from './collections/BirdChecklists'
 import { BirdChecklistBlock } from './blocks/BirdChecklist'
 import { Birds } from './collections/Birds'
 import { BirdMedia } from './collections/BirdMedia'
-import { Lifers } from './collections/Lifers'
-
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -79,7 +77,7 @@ export default buildConfig({
     push: true,
   }),
   collections: [Posts, Pages, Quizzes, Media, BirdMedia, Comments, Visitors,
-BirdChecklists, Birds, Lifers, Categories, Tags, Products, Users, Microposts],
+BirdChecklists, Birds, Categories, Tags, Products, Users, Microposts],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   endpoints: [
