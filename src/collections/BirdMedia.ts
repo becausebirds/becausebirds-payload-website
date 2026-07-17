@@ -14,6 +14,35 @@ export const BirdMedia: CollectionConfig = {
     read: () => true,
   },
 
+  hooks: {
+    afterChange: [
+      async ({ operation }) => {
+        if (operation === 'create' || operation === 'update') {
+          try {
+            await fetch(
+              `${process.env.REVALIDATION_SERVER_URL}/api/revalidate?secret=${process.env.REVALIDATION_SECRET}`,
+              { signal: AbortSignal.timeout(5000) }
+            )
+          } catch (err) {
+            console.error('Revalidation failed (BirdMedia afterChange):', err)
+          }
+        }
+      },
+    ],
+    afterDelete: [
+      async () => {
+        try {
+          await fetch(
+            `${process.env.REVALIDATION_SERVER_URL}/api/revalidate?secret=${process.env.REVALIDATION_SECRET}`,
+            { signal: AbortSignal.timeout(5000) }
+          )
+        } catch (err) {
+          console.error('Revalidation failed (BirdMedia afterDelete):', err)
+        }
+      },
+    ],
+  },
+
   upload: {
     mimeTypes: ['image/*', 'audio/*', 'video/*'],
     staticDir: 'public/birdmedia',

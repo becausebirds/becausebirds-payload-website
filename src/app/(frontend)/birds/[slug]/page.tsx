@@ -7,26 +7,61 @@ import BirdHeroSection from './BirdHeroSection'
 import BirdStatsSection from './BirdStatsSection'
 import { Skeleton } from '@/components/ui/skeleton'
 
+export const dynamic = 'force-static'
+export const revalidate = false
+
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+interface ChecklistInfo {
+  id: string
+  slug?: string | null
+  ebirdChecklistId?: string | null
+  date?: string | null
+  locationName?: string | null
+}
+
+interface PhotoItem {
+  id: string
+  url?: string | null
+  filename?: string | null
+  alt?: string | null
+  rating?: number | null
+  mediaNotes?: string | null
+  locationName?: string | null
+  date?: string | null
+  checklistId?: ChecklistInfo | string | null
+  ebirdChecklistId?: string | null
+}
+
 async function getBird(slug: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}
-&depth=2`,
-    { next: { revalidate: 60 } },
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}&depth=2`,
   )
   if (!res.ok) return null
   const data = await res.json()
   return data.docs?.[0] ?? null
 }
 
+async function getBirdPhotos(slug: string): Promise<PhotoItem[]> {
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+  const res = await fetch(
+    `${baseUrl}/api/bird-media?where[bird][equals]=${slug}&depth=2`,
+  )
+  if (!res.ok) return []
+  const data = await res.json()
+  return data.docs ?? []
+}
+
 export default async function BirdSpeciesPage({ params }: PageProps) {
   const { slug } = await params
 
-  // Single fetch — bird is passed to both the hero (immediate) and stats (bird.id)
-  const bird = await getBird(slug)
+  // Fetch bird + photos in parallel
+  const [bird, photos] = await Promise.all([
+    getBird(slug),
+    getBirdPhotos(slug),
+  ])
   if (!bird) notFound()
 
   return (
@@ -40,9 +75,9 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
         <NavBar />
 
         <main className="pt-10 pb-16 container mx-auto px-4 space-y-6">
-          {/* Hero streams immediately — bird is already fetched, no re-fetch */}
+          {/* Hero streams immediately — bird + photos are already fetched */}
           <Suspense fallback={<HeroSkeleton />}>
-            <BirdHeroSection bird={bird} />
+            <BirdHeroSection bird={bird} photos={photos} />
           </Suspense>
 
           {/* Everything below streams in — needs checklists + media data */}
@@ -114,51 +149,36 @@ export async function generateStaticParams() {
   if (process.env.NODE_ENV === 'development') return []
 
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+  const res = await fetch(
+    `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
+  )
+  if (!res.ok) return []
 
-  try {
-    const res = await fetch(
-      `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
-      { next: { revalidate: 60 } },
-    )
-    if (!res.ok) return []
+  const data = await res.json()
+  const seenSlugs = new Set<string>()
 
-    const data = await res.json()
-    const seenSlugs = new Set<string>()
-
-    for (const checklist of data.docs ?? []) {
-      for (const record of checklist.speciesRecords ?? []) {
-        if (typeof record.bird === 'object' && record.bird?.slug) {
-          seenSlugs.add(record.bird.slug)
-        }
+  for (const checklist of data.docs ?? []) {
+    for (const record of checklist.speciesRecords ?? []) {
+      if (typeof record.bird === 'object' && record.bird?.slug) {
+        seenSlugs.add(record.bird.slug)
       }
     }
-
-    return Array.from(seenSlugs).map((slug) => ({ slug }))
-  } catch {
-    // Payload server not available during Docker build — skip pre-generation
-    return []
   }
+
+  return Array.from(seenSlugs).map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+  const res = await fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`,)
+  const data = await res.json()
+  const bird = data.docs?.[0] ?? null
 
-  try {
-    const res = await fetch(
-      `${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`,
-      { next: { revalidate: 60 } },
-    )
-    const data = await res.json()
-    const bird = data.docs?.[0] ?? null
+  if (!bird) return { title: 'Bird Species Not Found' }
 
-    if (!bird) return { title: 'Bird Species Not Found' }
-
-    return {
-      title: `${bird.comName} | Because Birds`,
-      description: `Sightings, photos, and audio recordings of ${bird.comName} (${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family` : ''}.`,
-    }
-  } catch {
-    return { title: 'Bird Species Not Found' }
+  return {
+    title: `${bird.comName} | Because Birds`,
+    description: `Sightings, photos, and audio recordings of ${bird.comName} (${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family` : ''}.`,
   }
 }

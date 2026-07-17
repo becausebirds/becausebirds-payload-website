@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Clock, Bird, ChevronDown, ChevronUp } from 'lucide-react'
+import { MapPin, Calendar, Clock, Bird, ChevronDown, ChevronUp, Binoculars } from 'lucide-react'
+import Link from 'next/link'
 import type { BirdChecklist } from '@/payload-types'
 import type { TrackPoint } from './ChecklistMapClient'
 
@@ -29,6 +30,7 @@ type DisplaySpecies = {
   scientificName: string
   count: string
   comments: string
+  slug?: string
 }
 
 const ChecklistMapClient = dynamic(() => import('./ChecklistMapClient'), {
@@ -77,12 +79,14 @@ export const BirdChecklistBlock: React.FC<BirdChecklistBlockProps> = ({
   const speciesArray: DisplaySpecies[] = []
 
   if (Array.isArray(checklist.speciesRecords) && checklist.speciesRecords.length > 0) {
-    for (const record of checklist.speciesRecords as unknown as SpeciesRecord[]) {      const bird = typeof record.bird === 'object' ? record.bird : null
+    for (const record of checklist.speciesRecords as unknown as SpeciesRecord[]) {
+      const bird = typeof record.bird === 'object' ? record.bird : null
       speciesArray.push({
         commonName: bird?.comName ?? 'Unknown',
         scientificName: bird?.sciName ?? '',
         count: String(record.count ?? ''),
         comments: record.comments ?? '',
+        slug: bird?.slug,
       })
     }
   } else if (Array.isArray(checklist.species)) {
@@ -119,7 +123,7 @@ export const BirdChecklistBlock: React.FC<BirdChecklistBlockProps> = ({
         <div className="border-b-2 border-black bg-lime-100 px-5 py-4 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
             <h2 className="text-2xl font-black tracking-tight uppercase md:text-3xl">
-              <Bird className="mr-2 inline-block h-6 w-6 md:h-7 md:w-7" />
+              <Binoculars className="mr-2 inline-block h-6 w-6 md:h-7 md:w-7" />
               Bird Checklist
             </h2>
             {checklist.ebirdChecklistId && (
@@ -131,7 +135,7 @@ export const BirdChecklistBlock: React.FC<BirdChecklistBlockProps> = ({
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <div className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-emerald-300 px-3 py-2 font-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:px-4 md:py-2.5">
-              <Bird className="h-5 w-5" />
+              <Binoculars className="h-5 w-5" />
               <span className="text-xl md:text-2xl">{totalSpecies}</span>
               <span className="text-xs md:text-sm">species</span>
             </div>
@@ -247,9 +251,18 @@ export const BirdChecklistBlock: React.FC<BirdChecklistBlockProps> = ({
                         <span className="text-xs font-bold text-muted-foreground">
                           {idx + 1}.
                         </span>
-                        <span className="text-sm font-bold md:text-sm">
-                          {species.commonName}
-                        </span>
+                        {species.slug ? (
+                          <Link
+                            href={`/birds/${species.slug}`}
+                            className="text-sm font-bold text-blue-600 hover:underline md:text-sm"
+                          >
+                            {species.commonName}
+                          </Link>
+                        ) : (
+                          <span className="text-sm font-bold md:text-sm">
+                            {species.commonName}
+                          </span>
+                        )}
                         {species.scientificName && (
                           <span className="hidden text-xs italic text-muted-foreground sm:inline">
                             {species.scientificName}

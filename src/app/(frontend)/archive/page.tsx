@@ -5,6 +5,9 @@ import Link from 'next/link'
 import NavBar from '@/components/navbar'
 import type { Post, Category } from '@/payload-types'
 
+export const dynamic = 'force-static'
+export const revalidate = false
+
 /* ── Extract plain text from Lexical rich content ── */
 function extractTextFromContent(content: any): string {
   if (!content || !content.root) return ''

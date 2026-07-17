@@ -1,6 +1,10 @@
 import Link from 'next/link'
 import NavBar from '@/components/navbar'
-import Footer from '@/components/Footer'
+import Footer 
+from '@/components/Footer'
+
+export const dynamic = 'force-static'
+export const revalidate = false
 
 export default function MetricsPage() {
   return (

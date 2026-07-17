@@ -51,10 +51,18 @@ export default function SpeciesMapClient({ pins }: SpeciesMapClientProps) {
       )
       map.fitBounds(bounds, { padding: [40, 40] })
 
-      L.tileLayer(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        { maxZoom: 18 },
-      ).addTo(map)
+      // Satellite imagery
+L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 18 },
+).addTo(map)
+
+// Labels, boundaries, and place names overlay
+L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 18 },
+).addTo(map)
+
 
       pins.forEach((pin) => {
         const dateStr = new Date(pin.date).toLocaleDateString('en-US', {
@@ -81,7 +89,7 @@ export default function SpeciesMapClient({ pins }: SpeciesMapClientProps) {
             <strong>${pin.name}</strong><br/>
             <span style="font-size: 0.8rem; color: #666;">${dateStr}</span>
             <div style="margin-top: 8px;">
-              <a href="/bird-checklist/${checklistSlug}"
+              <a href="/bird-checklists/${checklistSlug}"
                  style="display: inline-block; padding: 4px 12px; font-size: 0.75rem; font-weight: 700;
                         border: 2px solid #000; border-radius: 8px;
                         background: #a5f3fc; color: #000; text-decoration: none;

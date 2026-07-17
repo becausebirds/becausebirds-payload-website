@@ -1,4 +1,7 @@
+// app/(main)/birds/page.tsx
 import type { Metadata } from 'next'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 import AllBirdsClient from './AllBirdsClient'
@@ -8,9 +11,153 @@ export const metadata: Metadata = {
   description: 'Browse all bird species with sightings, photos, and recordings.',
 }
 
-/* ── Page Component ───────────────────────── */
+export const dynamic = 'force-static'
+export const revalidate = false
 
+function normalizeMediaUrl(url: unknown): string | null {
+  if (typeof url !== 'string') return null
+  if (!url) return null
+
+  // Already absolute
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+
+  // Already correct path
+  if (url.startsWith('/')) return url
+
+  // Payload sometimes returns relative paths without a leading slash (e.g. "api/...").
+  // Make it safe so AllBirdsClient will pass it through as-is.
+  return `/${url}`
+}
+
+/* ── Page Component ───────────────────────── */
 export default async function AllBirdsPage() {
+  const payload = await getPayload({ config })
+
+  // ── Fetch all lifers (depth=1 populates the bird relationship) ──
+  const lifersResult = await payload.find({
+    collection: 'lifers',
+    depth: 1,
+    limit: 1000,
+  })
+
+  const birds = lifersResult.docs
+    .map((lifer: any) => lifer.bird)
+    .filter(Boolean)
+    .filter((b: any) => b.comName && !b.comName.includes('sp.'))
+
+  const birdIds = birds.map((b: any) => b.id).join(',')
+
+  // ── Default empty state if no birds ──
+  let summaries: Record<string, any> = {}
+  let allRegions: string[] = []
+
+  if (birdIds) {
+    const idList = birdIds.split(',')
+
+    // ── Fetch ALL checklists + media for every lifer bird ──
+    const [checklistsResult, mediaResult] = await Promise.all([
+      payload.find({
+        collection: 'bird-checklists',
+        where: {
+          'speciesRecords.bird': { in: idList },
+        },
+        limit: 10000,
+      }),
+      payload.find({
+        collection: 'bird-media',
+        where: {
+          species: { in: idList },
+        },
+        depth: 2,
+        limit: 10000,
+      }),
+    ])
+
+    // ── Group checklists and media by bird ID ──
+    const checklistsByBird = new Map<string, any[]>()
+    const mediaByBird = new Map<string, any[]>()
+    const allRegionsSet = new Set<string>()
+
+    for (const checklist of checklistsResult.docs) {
+      const speciesRecords = checklist.speciesRecords ?? []
+      for (const sr of speciesRecords) {
+        const birdId = String(typeof sr.bird === 'object' ? sr.bird.id : sr.bird)
+        if (!birdId || !birdIds.includes(String(birdId))) continue
+        if (!checklistsByBird.has(birdId)) checklistsByBird.set(birdId, [])
+        checklistsByBird.get(birdId)!.push(checklist)
+        if (checklist.region) allRegionsSet.add(checklist.region)
+      }
+    }
+
+    for (const item of mediaResult.docs) {
+      const speciesEntry = Array.isArray(item.species) ? item.species[0] : item.species
+      const speciesId =
+        speciesEntry && typeof speciesEntry === 'object'
+          ? (speciesEntry as any).id
+          : speciesEntry
+      if (!speciesId || !birdIds.includes(String(speciesId))) continue
+      if (!mediaByBird.has(speciesId)) mediaByBird.set(speciesId, [])
+      mediaByBird.get(speciesId)!.push(item)
+    }
+
+    // ── Compute summary for each bird ──
+    for (const id of birdIds.split(',')) {
+      const birdChecklists = (checklistsByBird.get(id) ?? []).sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      )
+
+      const birdMedia = mediaByBird.get(id) ?? []
+
+      const photos = birdMedia
+        .filter((m: any) => m.mimeType?.startsWith('image/'))
+        .sort((a: any, b: any) => (b.rating ?? 0) - (a.rating ?? 0))
+
+      const audios = birdMedia.filter((m: any) => m.mimeType?.startsWith('audio/'))
+
+      const firstSighting = birdChecklists[0] ?? null
+      const lastSighting = birdChecklists[birdChecklists.length - 1] ?? null
+
+      const locations = Array.from(new Set(birdChecklists.map((c: any) => c.region).filter(Boolean)))
+
+      const formatDate = (dateStr: string | null | undefined): string | null => {
+        if (!dateStr) return null
+        return new Date(dateStr).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+      }
+
+      // Build URL in a way that never depends on baseUrl.
+      const topPhoto = photos[0]
+      let topPhotoUrl: string | null = null
+
+      if (topPhoto) {
+        // Prefer Payload-provided url, but normalize so it always starts with "/"
+        topPhotoUrl = normalizeMediaUrl((topPhoto as any).url)
+
+        // If url is missing/unusable, fall back to the file endpoint
+        if (!topPhotoUrl && (topPhoto as any).filename) {
+          topPhotoUrl = `/api/bird-media/file/${(topPhoto as any).filename}`
+        }
+      }
+
+      summaries[id] = {
+        topPhotoUrl,
+        firstLocation: firstSighting?.region ?? null,
+        firstDate: formatDate(firstSighting?.date),
+        lastDate: lastSighting?.date ?? null,
+        lastDateFormatted: formatDate(lastSighting?.date),
+        checklistCount: birdChecklists.length,
+        photoCount: photos.length,
+        audioCount: audios.length,
+        locations,
+      }
+    }
+
+    allRegions = Array.from(allRegionsSet).sort()
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
   return (
@@ -25,18 +172,19 @@ export default async function AllBirdsPage() {
         <NavBar />
 
         <main className="pt-10 pb-16 container mx-auto px-4 space-y-8">
-          <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-            <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-4 md:px-6 md:py-5">
-              <h1 className="text-3xl text-gray-800 dark:text-white tracking-tight uppercase md:text-4xl">
+          <h1 className="text-3xl mb-2 text-gray-800 dark:text-white font-bold tracking-tight uppercase md:text-4xl">
                 All Birds
               </h1>
-              <p className="mt-1 text-sm text-gray-800 dark:text-white font-semibold">
-                Lifers &middot; Click a bird to see details
+          <p className="text-sm text-gray-800 dark:text-white">
+                This is every bird I've ever seen. Explore them below to see my observations, photos, and recordings.
               </p>
-            </div>
-          </section>
 
-          <AllBirdsClient birds={[]} baseUrl={baseUrl} />
+          <AllBirdsClient
+            birds={birds}
+            initialDetails={summaries}
+            initialRegions={allRegions}
+            baseUrl={baseUrl}
+          />
         </main>
 
         <Footer />

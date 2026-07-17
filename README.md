@@ -209,4 +209,37 @@ pnpm build
 pnpm payload migrate
 
 
+---
+
+Data Model
+
+birds  ◄────────── Lifers
+│                    │
+│                    └─ A lifer is a bird species you've personally
+│                       seen (one entry per species, unique constraint).
+│                       Ties each bird to your "life list."
+│
+│
+├── speciesRecords[n].bird  ◄── BirdChecklists
+│                                  │
+│                                  ├─ Each checklist has an array of
+│                                  │  speciesRecords[], each pointing
+│                                  │  to a bird + count + comments
+│                                  │
+│                                  ├─ Metadata: date, location, region,
+│                                  │  county, state, protocol, effort
+│                                  │
+│                                  └─ This is THE central collection.
+│                                     Every observation flows through it.
+│
+└── species (hasMany)  ◄──────── BirdMedia
+                                   │
+                                   ├─ Attaches to:
+                                   │  • species (bird(s) featured)
+                                   │  • checklistId (the checklist it came from)
+                                   │
+                                   ├─ Types: images, audio, video
+                                   │
+                                   └─ Rating system + sound-type tags
+                                      (song, call, etc.)
 

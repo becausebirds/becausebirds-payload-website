@@ -30,15 +30,43 @@ export const BirdChecklists: CollectionConfig = {
       }
 
       return generatePreviewPath({
-  slug: data?.slug as string | null | undefined,
-  collection: 'bird-checklists',
-  req,
-})
+        slug: data?.slug as string | null | undefined,
+        collection: 'bird-checklists',
+        req,
+      })
     },
   },
 
   access: {
     read: () => true,
+  },
+
+  hooks: {
+    afterChange: [
+  async ({ doc, operation }) => {
+    if (operation === 'create' || operation === 'update') {
+      await fetch(
+        `${process.env.REVALIDATION_SERVER_URL}/api/revalidate?` +
+        `secret=${process.env.REVALIDATION_SECRET}` +
+        `&path=/bird-checklists` +
+        `&path=/birds`,
+        { signal: AbortSignal.timeout(5000) }
+      )
+    }
+  },
+],
+    afterDelete: [
+      async () => {
+        try {
+          await fetch(
+            `${process.env.REVALIDATION_SERVER_URL}/api/revalidate?secret=${process.env.REVALIDATION_SECRET}`,
+            { signal: AbortSignal.timeout(5000) }
+          )
+        } catch (err) {
+          console.error('Revalidation failed (BirdChecklists afterDelete):', err)
+        }
+      },
+    ],
   },
 
   fields: [
@@ -147,7 +175,7 @@ export const BirdChecklists: CollectionConfig = {
       admin: {
         position: 'sidebar',
       },
-      index:true,
+      index: true,
     },
 
     {
@@ -174,23 +202,24 @@ export const BirdChecklists: CollectionConfig = {
       name: 'county',
       type: 'text',
       label: 'County',
-      index:true,
+      index: true,
     },
 
     {
       name: 'state',
       type: 'text',
       label: 'State/Province',
-      index:true,
+      index: true,
     },
 
     {
       name: 'region',
       type: 'text',
       label: 'Region',
-      index:true,
+      index: true,
     },
-        // ─── Protocol / Effort ───────────────────────────────────────────
+
+    // ─── Protocol / Effort ───────────────────────────────────────────
     {
       name: 'protocol',
       type: 'select',
@@ -281,46 +310,45 @@ export const BirdChecklists: CollectionConfig = {
       },
     },
 
-// ─── Bird Species (Relationships) ───────────────────────────────
-{
-  name: 'speciesRecords',
-  type: 'array',
-  label: 'Bird Species (Linked)',
-  admin: {
-    description:
-      'Bird species linked to the Birds taxonomy collection. Replace the JSON field once migration is complete.',
-  },
-  fields: [
+    // ─── Bird Species (Relationships) ───────────────────────────────
     {
-      name: 'bird',
-      type: 'relationship',
-      relationTo: 'birds',
-      required: true,
-      label: 'Species',
+      name: 'speciesRecords',
+      type: 'array',
+      label: 'Bird Species (Linked)',
       admin: {
-        description: 'Linked bird species from the Birds collection.',
+        description:
+          'Bird species linked to the Birds taxonomy collection. Replace the JSON field once migration is complete.',
       },
+      fields: [
+        {
+          name: 'bird',
+          type: 'relationship',
+          relationTo: 'birds',
+          required: true,
+          label: 'Species',
+          admin: {
+            description: 'Linked bird species from the Birds collection.',
+          },
+        },
+        {
+          name: 'count',
+          type: 'text',
+          label: 'Count',
+          admin: {
+            width: '25%',
+            description: '"X" for eBird count, or text like "1", "12", "50+".',
+          },
+        },
+        {
+          name: 'comments',
+          type: 'text',
+          label: 'Comments',
+          admin: {
+            width: '50%',
+          },
+        },
+      ],
     },
-    {
-      name: 'count',
-      type: 'text',
-      label: 'Count',
-      admin: {
-        width: '25%',
-        description: '"X" for eBird count, or text like "1", "12", "50+".',
-      },
-    },
-    {
-      name: 'comments',
-      type: 'text',
-      label: 'Comments',
-      admin: {
-        width: '50%',
-      },
-    },
-  ],
-},
-
 
     // ─── Notes ───────────────────────────────────────────────────────
     {

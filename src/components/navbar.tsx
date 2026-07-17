@@ -55,6 +55,7 @@ const NavBar = () => {
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
     { label: 'Guest book', href: '/guestbook' },
+    { label: 'Bird lists', href: '/bird-checklists' },
   ];
 
   return (

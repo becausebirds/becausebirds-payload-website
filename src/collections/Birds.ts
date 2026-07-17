@@ -1,3 +1,4 @@
+//Birds.ts
 import type { CollectionConfig } from 'payload'
 
 function slugify(text: string): string {

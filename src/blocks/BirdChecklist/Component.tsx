@@ -2,9 +2,9 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Bird,
-  Pencil,
   Binoculars,
+  Pencil,
+  Bird,
   Tally5,
   ExternalLink,
   Maximize2,
@@ -27,6 +27,7 @@ interface Species {
   scientificName: string
   count: string
   comments?: string
+  slug?: string
 }
 
 type SpeciesRecord = {
@@ -51,7 +52,7 @@ interface TrackPoint {
 async function getChecklist(id: string) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists/${id}?depth=1`,
-    { next: { revalidate: 60 } },
+    { cache: 'no-store' }
   )
   if (!res.ok) return null
   return res.json()
@@ -84,7 +85,7 @@ export default async function BirdChecklistComponent({
     )
   }
 
-  // ── Normalize species from the new speciesRecords field ─────────
+  // ── Normalize species from the new speciesRecords field with slug support ─────────
   const species: Species[] = []
 
   if (Array.isArray(c.speciesRecords) && c.speciesRecords.length > 0) {
@@ -95,6 +96,7 @@ export default async function BirdChecklistComponent({
         scientificName: bird?.sciName ?? '',
         count: String(record.count ?? ''),
         comments: record.comments ?? undefined,
+        slug: bird?.slug,
       })
     }
   } else if (Array.isArray(c.species) && c.species.length > 0) {
@@ -105,6 +107,7 @@ export default async function BirdChecklistComponent({
         scientificName: s.scientificName,
         count: s.count,
         comments: s.comments,
+        slug: s.slug,
       })
     }
   }
@@ -126,14 +129,14 @@ export default async function BirdChecklistComponent({
           {/* ── HEADER (compact) ── */}
           <div className="border-b-2 border-black bg-gray-500 px-4 py-3 md:px-5 md:py-4 text-white">
             <h2 className="flex items-center gap-2 mt-0 text-lg font-black tracking-tight uppercase text-gray-200 md:text-3xl">
-              <Bird className="h-6 w-6 md:h-7 md:w-7" />
+              <Binoculars className="h-6 w-6 md:h-7 md:w-7" />
               Bird Checklist
             </h2>
 
             {/* Hero Stats */}
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <div className="inline-flex items-center gap-2 border-2 border-black bg-emerald-300 px-3 py-2 font-black text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:px-4 md:py-2.5">
-                <Binoculars className="h-5 w-5" />
+                <Bird className="h-5 w-5" />
                 <span className="text-xl md:text-2xl">{totalSpecies}</span>
                 <span className="text-xs md:text-sm">species</span>
               </div>
@@ -193,7 +196,7 @@ export default async function BirdChecklistComponent({
               )}
               {c.distance && (
                 <span className="rounded-md border-2 border-black bg-cyan-200 text-black px-2.5 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  {c.distance} mi
+                  {Number(c.distance).toFixed(1)} mi
                 </span>
               )}
             </div>
@@ -224,7 +227,7 @@ export default async function BirdChecklistComponent({
             {/* Expand Checklist Button */}
             <div className="mt-4 text-center">
               <a
-                href={`https://ebird.org/checklist/${checklistId}`}
+                href={`https://ebird.org/checklists/${checklistId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-blue-500 px-5 py-3 font-bold text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all hover:bg-blue-600 hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px]"
@@ -245,20 +248,20 @@ export default async function BirdChecklistComponent({
       <div className="border-2 border-black bg-background text-foreground shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <div className="border-b-2 border-black bg-gray-500 px-5 py-4 md:px-6 md:py-5 text-white">
           <h2 className="flex items-center gap-2 mt-0 text-lg font-black tracking-tight uppercase text-gray-200 md:text-3xl">
-            <Bird className="h-6 w-6 md:h-7 md:w-7" />
+            <Binoculars className="h-6 w-6 md:h-7 md:w-7" />
             Bird Checklist
           </h2>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <div className="inline-flex items-center gap-2 border-2 border-black bg-emerald-300 px-3 py-2 font-black text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:px-4 md:py-2.5">
-                <Binoculars className="h-5 w-5" />
-                <span className="text-xl md:text-2xl">{totalSpecies}</span>
-                <span className="text-xs md:text-sm">species</span>
+              <Bird className="h-5 w-5" />
+              <span className="text-xl md:text-2xl">{totalSpecies}</span>
+              <span className="text-xs md:text-sm">species</span>
             </div>
             <div className="inline-flex items-center gap-2 border-2 border-black bg-sky-300 px-3 py-2 font-bold text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:px-4 md:py-2.5">
-                <Tally5 className="h-5 w-5" />
-                <span className="text-xl md:text-2xl">{totalCount}</span>
-                <span className="text-xs md:text-sm">individuals</span>
+              <Tally5 className="h-5 w-5" />
+              <span className="text-xl md:text-2xl">{totalCount}</span>
+              <span className="text-xs md:text-sm">individuals</span>
             </div>
           </div>
 
@@ -307,7 +310,7 @@ export default async function BirdChecklistComponent({
             )}
             {c.distance && (
               <span className="rounded-md border-2 border-black bg-cyan-200 text-black px-2.5 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                {c.distance} mi
+                {Number(c.distance).toFixed(1)} mi
               </span>
             )}
           </div>
@@ -348,20 +351,23 @@ export default async function BirdChecklistComponent({
                 <Pencil className="h-4 w-4" />
                 Notes
               </span>
-              <p className="whitespace-pre-wrap text-sm text-black font-medium">{c.notes}</p>
+              <p className="whitespace-pre-wrap text-sm text-black font-medium">
+                {c.notes}
+              </p>
             </div>
           )}
 
           <div className="mt-2 text-center">
             <a
-              href={`/bird-checklist/${c.ebirdChecklistId}`}
+              href={`/bird-checklists/${c.ebirdChecklistId}`}
               target=""
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs underline font-bold text-foreground"
             >
-            Permalink
-            <Link className="h-3 w-3" /> 
-            </a><span className="px-3">|</span>
+              Permalink
+              <Link className="h-3 w-3" />
+            </a>
+            <span className="px-3">|</span>
             <a
               href={`https://ebird.org/checklist/${c.ebirdChecklistId}`}
               target="_blank"

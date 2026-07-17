@@ -1,3 +1,4 @@
+//SpeciesMediaCarousel.tsx
 'use client'
 
 import Image from 'next/image'
@@ -116,7 +117,7 @@ export default function SpeciesMediaCarousel({ photos }: SpeciesMediaCarouselPro
                       <>
                         {' · '}
                         <Link
-                          href={`/bird-checklist/${checklistSlug}`}
+                          href={`/bird-checklists/${checklistSlug}`}
                           className="font-bold underline hover:underline"
                         >
                           View checklist

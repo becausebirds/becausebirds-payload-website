@@ -323,7 +323,7 @@ className="font-bold"
 
 <a
 id={`checklist-${c.ebirdChecklistId}`}
-href={`/bird-checklist/${c.slug}`}
+href={`/bird-checklists/${c.slug}`}
 className="underline font-normal"
 >
 

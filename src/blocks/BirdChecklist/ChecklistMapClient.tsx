@@ -43,10 +43,18 @@ export default function ChecklistMapClient({ trackPoints }: ChecklistMapClientPr
 
       map.fitBounds(bounds, { padding: [35, 35] })
 
-      L.tileLayer(
+      // Satellite imagery
+L.tileLayer(
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         { maxZoom: 18 },
       ).addTo(map)
+
+// Labels, boundaries, and place names overlay
+L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+  { maxZoom: 18 },
+).addTo(map)
+
 
       const latLngs = trackPoints.map((p) => [p.lat, p.lng] as [number, number])
 

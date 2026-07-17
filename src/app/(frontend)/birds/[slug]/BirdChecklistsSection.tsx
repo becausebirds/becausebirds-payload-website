@@ -39,7 +39,7 @@ const isExpanded = visibleCount > ITEMS_PER_PAGE
 
   return (
     <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-      <div className="border-b-2 border-black bg-purple-100 dark:bg-gray-800 px-5 py-3 md:px-6">
+      <div className="border-b-2 border-black bg-emerald-300 dark:bg-emerald-900 px-5 py-3 md:px-6">
         <h2 className="flex items-center gap-1.5 font-black dark:text-gray-100 uppercase text-sm tracking-wide md:text-base">
           <ClipboardList className="h-4 w-4" />  Included on these checklists ({totalCount})
         </h2>
@@ -67,7 +67,7 @@ const isExpanded = visibleCount > ITEMS_PER_PAGE
               </p>
             </div>
             <a
-              href={`/bird-checklist/${cl.slug ?? cl.ebirdChecklistId ?? cl.id}`}
+              href={`/bird-checklists/${cl.slug ?? cl.ebirdChecklistId ?? cl.id}`}
               className="ml-3 shrink-0 rounded-lg border-2 border-black bg-cyan-200 px-3 py-1.5 text-xs text-black font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
             >
               View checklist →

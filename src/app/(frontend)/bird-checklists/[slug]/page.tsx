@@ -1,9 +1,16 @@
+//bird-checklists/slug/page.tsx
+
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 import BirdChecklistComponent from '@/blocks/BirdChecklist/Component'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
+
+export const dynamic = 'force-static'
+export const revalidate = false
 
 interface PageProps {
   params: Promise<{
@@ -14,11 +21,6 @@ interface PageProps {
 async function getChecklist(slug: string) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists?where[slug][equals]=${slug}`,
-    {
-      next: {
-        revalidate: 60,
-      },
-    },
   )
 
   if (!res.ok) {
@@ -33,6 +35,40 @@ async function getChecklist(slug: string) {
 
   return data.docs[0]
 }
+
+export async function generateStaticParams() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists?limit=1000&depth=0`,
+  )
+
+  if (!res.ok) return []
+
+  const data = await res.json()
+
+  return data.docs
+    .filter((doc: unknown) => {
+      if (!doc || typeof doc !== 'object') return false
+      const slug = (doc as Record<string, unknown>).slug
+      // Accept plain strings, or objects with a string value prop
+      if (typeof slug === 'string') return true
+      if (slug && typeof slug === 'object') {
+        const maybe = (slug as Record<string, unknown>).value ?? 
+                       (slug as Record<string, unknown>).slug
+        return typeof maybe === 'string' && maybe.length > 0
+      }
+      return false
+    })
+    .map((doc: Record<string, unknown>) => {
+      let slug = doc.slug
+      // Unwrap if it's an object like { value: "S149067604" }
+      if (typeof slug === 'object' && slug !== null) {
+        slug = (slug as Record<string, unknown>).value ?? 
+               (slug as Record<string, unknown>).slug
+      }
+      return { slug: slug as string }
+    })
+}
+
 
 export default async function BirdChecklistPage({
   params,
@@ -59,8 +95,15 @@ export default async function BirdChecklistPage({
         <NavBar />
 
         <main className="pt-20 pb-16 container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-4">Bird Checklist</h2>
-          <span className='text-md'>Like a lot of birders, I create lists of the birds I see and hear. These lists often contain a GPS track of where I walked. This is one of those bird checklists.</span>
+          <Link
+        href="/bird-checklists"
+        className="inline-flex items-center gap-1.5 rounded-lg border-2 font-bold dark:text-gray-800 border-black bg-green-400 px-3 py-1.5 text-xs font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        All checklists
+      </Link>
+          <h1 className="text-4xl font-bold my-4">Bird Checklist</h1>
+          <span className="text-md">I create lists of the birds I see and hear while birdwatching. I submit these bird lists to eBird and archive them here.</span>
           <BirdChecklistComponent
             checklist={{
               id: checklist.id,
@@ -91,8 +134,6 @@ export async function generateMetadata({
 
   return {
     title: `Jeff's Bird Checklist: ${checklist.locationName} | ${checklist.date.split('T')[0]}`,
-    description: `A bird checklist by Jeff Mann from ${
-      checklist.locationName ?? 'unknown location'
-    } in ${checklist.region} with ${checklist.speciesCount ?? 0} species created on ${checklist.date.split('T')[0]}.`,
+    description: `A bird checklist by Jeff Mann from ${checklist.locationName ?? 'unknown location'} in ${checklist.region} with ${checklist.speciesCount ?? 0} species created on ${checklist.date.split('T')[0]}.`,
   }
 }

@@ -71,7 +71,6 @@ export interface LocationPin {
 async function getChecklistsForBird(birdId: string): Promise<BirdChecklist[]> {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists?where[speciesRecords.bird][equals]=${birdId}&depth=0&limit=50&sort=date&fields=id,date,slug,ebirdChecklistId,locationName,locationId,latitude,longitude,county,state,region,speciesRecords.id,speciesRecords.bird,speciesRecords.count,speciesRecords.comments`,
-    { next: { revalidate: 60 } },
   )
   if (!res.ok) return []
   const data = await res.json()
@@ -81,7 +80,6 @@ async function getChecklistsForBird(birdId: string): Promise<BirdChecklist[]> {
 async function getMediaForBird(birdId: string): Promise<BirdMediaItem[]> {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-media?where[species][equals]=${birdId}&depth=1&limit=50&fields=id,filename,mimeType,url,alt,rating,soundTypeTags,equipment,mediaNotes,checklistId,locationName,date`,
-    { next: { revalidate: 60 } },
   )
   if (!res.ok) return []
   const data = await res.json()
@@ -162,29 +160,33 @@ export default async function BirdStatsSection({ birdId }: BirdStatsSectionProps
     <>
       {/* ── Stats Row ── */}
       <div className="flex flex-wrap bg-background gap-2 p-5 md:px-6 md:pb-6">
-        <Badge className="border-2 border-black bg-emerald-300 px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          {checklistCount} checklists
+        <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 dark:bg-sky-900 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-sky-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+          <Camera className="h-3.5 w-3.5" />
+          {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
         </Badge>
-        <Badge className="border-2 border-black bg-sky-300 px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          {locationPins.length} locations
+        <Badge className="flex items-center gap-1 border-2 border-black bg-purple-200 dark:bg-purple-900 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+          <Mic className="h-3.5 w-3.5" />
+          {audioRecordings.length} {audioRecordings.length === 1 ? 'recording' : 'recordings'}
         </Badge>
-        <Badge className="border-2 border-black bg-orange-300 px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          {photos.length} photos
+        <Badge className="flex items-center gap-1 border-2 border-black bg-yellow-400 dark:bg-yellow-700 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+          <Pin className="h-3.5 w-3.5" />
+          {locationPins.length} {locationPins.length === 1 ? 'location' : 'locations'}
         </Badge>
-        <Badge className="border-2 border-black bg-fuchsia-300 px-3 py-1.5 text-xs font-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-          {audioRecordings.length} recordings
+        <Badge className="flex items-center gap-1 border-2 border-black bg-emerald-300 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-emerald-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
+          <ClipboardList className="h-3.5 w-3.5" />
+          {checklistCount} {checklistCount === 1 ? 'checklist' : 'checklists'}
         </Badge>
       </div>
 
       {/* ── Photo Carousel ── */}
       {photos.length > 0 && (
-        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="border-b-2 border-black bg-pink-100 px-5 py-3 md:px-6">
-            <h2 className="flex items-center gap-1.5 font-black dark:text-gray-800 uppercase text-sm tracking-wide md:text-base">
+        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+          <div className="border-b-2 border-black bg-sky-200 px-5 py-3 md:px-6 dark:border-gray-600 dark:bg-sky-900">
+            <h2 className="flex items-center gap-1.5 font-black text-gray-800 dark:text-gray-100 uppercase text-sm tracking-wide md:text-base">
               <Camera className="h-4 w-4" /> Photos ({photos.length})
             </h2>
           </div>
-          <div className="bg-background p-5 md:p-6">
+          <div className="bg-background p-5 md:p-6 dark:bg-gray-800">
             <SpeciesMediaCarousel photos={photos} />
           </div>
         </section>
@@ -192,9 +194,9 @@ export default async function BirdStatsSection({ birdId }: BirdStatsSectionProps
 
       {/* ── Audio Recordings ── */}
       {audioRecordings.length > 0 && (
-        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="border-b-2 border-black bg-fuchsia-100 dark:bg-gray-800 px-5 py-3 md:px-6">
-            <h2 className="flex items-center gap-1.5 font-black uppercase text-sm tracking-wide md:text-base">
+        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-purple-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+          <div className="border-b-2 border-black bg-fuchsia-100 px-5 py-3 md:px-6 dark:border-gray-600 dark:bg-purple-900">
+            <h2 className="flex items-center gap-1.5 font-black text-gray-800 dark:text-gray-100 uppercase text-sm tracking-wide md:text-base">
               <Mic className="h-4 w-4" /> Audio Recordings ({audioRecordings.length})
             </h2>
           </div>
@@ -206,9 +208,9 @@ export default async function BirdStatsSection({ birdId }: BirdStatsSectionProps
 
       {/* ── Map Section — lazily loaded via Client Component wrapper ── */}
       {locationPins.length > 0 && (
-        <section className="border-2 border-black bg-background shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="border-b-2 border-black bg-sky-100 px-5 py-3 md:px-6">
-            <h2 className="flex items-center gap-1.5 font-black dark:text-gray-800 uppercase text-sm tracking-wide md:text-base">
+        <section className="border-2 border-black bg-background shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+          <div className="border-b-2 border-black bg-yellow-400 px-5 py-3 md:px-6 dark:border-gray-600 dark:bg-yellow-700">
+            <h2 className="flex items-center gap-1.5 font-black text-gray-800 dark:text-gray-100 uppercase text-sm tracking-wide md:text-base">
               <Pin className="h-4 w-4" /> Sightings Map ({locationPins.length} locations)
             </h2>
           </div>
@@ -219,43 +221,45 @@ export default async function BirdStatsSection({ birdId }: BirdStatsSectionProps
       )}
 
       {/* ── First Sighting ── */}
-      {firstSighting && (
-        <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="border-b-2 border-black bg-amber-100 dark:bg-emerald-800  px-5 py-3 md:px-6">
-            <h2 className="flex items-center gap-1.5 font-black font-foreground uppercase text-sm tracking-wide md:text-base">
-              <Binoculars className="h-4 w-4" /> First Sighting
-            </h2>
-          </div>
-          <div className="p-5 bg-background md:p-6">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                {oldestPhoto?.url ? (
-                  <Image
-                    src={oldestPhoto.url.startsWith('http') ? oldestPhoto.url.replace(/^https?:\/\/[^\/]+/, '') : oldestPhoto.url}
-                    alt={oldestPhoto.alt ?? oldestPhoto.filename ?? 'Oldest photo'}
-                    width={64}
-                    height={64}
-                    className="aspect-square object-cover"
-                  />
-                ) : (
-                  <span className="flex h-14 w-14 items-center justify-center text-3xl md:h-16 md:w-16">🦜</span>
-                )}
-              </div>
-              <div>
-                <p className="text-lg font-black dark:text-gray-100 font-bold">
-                  {new Date(firstSighting.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-                <p className="text-sm font-black dark:text-gray-100 font-semibold text-muted-foreground">
-                  {firstSighting.locationName}
-                  {firstSighting.county && <> · {firstSighting.county}</>}
-                  {firstSighting.state && <> · {firstSighting.state}</>}
-                  {!firstSighting.county && !firstSighting.state && firstSighting.region && <> · {firstSighting.region}</>}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+{firstSighting && (
+  <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]">
+    <div className="border-b-2 border-black bg-amber-100 px-5 py-3 md:px-6 dark:border-gray-600 dark:bg-amber-900">
+      <h2 className="flex items-center gap-1.5 font-black text-gray-800 dark:text-gray-100 uppercase text-sm tracking-wide md:text-base">
+        <Binoculars className="h-4 w-4" /> First Sighting
+      </h2>
+    </div>
+    <div className="p-5 bg-background md:p-6 dark:bg-gray-800">
+      <div className="flex items-center gap-4">
+        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-emerald-900 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]">
+          {oldestPhoto?.url ? (
+            <Image
+              src={oldestPhoto.url.startsWith('http') || oldestPhoto.url.startsWith('/') ? oldestPhoto.url : `${baseUrl}${oldestPhoto.url}`}
+              alt={oldestPhoto.alt ?? oldestPhoto.filename ?? 'Oldest photo'}
+              fill
+              className="object-cover"
+              sizes="64px"
+              unoptimized={oldestPhoto.url.startsWith('http')}
+            />
+          ) : (
+            <span className="flex h-full w-full items-center justify-center text-3xl">🦜</span>
+          )}
+        </div>
+        <div>
+          <p className="text-lg font-black text-gray-800 dark:text-gray-100">
+            {new Date(firstSighting.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+          <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">
+            {firstSighting.locationName}
+            {firstSighting.county && <> · {firstSighting.county}</>}
+            {firstSighting.state && <> · {firstSighting.state}</>}
+            {!firstSighting.county && !firstSighting.state && firstSighting.region && <> · {firstSighting.region}</>}
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
 
       {/* ── Checklists ── */}
       {checklists.length > 0 && (

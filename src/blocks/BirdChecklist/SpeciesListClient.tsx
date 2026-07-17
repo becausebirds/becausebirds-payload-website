@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import Link from 'next/link'
 
 type SpeciesRecord = {
   bird?:
@@ -21,6 +22,7 @@ type OldSpecies = {
   scientificName?: string
   count?: number | string | null
   comments?: string | null
+  slug?: string
 }
 
 interface Species {
@@ -28,6 +30,7 @@ interface Species {
   scientificName: string
   count: string
   comments?: string
+  slug?: string
 }
 
 // Anything with "sp.", "Domestic type", "hybrid", "/" (slash), or " x " (hybrid notation)
@@ -64,6 +67,7 @@ export function SpeciesListClient({
         scientificName: bird?.sciName ?? '',
         count: String(record.count ?? ''),
         comments: record.comments ?? undefined,
+        slug: bird?.slug,
       }
     })
   } else if (species && species.length > 0) {
@@ -72,6 +76,7 @@ export function SpeciesListClient({
       scientificName: s.scientificName,
       count: s.count,
       comments: s.comments,
+      slug: s.slug,
     }))
   } else {
     speciesList = []
@@ -101,8 +106,19 @@ export function SpeciesListClient({
           >
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-xs font-bold text-muted-foreground">{i + 1}.</span>
-                <span className="font-bold text-sm">{s.commonName}</span>
+                <span className="text-xs font-bold text-muted-foreground">
+                  {i + 1}.
+                </span>
+                {s.slug ? (
+                  <Link
+                    href={`/birds/${s.slug}`}
+                    className="font-bold text-sm underline text-violet-500 dark:text-violet-300 hover:underline"
+                  >
+                    {s.commonName}
+                  </Link>
+                ) : (
+                  <span className="font-bold text-sm">{s.commonName}</span>
+                )}
                 {s.scientificName && (
                   <span className="hidden text-xs italic text-muted-foreground sm:inline">
                     {s.scientificName}
@@ -110,7 +126,9 @@ export function SpeciesListClient({
                 )}
               </div>
               {s.comments && (
-                <p className="mt-0.5 text-xs text-muted-foreground">{s.comments}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {s.comments}
+                </p>
               )}
             </div>
             {s.count && (

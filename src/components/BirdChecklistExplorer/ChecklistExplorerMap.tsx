@@ -195,13 +195,12 @@ export default function ChecklistExplorerMap({
         <FitBounds markers={validMarkers} />
 
 
-        <TileLayer
+{/* CartoDB Positron — clean, modern look with well-styled labels & boundaries */}
+<TileLayer
+  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OSM</a> &copy; <a href='https://carto.com/attribution'>CARTO</a>"
+/>
 
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-
-          attribution="&copy; OpenStreetMap contributors"
-
-        />
 
 
 
@@ -318,7 +317,7 @@ export default function ChecklistExplorerMap({
 
           key={c.id}
 
-          href={`/bird-checklist/${c.slug}`}
+          href={`/bird-checklists/${c.slug}`}
 
           className="
             block
