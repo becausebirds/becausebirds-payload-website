@@ -6,6 +6,7 @@ import Footer from '@/components/Footer'
 import BirdHeroSection from './BirdHeroSection'
 import BirdStatsSection from './BirdStatsSection'
 import { Skeleton } from '@/components/ui/skeleton'
+import BlogComments from '@/components/BlogComments'   // ✨ new import
 
 export const dynamic = 'force-static'
 export const revalidate = false
@@ -54,6 +55,17 @@ async function getBirdPhotos(slug: string): Promise<PhotoItem[]> {
   return data.docs ?? []
 }
 
+// ✨ NEW: fetch approved comments for this bird
+async function getBirdComments(birdId: string): Promise<Record<string, unknown>[]> {
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+  const res = await fetch(
+    `${baseUrl}/api/comments?where[replyBird][equals]=${birdId}&depth=0`,
+  )
+  if (!res.ok) return []
+  const data = await res.json()
+  return data.docs ?? []
+}
+
 export default async function BirdSpeciesPage({ params }: PageProps) {
   const { slug } = await params
 
@@ -63,6 +75,9 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
     getBirdPhotos(slug),
   ])
   if (!bird) notFound()
+
+  // ✨ Fetch comments after we have the bird's ID
+  const comments = await getBirdComments(bird.id)
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
@@ -83,6 +98,18 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           {/* Everything below streams in — needs checklists + media data */}
           <Suspense fallback={<ContentSkeleton />}>
             <BirdStatsSection birdId={bird.id} />
+          </Suspense>
+                 <div>
+                <BlogComments comments={comments} postId={String(bird.id).trim()} />
+              </div>
+          {/* ✨ NEW: Comments Section */}
+          <Suspense fallback={<CommentSkeleton />}>
+            <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-3 md:px-6">
+                
+              </div>
+             
+            </section>
           </Suspense>
         </main>
 
@@ -143,6 +170,21 @@ function ContentSkeleton() {
   )
 }
 
+// ✨ NEW: Skeleton for the comments section while streaming
+function CommentSkeleton() {
+  return (
+    <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-3 md:px-6">
+        <Skeleton className="h-6 w-64" />
+      </div>
+      <div className="p-5 md:p-6 space-y-3">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </section>
+  )
+}
+
 /* ── Metadata & generateStaticParams ── */
 
 export async function generateStaticParams() {
@@ -171,7 +213,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
-  const res = await fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`,)
+  const res = await fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`)
   const data = await res.json()
   const bird = data.docs?.[0] ?? null
 

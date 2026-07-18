@@ -22,7 +22,42 @@ export const Comments: CollectionConfig = {
   },
   timestamps: true,
   hooks: {
-    afterChange: [sendAdminNotification],  // ← add this
+    afterChange: [
+      sendAdminNotification,
+      // ✨ Revalidate bird page when a comment is approved
+      async ({ doc, previousDoc, operation, req }) => {
+        // Only act when a comment becomes newly approved
+        const becameApproved =
+          (operation === 'create' && doc.isApproved) ||
+          (operation === 'update' && doc.isApproved && !previousDoc?.isApproved)
+
+        if (!becameApproved) return
+
+        // Revalidate the bird page
+        const birdId = doc.replyBird
+        if (birdId) {
+          try {
+            const bird = await req.payload.findByID({
+              collection: 'birds',
+              id: birdId,
+              depth: 0,
+            })
+            if (bird?.slug) {
+              const params = new URLSearchParams({
+                secret: process.env.REVALIDATION_SECRET || '',
+                path: `/birds/${bird.slug}`,
+              })
+              await fetch(
+                `${process.env.REVALIDATION_SERVER_URL}/api/revalidate?${params}`,
+                { signal: AbortSignal.timeout(5000) },
+              )
+            }
+          } catch (err) {
+            console.error('Failed to revalidate bird page after comment approval:', err)
+          }
+        }
+      },
+    ],
   },
   fields: [
     {
@@ -50,6 +85,11 @@ export const Comments: CollectionConfig = {
       name: 'replyPost',
       type: 'relationship',
       relationTo: 'posts',
+    },
+    {
+      name: 'replyBird',
+      type: 'relationship',
+      relationTo: 'birds',
     },
     {
       name: 'replyComment',

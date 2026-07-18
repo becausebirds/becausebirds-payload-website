@@ -284,70 +284,70 @@ export default function AllBirdsClient({
     )
   }
 
-  /* ── Render expanded detail card ──────────────── */
-  const renderExpandedDetail = (bird: Bird) => {
-    const detail = details.get(bird.id)
-    const photoUrl = getPhotoUrl(detail, baseUrl)
+/* ── Render expanded detail card ──────────────── */
+const renderExpandedDetail = (bird: Bird) => {
+  const detail = details.get(bird.id)
+  const photoUrl = getPhotoUrl(detail, baseUrl)
 
-    return (
-      <div
-        ref={expandedRef}
-        className="overflow-hidden rounded-xl border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]"
-      >
-        <div className="flex flex-col gap-3 p-4">
-          <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-xl border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-800 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]">
-            {photoUrl ? (
-              <Image
-                src={photoUrl}
-                alt={bird.comName}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 100vw, 176px"
-              />
-            ) : (
-              <span className="flex h-full w-full items-center justify-center text-4xl">
-                🦜
-              </span>
-            )}
+  return (
+    <div
+      ref={expandedRef}
+      className="overflow-hidden rounded-xl border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]"
+    >
+      <div className="flex flex-col gap-3 p-4">
+        {/* Image — natural aspect ratio instead of fixed h-32 */}
+        <div className="relative aspect-video w-full flex-shrink-0 overflow-hidden rounded-xl border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-800 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]">
+          {photoUrl ? (
+            <Image
+              src={photoUrl}
+              alt={bird.comName}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, 176px"
+            />
+          ) : (
+            <span className="flex h-full w-full items-center justify-center text-4xl">
+              🦜
+            </span>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <h3 className="truncate text-2xl font-black uppercase text-gray-800 dark:text-gray-100">
+            {bird.comName}
+          </h3>
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-gray-600 dark:text-gray-400">
+            <Eye className="h-3 w-3 text-amber-500" />
+            <span className="truncate">
+              {detail?.lastDateFormatted ?? '—'} &middot; {detail?.firstLocation ?? 'Unknown location'}
+            </span>
           </div>
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <h3 className="truncate text-base font-black uppercase text-gray-800 dark:text-gray-100">
-              {bird.comName}
-            </h3>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-gray-600 dark:text-gray-400">
-              <Eye className="h-3 w-3 text-amber-500" />
-              <span className="truncate">
-                {detail?.lastDateFormatted ?? '—'} &middot; {detail?.firstLocation ?? 'Unknown location'}
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 md:flex-nowrap">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <Badge className="flex items-center gap-1 border-2 border-black bg-emerald-300 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-emerald-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                  <CheckSquare className="h-2.5 w-2.5" />
-                  {detail?.checklistCount ?? '…'}{' '}
-                  {(detail?.checklistCount ?? 0) !== 1 ? 'checklists' : 'checklist'}
-                </Badge>
-                <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-sky-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                  <Camera className="h-2.5 w-2.5" />
-                  {detail?.photoCount ?? '…'}
-                </Badge>
-                <Badge className="flex items-center gap-1 border-2 border-black bg-purple-200 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-purple-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                  <Mic className="h-2.5 w-2.5" />
-                  {detail?.audioCount ?? '…'}
-                </Badge>
-              </div>
-              <Link
-                href={`/birds/${bird.slug}`}
-                className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-sky-400 px-3.5 py-1.5 text-[11px] font-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)] md:ml-auto"
-              >
-                <Bird className="h-3 w-3" /> View Bird
-              </Link>
-            </div>
+          {/* Plain text metrics — no colored badges */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-600 dark:text-gray-400">
+            <span className="inline-flex items-center gap-0.5">
+              <CheckSquare className="h-3 w-3" /> {detail?.checklistCount ?? '…'}
+              <span > {(detail?.checklistCount ?? 0) !== 1 ? 'checklists' : 'checklist'}</span>
+            </span>
+            <span className="inline-flex items-center gap-0.5">
+              <Camera className="h-3 w-3" /> {detail?.photoCount ?? '…'} photos
+            </span>
+            <span className="inline-flex items-center gap-0.5">
+              <Mic className="h-3 w-3" /> {detail?.audioCount ?? '…'} recordings
+              
+            </span>
           </div>
+          {/* View Bird — full width, taller */}
+          <Link
+            href={`/birds/${bird.slug}`}
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-black bg-sky-400 py-3 text-md font-black text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]"
+          >
+            <Bird className="h-3.5 w-3.5" /> View Bird
+          </Link>
         </div>
       </div>
-    )
-  }
+    </div>
+  )
+}
+
 
   const renderControls = () => (
     <div className="space-y-1.5">
@@ -490,76 +490,84 @@ export default function AllBirdsClient({
   )
 
   const renderListView = () => (
-    <div className="space-y-2">
-      {visibleBirdsProcessed.map((bird) => {
-        const detail = details.get(bird.id)
-        const photoUrl = getPhotoUrl(detail, baseUrl)
-        return (
-          <div
-            key={bird.id}
-            className="flex items-center gap-3 border-2 border-black bg-white p-3 dark:border-gray-600 dark:bg-gray-800"
-          >
-            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded border-2 border-black dark:border-gray-600">
-              {photoUrl ? (
-                <Image
-                  src={photoUrl}
-                  alt={bird.comName}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center bg-gray-100 text-lg dark:bg-gray-700">
-                  🦜
-                </span>
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-black text-gray-800 dark:text-gray-100">
-                {bird.comName}
-              </h3>
-              <p className="truncate text-xs italic text-gray-500 dark:text-gray-400">
-                {bird.sciName}
-              </p>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <Badge className="flex items-center gap-1 border-2 border-black bg-emerald-300 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-emerald-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                  <CheckSquare className="h-2.5 w-2.5" /> {detail?.checklistCount ?? '…'}
-                </Badge>
-                <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-sky-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                  <Camera className="h-2.5 w-2.5" /> {detail?.photoCount ?? '…'}
-                </Badge>
-                <Badge className="flex items-center gap-1 border-2 border-black bg-purple-200 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-purple-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                  <Mic className="h-2.5 w-2.5" /> {detail?.audioCount ?? '…'}
-                </Badge>
-                {detail?.lastDateFormatted && (
-                  <Badge className="flex items-center gap-1 border-2 border-black bg-amber-200 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-amber-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-                    <Eye className="h-2.5 w-2.5" />
-                    {detail.lastDateFormatted}
-                  </Badge>
-                )}
-              </div>
-            </div>
-            <Link
-              href={`/birds/${bird.slug}`}
-              className="flex-shrink-0 rounded-lg border-2 border-black bg-sky-300 px-3 py-2 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:bg-sky-700 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]"
-            >
-              View
-            </Link>
+  <div className="space-y-2">
+    {visibleBirdsProcessed.map((bird) => {
+      const detail = details.get(bird.id)
+      const photoUrl = getPhotoUrl(detail, baseUrl)
+      return (
+        <div
+          key={bird.id}
+          className="flex items-center gap-3 border-2 border-black bg-white p-3 dark:border-gray-600 dark:bg-gray-800"
+        >
+          <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded border-2 border-black dark:border-gray-600">
+            {photoUrl ? (
+              <Image
+                src={photoUrl}
+                alt={bird.comName}
+                fill
+                className="object-cover"
+                sizes="48px"
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center bg-gray-100 text-lg dark:bg-gray-700">
+                🦜
+              </span>
+            )}
           </div>
-        )
-      })}
-      {hasMoreFiltered && (
-        <div className="flex justify-center pt-4">
-          <button
-            onClick={showMore}
-            className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-green-400 px-6 py-2.5 text-sm font-black text-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:bg-green-600 dark:text-gray-100 dark:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-sm font-black text-gray-800 dark:text-gray-100">
+              {bird.comName}
+            </h3>
+            <p className="truncate text-xs italic text-gray-500 dark:text-gray-400">
+              {bird.sciName}
+            </p>
+            {/* Metrics — plain text, no colored badges */}
+<div className="mt-1 flex flex-col gap-0.5 sm:flex-row sm:items-center sm:gap-3">
+  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+    <span className="inline-flex items-center gap-0.5">
+      <CheckSquare className="h-3 w-3" /> {detail?.checklistCount ?? '…'}
+      <span className="hidden sm:inline"> checklists</span>
+    </span>
+    <span className="inline-flex items-center gap-0.5">
+      <Camera className="h-3 w-3" /> {detail?.photoCount ?? '…'}
+      <span className="hidden sm:inline"> photos</span>
+    </span>
+    <span className="inline-flex items-center gap-0.5">
+      <Mic className="h-3 w-3" /> {detail?.audioCount ?? '…'}
+      <span className="hidden sm:inline"> recordings</span>
+    </span>
+  </div>
+  {detail?.lastDateFormatted && (
+    <span className="inline-flex items-center gap-0.5 text-xs text-gray-500 dark:text-gray-400">
+      <Eye className="h-3 w-3" />
+      {detail.lastDateFormatted}
+    </span>
+  )}
+</div>
+
+          </div>
+          <Link
+            href={`/birds/${bird.slug}`}
+            className="flex-shrink-0 rounded-lg border-2 border-black bg-sky-300 px-3 py-2 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:bg-sky-700 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]"
           >
-            Show More <ChevronDown className="h-4 w-4" />
-          </button>
+            View
+          </Link>
         </div>
-      )}
-    </div>
-  )
+      )
+    })}
+    {hasMoreFiltered && (
+      <div className="flex justify-center pt-4">
+        <button
+          onClick={showMore}
+          className="inline-flex items-center gap-2 rounded-lg border-2 border-black bg-green-400 px-6 py-2.5 text-sm font-black text-gray-800 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition hover:translate-x-px hover:translate-y-px hover:shadow-none dark:border-gray-600 dark:bg-green-600 dark:text-gray-100 dark:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
+        >
+          Show More <ChevronDown className="h-4 w-4" />
+        </button>
+      </div>
+    )}
+  </div>
+)
+
 
   return (
     <div className="space-y-8">

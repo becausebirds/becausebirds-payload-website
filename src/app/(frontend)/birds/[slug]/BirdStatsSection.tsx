@@ -158,25 +158,50 @@ export default async function BirdStatsSection({ birdId }: BirdStatsSectionProps
 
   return (
     <>
-      {/* ── Stats Row ── */}
-      <div className="flex flex-wrap bg-background gap-2 p-5 md:px-6 md:pb-6">
-        <Badge className="flex items-center gap-1 border-2 border-black bg-sky-200 dark:bg-sky-900 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-sky-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-          <Camera className="h-3.5 w-3.5" />
-          {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
-        </Badge>
-        <Badge className="flex items-center gap-1 border-2 border-black bg-purple-200 dark:bg-purple-900 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-          <Mic className="h-3.5 w-3.5" />
-          {audioRecordings.length} {audioRecordings.length === 1 ? 'recording' : 'recordings'}
-        </Badge>
-        <Badge className="flex items-center gap-1 border-2 border-black bg-yellow-400 dark:bg-yellow-700 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-          <Pin className="h-3.5 w-3.5" />
-          {locationPins.length} {locationPins.length === 1 ? 'location' : 'locations'}
-        </Badge>
-        <Badge className="flex items-center gap-1 border-2 border-black bg-emerald-300 px-3 py-1.5 text-xs font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-emerald-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
-          <ClipboardList className="h-3.5 w-3.5" />
-          {checklistCount} {checklistCount === 1 ? 'checklist' : 'checklists'}
-        </Badge>
-      </div>
+      {/* ── Jeff's Stats ── */}
+<div className="bg-white dark:bg-card border-2 border-black dark:border-gray-600 
+                shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]">
+  <div className="border-b-2 border-black bg-amber-100 px-4 py-2 md:px-5 md:py-2.5
+                  dark:border-gray-600 dark:bg-amber-900/80">
+    <p className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-amber-200">
+      <img
+        src="/jeff_mann.jpg"
+        alt="Jeff"
+        width={24}
+        height={24}
+        className="rounded-full object-cover border border-black"
+      />
+      Jeff's stats for this bird
+    </p>
+  </div>
+  <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-200 dark:bg-gray-700">
+    <div className="bg-white dark:bg-card p-3 text-center">
+      <p className="text-xl font-black text-gray-800 dark:text-white">{photos.length}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        {photos.length === 1 ? 'Photo' : 'Photos'}
+      </p>
+    </div>
+    <div className="bg-white dark:bg-card p-3 text-center">
+      <p className="text-xl font-black text-gray-800 dark:text-white">{audioRecordings.length}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        {audioRecordings.length === 1 ? 'Recording' : 'Recordings'}
+      </p>
+    </div>
+    <div className="bg-white dark:bg-card p-3 text-center">
+      <p className="text-xl font-black text-gray-800 dark:text-white">{locationPins.length}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        {locationPins.length === 1 ? 'Location' : 'Locations'}
+      </p>
+    </div>
+    <div className="bg-white dark:bg-card p-3 text-center">
+      <p className="text-xl font-black text-gray-800 dark:text-white">{checklistCount}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        {checklistCount === 1 ? 'Checklist' : 'Checklists'}
+      </p>
+    </div>
+  </div>
+</div>
+
 
       {/* ── Photo Carousel ── */}
       {photos.length > 0 && (

@@ -211,6 +211,8 @@ export default function ChecklistExplorerMap({
           spiderfyOnMaxZoom={true}
 
           zoomToBoundsOnClick={true}
+          disableClusteringAtZoom={12} 
+          maxClusterRadius={40} 
 
         >
 
