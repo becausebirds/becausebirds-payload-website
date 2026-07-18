@@ -6,7 +6,7 @@ import Footer from '@/components/Footer'
 import BirdHeroSection from './BirdHeroSection'
 import BirdStatsSection from './BirdStatsSection'
 import { Skeleton } from '@/components/ui/skeleton'
-import BlogComments from '@/components/BlogComments'   // ✨ new import
+import BlogComments from '@/components/BlogComments'
 
 export const dynamic = 'force-static'
 export const revalidate = false
@@ -21,6 +21,14 @@ interface ChecklistInfo {
   ebirdChecklistId?: string | null
   date?: string | null
   locationName?: string | null
+}
+
+interface Comment {
+  id: string
+  author: string
+  content: string
+  date: string
+  isApproved: boolean
 }
 
 interface PhotoItem {
@@ -38,7 +46,8 @@ interface PhotoItem {
 
 async function getBird(slug: string) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}&depth=2`,
+    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/birds?where[slug][equals]=${slug}
+&depth=2`,
   )
   if (!res.ok) return null
   const data = await res.json()
@@ -55,8 +64,7 @@ async function getBirdPhotos(slug: string): Promise<PhotoItem[]> {
   return data.docs ?? []
 }
 
-// ✨ NEW: fetch approved comments for this bird
-async function getBirdComments(birdId: string): Promise<Record<string, unknown>[]> {
+async function getBirdComments(birdId: string): Promise<Comment[]> {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const res = await fetch(
     `${baseUrl}/api/comments?where[replyBird][equals]=${birdId}&depth=0`,
@@ -76,17 +84,26 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
   ])
   if (!bird) notFound()
 
-  // ✨ Fetch comments after we have the bird's ID
+  // Fetch comments after we have the bird's ID
   const comments = await getBirdComments(bird.id)
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
+    <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4
+ md:p-6 lg:p-8">
       <div
-        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-100"
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-
+no-repeat opacity-100"
         style={{ backgroundImage: 'url(/landing-dark.svg)' }}
         aria-hidden="true"
       />
-      <div className="relative z-10 mx-auto w-full max-w-full bg-white dark:bg-card border-2 border-black dark:border-border overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_hsl(var(--border))] sm:border-2 md:border-4 md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:md:shadow-[12px_12px_0px_0px_hsl(var(--border))] min-h-[calc(100vh-1rem)] sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-4rem)]">
+      <div className="relative z-10 mx-auto w-full max-w-full bg-white dark:bg-
+card border-2 border-black dark:border-border overflow-hidden 
+shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+dark:shadow-[4px_4px_0px_0px_hsl(var(--border))] sm:border-2 md:border-4 
+md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] 
+dark:md:shadow-[12px_12px_0px_0px_hsl(var(--border))] min-h-[calc(100vh-1rem)] 
+sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] 
+lg:min-h-[calc(100vh-4rem)]">
         <NavBar />
 
         <main className="pt-10 pb-16 container mx-auto px-4 space-y-6">
@@ -99,17 +116,10 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
           <Suspense fallback={<ContentSkeleton />}>
             <BirdStatsSection birdId={bird.id} />
           </Suspense>
-                 <div>
-                <BlogComments comments={comments} postId={String(bird.id).trim()} />
-              </div>
-          {/* ✨ NEW: Comments Section */}
+
+          {/* Comments Section */}
           <Suspense fallback={<CommentSkeleton />}>
-            <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-              <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-3 md:px-6">
-                
-              </div>
-             
-            </section>
+            <BlogComments comments={comments} postId={String(bird.id).trim()} />
           </Suspense>
         </main>
 
@@ -122,12 +132,16 @@ export default async function BirdSpeciesPage({ params }: PageProps) {
 function HeroSkeleton() {
   return (
     <>
-      <div className="inline-flex items-center gap-1.5 rounded-lg border-2 border-black bg-green-400 px-3 py-1.5 text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+      <div className="inline-flex items-center gap-1.5 rounded-lg border-2 
+border-black bg-green-400 px-3 py-1.5 text-xs 
+shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
         <span className="h-3.5 w-3.5" />
         View All Birds
       </div>
-      <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-        <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-4 md:px-6 md:py-5 space-y-3">
+      <section className="border-2 border-black bg-white 
+shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+        <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 
+px-5 py-4 md:px-6 md:py-5 space-y-3">
           <Skeleton className="h-9 sm:w-[350px] w-[200px]" />
           <Skeleton className="h-6 sm:w-[250px] w-[150px]" />
           <Skeleton className="h-5 sm:w-[200px] w-[120px]" />
@@ -150,7 +164,8 @@ function ContentSkeleton() {
         <Skeleton className="h-7 w-24 rounded-lg" />
         <Skeleton className="h-7 w-28 rounded-lg" />
       </div>
-      <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <section className="border-2 border-black bg-white 
+shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <div className="border-b-2 border-black bg-gray-100 px-5 py-3 md:px-6">
           <Skeleton className="h-4 w-24" />
         </div>
@@ -158,7 +173,8 @@ function ContentSkeleton() {
           <Skeleton className="h-[250px] md:h-[300px] w-full rounded-lg" />
         </div>
       </section>
-      <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <section className="border-2 border-black bg-white 
+shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <div className="border-b-2 border-black bg-gray-100 px-5 py-3 md:px-6">
           <Skeleton className="h-4 w-32" />
         </div>
@@ -170,11 +186,12 @@ function ContentSkeleton() {
   )
 }
 
-// ✨ NEW: Skeleton for the comments section while streaming
 function CommentSkeleton() {
   return (
-    <section className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-      <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 py-3 md:px-6">
+    <section className="border-2 border-black bg-white 
+shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-5 
+py-3 md:px-6">
         <Skeleton className="h-6 w-64" />
       </div>
       <div className="p-5 md:p-6 space-y-3">
@@ -192,7 +209,8 @@ export async function generateStaticParams() {
 
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
   const res = await fetch(
-    `${baseUrl}/api/bird-checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
+    `${baseUrl}/api/bird-
+checklists?depth=1&limit=10000&fields=speciesRecords.bird`,
   )
   if (!res.ok) return []
 
@@ -210,10 +228,12 @@ export async function generateStaticParams() {
   return Array.from(seenSlugs).map((slug) => ({ slug }))
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata>
+ {
   const { slug } = await params
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
-  const res = await fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`)
+  const res = await 
+fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`)
   const data = await res.json()
   const bird = data.docs?.[0] ?? null
 
@@ -221,6 +241,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${bird.comName} | Because Birds`,
-    description: `Sightings, photos, and audio recordings of ${bird.comName} (${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family` : ''}.`,
+    description: `Sightings, photos, and audio recordings of ${bird.comName} 
+(${bird.sciName})${bird.familyComName ? ` from the ${bird.familyComName} family`
+ : ''}.`,
   }
 }
