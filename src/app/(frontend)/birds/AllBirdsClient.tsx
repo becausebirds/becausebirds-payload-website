@@ -256,13 +256,10 @@ export default function AllBirdsClient({
     (birdId: string) => {
       setExpandedId((prev) => {
         const isClosing = prev === birdId
-        if (!isClosing) {
-          loadDetail(birdId)
-        }
         return isClosing ? null : birdId
       })
     },
-    [loadDetail],
+    [],
   )
 
   const expandedRef = useRef<HTMLDivElement>(null)
@@ -274,8 +271,11 @@ export default function AllBirdsClient({
         setExpandedId(null)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    const mediaQuery = window.matchMedia('(min-width: 768px)')
+    if (mediaQuery.matches) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [expandedId])
 
   const showMore = () => {
@@ -295,7 +295,6 @@ export default function AllBirdsClient({
         className="overflow-hidden rounded-xl border-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-900 dark:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.3)]"
       >
         <div className="flex flex-col gap-3 p-4">
-          {/* Image banner */}
           <div className="relative h-32 w-full flex-shrink-0 overflow-hidden rounded-xl border-2 border-black bg-emerald-200 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-gray-800 dark:shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]">
             {photoUrl ? (
               <Image
@@ -311,20 +310,16 @@ export default function AllBirdsClient({
               </span>
             )}
           </div>
-          {/* Content */}
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            {/* Name only — no scientific name */}
             <h3 className="truncate text-base font-black uppercase text-gray-800 dark:text-gray-100">
               {bird.comName}
             </h3>
-            {/* Latest observation with Eye icon */}
             <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-gray-600 dark:text-gray-400">
               <Eye className="h-3 w-3 text-amber-500" />
               <span className="truncate">
                 {detail?.lastDateFormatted ?? '—'} &middot; {detail?.firstLocation ?? 'Unknown location'}
               </span>
             </div>
-            {/* Badges + View Bird button in same row on desktop */}
             <div className="flex flex-wrap items-center gap-1.5 md:flex-nowrap">
               <div className="flex flex-wrap items-center gap-1.5">
                 <Badge className="flex items-center gap-1 border-2 border-black bg-emerald-300 px-2 py-1 text-[10px] font-black text-gray-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:border-gray-600 dark:bg-emerald-900 dark:text-gray-100 dark:shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
@@ -356,7 +351,6 @@ export default function AllBirdsClient({
 
   const renderControls = () => (
     <div className="space-y-1.5">
-      {/* Search – full width on its own line */}
       <div className="relative w-full">
         <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
         <input
@@ -375,7 +369,6 @@ export default function AllBirdsClient({
           </button>
         )}
       </div>
-      {/* Sort + Region filter – side by side */}
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <div className="relative flex-1 min-w-0 sm:flex-none">
           <ArrowUpDown className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
@@ -432,7 +425,6 @@ export default function AllBirdsClient({
           const photoUrl = getPhotoUrl(detail, baseUrl)
           return (
             <div key={bird.id} className="relative flex flex-col items-center py-0.5 px-0.5">
-              {/* Circle button – always rendered, never replaced */}
               <button
                 onClick={() => handleGridBirdClick(bird.id)}
                 className="group relative"
@@ -442,7 +434,7 @@ export default function AllBirdsClient({
                     isExpanded
                       ? 'border-lime-400 ring-2 ring-lime-400 ring-inset'
                       : 'border-black hover:border-lime-400 dark:border-gray-600'
-                  }`}
+                    }`}
                 >
                   {photoUrl ? (
                     <Image
@@ -463,20 +455,18 @@ export default function AllBirdsClient({
                   )}
                 </div>
               </button>
-
-              {/* Expanded popup */}
               {isExpanded && (
                 <>
-                  {/* Mobile: semi-transparent backdrop */}
                   <div
                     className="fixed inset-0 z-40 bg-black/30 md:hidden"
                     onClick={() => setExpandedId(null)}
                   />
-                  {/* Mobile: fixed centered card */}
-                  <div className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 md:hidden">
+                  <div 
+                    className="fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 md:hidden"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {renderExpandedDetail(bird)}
                   </div>
-                  {/* Desktop/tablet: absolute below circle */}
                   <div className="absolute left-1/2 top-full z-50 mt-2 hidden w-96 md:block -translate-x-1/2">
                     {renderExpandedDetail(bird)}
                   </div>
