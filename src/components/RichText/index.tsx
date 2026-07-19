@@ -1,10 +1,6 @@
 // RichText index.tsx
-import PersonalityQuizWrapper from '@/components/PersonalityQuizWrapper'
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
-import BarChartBlock from '@/blocks/BarChart/Component'
-import PieChartBlock from '@/blocks/PieChart/Component'
-import MapBlock from '@/blocks/MapBlock/Component'
-import BirdChecklistComponent from '@/blocks/BirdChecklist/Component'
+import { CodeBlock, CodeBlockProps } from '@/blocks/Code/Component'
 
 import {
   DefaultNodeTypes,
@@ -17,8 +13,6 @@ import {
   LinkJSXConverter,
   RichText as ConvertRichText,
 } from '@payloadcms/richtext-lexical/react'
-
-import { CodeBlock, CodeBlockProps } from '@/blocks/Code/Component'
 
 import type {
   MediaBlock as MediaBlockProps,
@@ -43,6 +37,36 @@ import type {
 import type { Quiz } from '@/payload-types'
 import { cn } from '@/utilities/ui'
 
+// ---------------------------------------------------------------------------
+// Import lazily-loaded heavy blocks from client-only file
+// ---------------------------------------------------------------------------
+import {
+  LazyQuiz,
+  LazyBarChart,
+  LazyPieChart,
+  LazyMap,
+  LazyBirdChecklist,
+} from './LazyBlocks.client'
+
+// Lightweight converters are imported normally (small, used often)
+import { HeadingConverter } from '@/blocks/converters/HeadingConverter'
+import { ParagraphConverter } from '@/blocks/converters/ParagraphConverter'
+import { ImageConverter } from '@/blocks/converters/ImageConverter'
+import { QuoteConverter } from '@/blocks/converters/QuoteConverter'
+import { AudioConverter } from '@/blocks/converters/AudioConverter'
+import { VideoConverter } from '@/blocks/converters/VideoConverter'
+import { ListConverter } from '@/blocks/converters/ListConverter'
+import { HTMLConverter } from '@/blocks/converters/HTMLConverter'
+import { SeparatorConverter } from '@/blocks/converters/SeparatorConverter'
+import { SpacerConverter } from '@/blocks/converters/SpacerConverter'
+import { GalleryConverter } from '@/blocks/converters/GalleryConverter'
+import { EmbedConverter } from '@/blocks/converters/EmbedConverter'
+import { ColumnsConverter } from '@/blocks/converters/ColumnsConverter'
+import { GroupConverter } from '@/blocks/converters/GroupConverter'
+import { DetailsConverter } from '@/blocks/converters/DetailsConverter'
+import { PullquoteConverter } from '@/blocks/converters/PullquoteConverter'
+import { ButtonsConverter } from '@/blocks/converters/ButtonsConverter'
+
 // Define locally since it's not exported from payload-types
 type QuizBlockProps = {
   quiz: Quiz
@@ -64,24 +88,22 @@ type BirdChecklistBlockProps = {
   disableInnerContainer?: boolean
 }
 
-// Import all your block converters
-import { HeadingConverter } from '@/blocks/converters/HeadingConverter'
-import { ParagraphConverter } from '@/blocks/converters/ParagraphConverter'
-import { ImageConverter } from '@/blocks/converters/ImageConverter'
-import { QuoteConverter } from '@/blocks/converters/QuoteConverter'
-import { AudioConverter } from '@/blocks/converters/AudioConverter'
-import { VideoConverter } from '@/blocks/converters/VideoConverter'
-import { ListConverter } from '@/blocks/converters/ListConverter'
-import { HTMLConverter } from '@/blocks/converters/HTMLConverter'
-import { SeparatorConverter } from '@/blocks/converters/SeparatorConverter'
-import { SpacerConverter } from '@/blocks/converters/SpacerConverter'
-import { GalleryConverter } from '@/blocks/converters/GalleryConverter'
-import { EmbedConverter } from '@/blocks/converters/EmbedConverter'
-import { ColumnsConverter } from '@/blocks/converters/ColumnsConverter'
-import { GroupConverter } from '@/blocks/converters/GroupConverter'
-import { DetailsConverter } from '@/blocks/converters/DetailsConverter'
-import { PullquoteConverter } from '@/blocks/converters/PullquoteConverter'
-import { ButtonsConverter } from '@/blocks/converters/ButtonsConverter'
+type BarChartBlockProps = {
+  title?: string
+  description?: string
+  caption?: string
+  chartData?: { label: string; value1: number; value2?: number }[]
+  series1Label?: string
+  series1Color?: string
+  series2Label?: string
+  series2Color?: string
+}
+
+type PieChartBlockProps = {
+  title?: string
+  description?: string
+  chartData?: { label: string; value: number; color?: string }[]
+}
 
 type NodeTypes =
   | DefaultNodeTypes
@@ -111,23 +133,6 @@ type NodeTypes =
       | MapBlockProps
       | BirdChecklistBlockProps
     >
-
-type BarChartBlockProps = {
-  title?: string
-  description?: string
-  caption?: string
-  chartData?: { label: string; value1: number; value2?: number }[]
-  series1Label?: string
-  series1Color?: string
-  series2Label?: string
-  series2Color?: string
-}
-
-type PieChartBlockProps = {
-  title?: string
-  description?: string
-  chartData?: { label: string; value: number; color?: string }[]
-}
 
 const internalDocToHref = ({ linkNode }: { linkNode: SerializedLinkNode }) => {
   const { value, relationTo } = linkNode.fields.doc!
@@ -215,24 +220,19 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
     ),
     'quiz-embed': ({ node }: { node: SerializedBlockNode<QuizBlockProps> }) => {
       const quiz = node.fields.quiz
-      console.log('Quiz converter - quiz data:', quiz)
       if (!quiz) {
-        console.warn('Quiz converter - no quiz data found')
         return <div className="text-center text-gray-500">No quiz selected</div>
       }
       if (typeof quiz === 'string') {
-        console.warn('Quiz converter - quiz is unpopulated ID:', quiz)
         return <div className="text-center text-red-500">Quiz not loaded properly (ID: {quiz})</div>
       }
       const serialized = JSON.parse(JSON.stringify(quiz))
-      return <PersonalityQuizWrapper quiz={serialized} />
+      return <LazyQuiz quiz={serialized} />
     },
     group: ({ node }) => <GroupConverter {...nullToUndefined(node.fields)} />,
     details: ({ node }) => {
       const { content, ...rest } = nullToUndefined(node.fields)
-      return (
-        <DetailsConverter {...rest} content={content} />
-      )
+      return <DetailsConverter {...rest} content={content} />
     },
     pullquote: ({ node }) => (
       <PullquoteConverter {...nullToUndefined(node.fields)} />
@@ -248,13 +248,13 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       return <ButtonsConverter buttons={mappedButtons} align={align ?? undefined} />
     },
     'bar-chart': ({ node }: { node: SerializedBlockNode<BarChartBlockProps> }) => (
-      <BarChartBlock block={nullToUndefined(node.fields)} />
+      <LazyBarChart block={nullToUndefined(node.fields)} />
     ),
     'pie-chart': ({ node }: { node: SerializedBlockNode<PieChartBlockProps> }) => (
-      <PieChartBlock block={nullToUndefined(node.fields)} />
+      <LazyPieChart block={nullToUndefined(node.fields)} />
     ),
     map: ({ node }: { node: SerializedBlockNode<MapBlockProps> }) => (
-      <MapBlock
+      <LazyMap
         title={node.fields.title ?? ''}
         description={node.fields.description}
         mapType={node.fields.mapType ?? 'dots'}
@@ -264,7 +264,7 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       />
     ),
     'bird-checklist': ({ node }: { node: SerializedBlockNode<BirdChecklistBlockProps> }) => (
-      <BirdChecklistComponent
+      <LazyBirdChecklist
         checklist={nullToUndefined(node.fields.checklist)}
         showMap={node.fields.showMap ?? true}
         showFullSpeciesList={node.fields.showFullSpeciesList ?? true}

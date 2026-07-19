@@ -55,13 +55,25 @@ async function getBird(slug: string) {
 
 async function getBirdPhotos(slug: string): Promise<PhotoItem[]> {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+
+  // Step 1: Get the bird's ID from its slug first
+  const birdRes = await fetch(
+    `${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=0&limit=1&fields=id`,
+  )
+  if (!birdRes.ok) return []
+  const birdData = await birdRes.json()
+  const birdId = birdData.docs?.[0]?.id
+  if (!birdId) return []
+
+  // Step 2: Now query bird-media by the bird's ID using "contains" (for hasMany)
   const res = await fetch(
-    `${baseUrl}/api/bird-media?where[bird][equals]=${slug}&depth=2`,
+    `${baseUrl}/api/bird-media?where[species][contains]=${birdId}&depth=2`,
   )
   if (!res.ok) return []
   const data = await res.json()
   return data.docs ?? []
 }
+
 
 async function getBirdComments(birdId: string): Promise<Comment[]> {
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''

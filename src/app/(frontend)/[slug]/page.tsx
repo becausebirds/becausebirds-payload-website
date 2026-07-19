@@ -1,25 +1,58 @@
 // app/(pages)/[slug]/page.tsx
 import type { Metadata } from 'next'
+import dynamicImport from 'next/dynamic'
 
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
-import { RelatedPosts } from '@/blocks/RelatedPosts/Component'
 import { PayloadRedirects } from '@/components/PayloadRedirects'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
 import React, { cache } from 'react'
-import RichText from '@/components/RichText'
 import { homeStatic } from '@/endpoints/seed/home-static'
-import BlogComments from '@/components/BlogComments'
 
 import type { Post, Page } from '@/payload-types'
 
-import { PostHero } from '@/heros/PostHero'
-import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
-import { LivePreviewListener } from '@/components/LivePreviewListener'
+
+// ── Dynamic imports (code-split heavy components) ──────────────────────────
+// These load their JS chunks only when rendered, keeping the initial bundle lean.
+
+import RichText from '@/components/RichTextServer'
+
+const BlogComments = dynamicImport(
+  () => import('@/components/BlogComments'),
+  { ssr: true },
+)
+
+const RelatedPosts = dynamicImport(
+  () =>
+    import('@/blocks/RelatedPosts/Component').then(
+      (mod) => ({ default: mod.RelatedPosts }),
+    ),
+  { ssr: true },
+)
+
+// Code-split but no `ssr: false` — that's not allowed in Server Components.
+// Since it's wrapped in `{draft && ...}`, the chunk never loads for regular visitors.
+const LivePreviewListener = dynamicImport(
+  () =>
+    import('@/components/LivePreviewListener').then(
+      (mod) => ({ default: mod.LivePreviewListener }),
+    ),
+)
+
+const PostHero = dynamicImport(
+  () => import('@/heros/PostHero').then((mod) => ({ default: mod.PostHero })),
+  { ssr: true },
+)
+
+const RenderHero = dynamicImport(
+  () =>
+    import('@/heros/RenderHero').then((mod) => ({ default: mod.RenderHero })),
+  { ssr: true },
+)
 
 export const dynamic = 'force-static'
 
@@ -77,6 +110,7 @@ export default async function Page({ params: paramsPromise }: Args) {
   const { slug = 'home' } = await paramsPromise
   const decodedSlug = decodeURIComponent(slug)
   const url = '/' + decodedSlug
+  const { isEnabled: draft } = await draftMode()
 
   // Try to find as a post first
   let post = await queryPostBySlug({ slug: decodedSlug })
@@ -109,7 +143,7 @@ export default async function Page({ params: paramsPromise }: Args) {
           <article className="pt-16 pb-16">
             <PageClient />
             <PayloadRedirects disableNotFound url={url} />
-            <LivePreviewListener />
+            {draft && <LivePreviewListener />}
             <PostHero post={post} />
             <div className="flex flex-col items-center gap-4 pt-8">
               <div className="container">
@@ -158,12 +192,10 @@ export default async function Page({ params: paramsPromise }: Args) {
   const content = page.content
 
   return (
-    <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4
-md:p-6 lg:p-8">
+    <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
       {/* SVG Background */}
       <div
-        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-
-no-repeat opacity-100"
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-100"
         style={{ backgroundImage: 'url(/landing-dark.svg)' }}
         aria-hidden="true"
       />
@@ -174,7 +206,7 @@ no-repeat opacity-100"
         <article className="pt-16 pb-16">
           <PageClient />
           <PayloadRedirects disableNotFound url={url} />
-          <LivePreviewListener />
+          {draft && <LivePreviewListener />}
           {heroImage && <RenderHero {...(heroImage as object)} />}
           <div className="flex flex-col items-center gap-4 pt-8">
             <div className="container">
@@ -194,8 +226,7 @@ no-repeat opacity-100"
   )
 }
 
-export async function generateMetadata({ params: paramsPromise }: Args):
-Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = 'home' } = await paramsPromise
   const decodedSlug = decodeURIComponent(slug)
 
