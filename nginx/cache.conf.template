@@ -1,0 +1,1 @@
+proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=mycache:10m max_size=1g inactive=365d use_temp_path=off;

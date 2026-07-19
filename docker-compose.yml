@@ -55,6 +55,7 @@ services:
       - 443:443
     volumes:
       - ./nginx/app.conf.template:/etc/nginx/templates/app.conf.template
+      - ./nginx/cache.conf.template:/etc/nginx/templates/cache.conf.template
       - ./nginx/certbot/conf:/etc/letsencrypt
       - ./nginx/certbot/www:/var/www/certbot
     environment:
