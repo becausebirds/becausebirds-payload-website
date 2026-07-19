@@ -1,3 +1,4 @@
+// route.ts — Pages
 import { getServerSideSitemap } from 'next-sitemap'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -7,9 +8,7 @@ const getPagesSitemap = unstable_cache(
   async () => {
     const payload = await getPayload({ config })
     const SITE_URL =
-      process.env.NEXT_PUBLIC_SERVER_URL ||
-      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-      'https://example.com'
+      process.env.NEXT_PUBLIC_SERVER_URL || 'https://becausebirds.com'
 
     // 1. Fetch Pages
     const pages = await payload.find({
@@ -25,7 +24,7 @@ const getPagesSitemap = unstable_cache(
 
     // 2. Fetch Products
     const products = await payload.find({
-      collection: 'products', // Ensure this matches your collection slug
+      collection: 'products',
       overrideAccess: false,
       draft: false,
       depth: 0,
@@ -39,6 +38,8 @@ const getPagesSitemap = unstable_cache(
     const defaultSitemap = [
       { loc: `${SITE_URL}/search`, lastmod: dateFallback },
       { loc: `${SITE_URL}/posts`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/birds`, lastmod: dateFallback },
+      { loc: `${SITE_URL}/bird-checklists`, lastmod: dateFallback },
     ]
 
     // Map Pages
@@ -47,7 +48,7 @@ const getPagesSitemap = unstable_cache(
       lastmod: page.updatedAt || dateFallback,
     }))
 
-    // 3. Map Products
+    // Map Products
     const productEntries = products.docs.map((product) => ({
       loc: `${SITE_URL}/product/${product.slug}`,
       lastmod: product.updatedAt || dateFallback,
@@ -56,9 +57,7 @@ const getPagesSitemap = unstable_cache(
     return [...defaultSitemap, ...pageEntries, ...productEntries]
   },
   ['pages-sitemap'],
-  {
-    tags: ['pages-sitemap'],
-  },
+  { tags: ['pages-sitemap'] },
 )
 
 export async function GET() {

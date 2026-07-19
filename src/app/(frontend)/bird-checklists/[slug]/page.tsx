@@ -132,8 +132,33 @@ export async function generateMetadata({
     }
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
+  const dateDisplay = new Date(checklist.date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  const region = checklist.region ?? ''
+  const description = `A bird checklist by Jeff Mann from ${checklist.locationName ?? 'unknown location'} in ${checklist.region} with ${checklist.speciesCount ?? 0} species created on ${checklist.date.split('T')[0]}.`
+
+  const ogImageUrl = `${baseUrl}/bird-checklists/${slug}/opengraph-image`
+
   return {
     title: `Jeff's Bird Checklist: ${checklist.locationName} | ${checklist.date.split('T')[0]}`,
-    description: `A bird checklist by Jeff Mann from ${checklist.locationName ?? 'unknown location'} in ${checklist.region} with ${checklist.speciesCount ?? 0} species created on ${checklist.date.split('T')[0]}.`,
+    description,
+    openGraph: {
+      title: `Jeff's Bird Checklist: ${checklist.locationName} | ${checklist.date.split('T')[0]}`,
+      description,
+      images: [{ url: ogImageUrl, width: 1200, height: 630, alt: `Bird checklist from ${dateDisplay}` }],
+      type: 'website',
+      siteName: 'Because Birds',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Jeff's Bird Checklist: ${checklist.locationName} | ${checklist.date.split('T')[0]}`,
+      description,
+      images: [ogImageUrl],
+    },
   }
 }
