@@ -16,11 +16,12 @@ import BlogComments from '@/components/BlogComments'
 import type { Post, Page } from '@/payload-types'
 
 import { PostHero } from '@/heros/PostHero'
-//import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { RenderHero } from '@/heros/RenderHero'
 import { generateMeta } from '@/utilities/generateMeta'
 import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
+
+export const dynamic = 'force-static'
 
 export async function generateStaticParams() {
   const payload = await getPayload({ config: configPromise })
@@ -36,7 +37,7 @@ export async function generateStaticParams() {
     select: {
       slug: true,
     },
-     })
+  })
 
   // Get posts
   const posts = await payload.find({
@@ -73,7 +74,6 @@ type Args = {
 }
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { isEnabled: draft } = await draftMode()
   const { slug = 'home' } = await paramsPromise
   const decodedSlug = decodeURIComponent(slug)
   const url = '/' + decodedSlug
@@ -81,7 +81,7 @@ export default async function Page({ params: paramsPromise }: Args) {
   // Try to find as a post first
   let post = await queryPostBySlug({ slug: decodedSlug })
   if (post) {
-    // Fetch comments for this post
+    // Fetch comments at build time (page is force-static)
     const payload = await getPayload({ config: configPromise })
     const commentsResult = await payload.find({
       collection: 'comments' as any,
@@ -90,7 +90,7 @@ export default async function Page({ params: paramsPromise }: Args) {
           equals: post.id,
         },
       },
-    depth:0,
+      depth: 0,
     })
     const comments = commentsResult.docs || []
 
@@ -109,7 +109,7 @@ export default async function Page({ params: paramsPromise }: Args) {
           <article className="pt-16 pb-16">
             <PageClient />
             <PayloadRedirects disableNotFound url={url} />
-            {draft && <LivePreviewListener />}
+            <LivePreviewListener />
             <PostHero post={post} />
             <div className="flex flex-col items-center gap-4 pt-8">
               <div className="container">
@@ -118,7 +118,6 @@ export default async function Page({ params: paramsPromise }: Args) {
                   data={post.content}
                   enableGutter={false}
                 />
-               {/* {post.layout && <RenderBlocks blocks={post.layout} />} */}
                 {post.relatedPosts && post.relatedPosts.length > 0 && (
                   <RelatedPosts
                     className="mt-12 max-w-[52rem] lg:grid lg:grid-cols-subgrid col-start-1 col-span-3 grid-rows-[2fr]"
@@ -127,10 +126,10 @@ export default async function Page({ params: paramsPromise }: Args) {
                 )}
               </div>
             </div>
-            {/* Comments Section */}
+            {/* Comments Section — baked in at build time */}
             <div className="flex flex-col items-center gap-4 pt-8">
               <div className="container max-w-[48rem] mx-auto">
-              <BlogComments comments={comments} postId={String(post.id).trim()} />
+                <BlogComments comments={comments} postId={String(post.id).trim()} />
               </div>
             </div>
           </article>
@@ -143,9 +142,9 @@ export default async function Page({ params: paramsPromise }: Args) {
   // Otherwise, try to find as a page
   let page: Page | null
 
-  page = await queryPageBySlug({
+  page = (await queryPageBySlug({
     slug: decodedSlug,
-  }) as Page | null
+  })) as Page | null
 
   if (!page && slug === 'home') {
     page = homeStatic as Page
@@ -157,12 +156,14 @@ export default async function Page({ params: paramsPromise }: Args) {
 
   const { heroImage } = page
   const content = page.content
-  // Render pages with the same layout as posts
+
   return (
-    <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
+    <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4
+md:p-6 lg:p-8">
       {/* SVG Background */}
       <div
-        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-100"
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-
+no-repeat opacity-100"
         style={{ backgroundImage: 'url(/landing-dark.svg)' }}
         aria-hidden="true"
       />
@@ -173,8 +174,8 @@ export default async function Page({ params: paramsPromise }: Args) {
         <article className="pt-16 pb-16">
           <PageClient />
           <PayloadRedirects disableNotFound url={url} />
-          {draft && <LivePreviewListener />}
-           {heroImage && <RenderHero {...(heroImage as object)} />}
+          <LivePreviewListener />
+          {heroImage && <RenderHero {...(heroImage as object)} />}
           <div className="flex flex-col items-center gap-4 pt-8">
             <div className="container">
               {content && (
@@ -193,18 +194,16 @@ export default async function Page({ params: paramsPromise }: Args) {
   )
 }
 
-export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: Args):
+Promise<Metadata> {
   const { slug = 'home' } = await paramsPromise
   const decodedSlug = decodeURIComponent(slug)
 
-  // Try post first
   let post = await queryPostBySlug({ slug: decodedSlug })
   if (post) {
-    console.log('Post ID:', post.id, 'Type:', typeof post.id)
     return generateMeta({ doc: post })
   }
 
-  // Otherwise try page
   const page = await queryPageBySlug({
     slug: decodedSlug,
   })
