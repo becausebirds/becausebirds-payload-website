@@ -74,7 +74,7 @@ export default async function FeaturedPhotoSection() {
   const caption = hasCaption ? (
     <div className="flex flex-col gap-0.5">
       {birdName && (
-        <span className="block text-base font-black text-foreground leading-tight">
+        <span className="block font-black leading-tight">
           {birdName}
         </span>
       )}
