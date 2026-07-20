@@ -208,7 +208,7 @@ export default function ChecklistExplorerMap({
 
           showCoverageOnHover={false}
 
-          spiderfyOnMaxZoom={true}
+          spiderfyOnMaxZoom={false}
 
           zoomToBoundsOnClick={true}
           disableClusteringAtZoom={12} 

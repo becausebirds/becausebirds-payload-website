@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils"
+import type { ReactNode } from "react"
 
 type Props = {
   imageUrl: string
-  caption: string
+  caption: ReactNode
   className?: string
 }
 

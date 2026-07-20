@@ -10,6 +10,11 @@ import NavBar from '@/components/navbar'
 import { Footer } from '@/Footer/Component'
 import type { Post } from '@/payload-types'
 import BirdingStats from '@/components/BirdingStats'
+import RandomBirdSpotlight from '@/components/RandomBirdSpotlight'
+import FeaturedPhotoSection from '@/components/FeaturedPhotoSection'
+import RandomChecklists from '@/components/RandomChecklists'
+import { Newspaper, CircuitBoard } from 'lucide-react'
+
 
 const PostCard = ({ post }: { post: Post }) => (
   <Card className="border-2 border-black dark:border-border h-full flex flex-col">
@@ -20,19 +25,20 @@ post.heroImage && post.heroImage.url && (
         <div className="relative w-full h-48 rounded-base
 overflow-hidden flex-shrink-0">
           <Image
-            src={post.heroImage.url}
-            alt={post.title}
-            fill
-            className="object-cover"
-          />
+  src={post.heroImage.url}
+  alt={post.title}
+  fill
+  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+  className="object-cover"
+  priority
+/>
         </div>
       </div>
     )}
 
     <CardHeader className="pb-0">
       <CardTitle className="text-xl font-black">
-        <Link href={`/${post.slug}`} className="hover:underline text-
-foreground">
+        <Link href={`/${post.slug}`} className="hover:underline text-foreground">
           {post.title}
         </Link>
       </CardTitle>
@@ -48,7 +54,6 @@ dark:text-muted-foreground">
 post.categories.length > 0 && (
         <div className="flex flex-wrap gap-2 my-3">
           {post.categories.map((category) => {
-            // category could be just a number (ID only) or a populated object
             if (typeof category === 'object' && 'id' in category) {
               return <Badge key={category.id}>{category.title}</Badge>
             }
@@ -59,7 +64,6 @@ post.categories.length > 0 && (
     </CardHeader>
 
     <CardContent className="flex-1 flex flex-col pt-0">
-      {/* Use meta.description instead of excerpt */}
       <p className="leading-relaxed text-base flex-1 text-gray-700
 dark:text-gray-300">
         {post.meta?.description || 'No description available'}
@@ -116,6 +120,7 @@ border-2 border-black dark:border-border overflow-hidden">
               alt={post.title}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 80px, 96px"
             />
           </div>
         )}
@@ -215,58 +220,59 @@ lg:min-h-[calc(100vh-4rem)]">
         {/* Main Content */}
         <main className="flex-1 max-w-6xl mx-auto px-6 py-8 w-full">
 
-<div className="flex items-center justify-center gap-3 mb-8 text-center">
-  <img
-    src="/jeff_mann.jpg"
-    alt="Jeff Mann"
-    className="w-7 h-7 rounded-full border-1 border-black dark:border-border
-object-cover flex-shrink-0"
-  />
-  <p className="text-sm italic leading-relaxed text-gray-600
-dark:text-gray-400">
-    This website is handwritten by Jeff Mann since 2013.
-  </p>
-</div>
+  {/* ── Latest Posts Section ── */}
+  <section className="mb-12">
+    <h2 className="flex items-center gap-2 text-4xl font-black mb-6 tracking-tight text-gray-900 dark:text-foreground">
+        Latest posts
+        <Newspaper className="h-6 w-6 text-muted-foreground" />
+      </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {posts.docs.map((post) => (
+        <PostCard key={post.id} post={post} />
+      ))}
+    </div>
+    <div className="flex justify-center mt-8">
+      <Link href="/archive">
+        <Button className="rounded-base font-bold bg-background" variant="neutral">
+                    <Newspaper className="h-4 w-4" />
+View all posts →</Button>
+      </Link>
+    </div>
+  </section>
 
-          {/* Latest Posts Section */}
-          <section className="mb-12">
-            <h1 className="text-5xl font-black mb-8 tracking-tight text-gray-900
-dark:text-foreground">Latest
-Posts</h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
-gap-6">
-              {posts.docs.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-            <div className="flex justify-center mt-8">
-              <Link href="/archive">
-                <Button className="rounded-base" variant="neutral">View all
-posts →</Button>
-              </Link>
-            </div>
-          </section>
-<BirdingStats />
-          {/* Projects Section */}
-          {projects.docs.length > 0 && (
-            <section className="mb-24">
-              <h2 className="text-5xl font-black text-gray-900
-dark:text-foreground mb-8 tracking-
-tight">Projects</h2>
-              <div>
-                {projects.docs.map((project) => (
-                  <ProjectListItem key={project.id} post={project} />
-                ))}
-              </div>
-              <div className="flex justify-center mt-8">
-                <Link href="/archive?category=5">
-                  <Button className="rounded-base" variant="neutral">View all
-projects →</Button>
-                </Link>
-              </div>
-            </section>
-          )}
-        </main>
+  {/* ── Birding Stats ── */}
+  <BirdingStats />
+
+  {/* ── Featured Checklist + Featured Photo side by side ── */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    <RandomChecklists />
+    <FeaturedPhotoSection />
+  </div>
+
+  {/* ── Projects Section ── */}
+  {projects.docs.length > 0 && (
+    <section className="mb-24">
+        <h2 className="flex items-center gap-2 text-4xl font-black mb-6 tracking-tight text-gray-900 dark:text-foreground">
+        Projects
+        <CircuitBoard className="h-6 w-6 text-muted-foreground" />
+      </h2>
+      <div>
+        {projects.docs.map((project) => (
+          <ProjectListItem key={project.id} post={project} />
+        ))}
+      </div>
+      <div className="flex justify-center mt-8">
+        <Link href="/archive?category=5" className='text-gray-900 dark:text-foreground'>
+          <Button className="rounded-base font-bold bg-background" variant="neutral">          <CircuitBoard className="h-4 w-4" />
+ View all projects →</Button>
+        </Link>
+      </div>
+    </section>
+  )}
+
+
+</main>
+
 
         {/* Footer */}
         <Footer />
