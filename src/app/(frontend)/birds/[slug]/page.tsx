@@ -226,6 +226,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? ''
 
   const birdRes = await fetch(`${baseUrl}/api/birds?where[slug][equals]=${slug}&depth=1`)
+  if (!birdRes.ok) return { title: 'Bird Species Not Found' }
   const birdData = await birdRes.json()
   const bird = birdData.docs?.[0] ?? null
   if (!bird) return { title: 'Bird Species Not Found' }
