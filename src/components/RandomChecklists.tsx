@@ -110,7 +110,7 @@ export default async function RandomChecklists() {
 </h2>
 
 
-      <Link href={`/bird-checklist/${checklistLink}`} className="group block">
+      <Link href={`/bird-checklists/${checklistLink}`} className="group block">
         <div className="border-2 border-black bg-white dark:bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_hsl(var(--border))]">
           {/* Mini map */}
           <div className="overflow-hidden border-b-2 border-black">
