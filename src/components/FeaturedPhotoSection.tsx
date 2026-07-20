@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Bird, Camera } from 'lucide-react'
 
 // ═══ Hardcode the bird-media ID you want to feature here ═══
-const FEATURED_MEDIA_ID = '16'
+const FEATURED_MEDIA_ID = '3533'
 
 export default async function FeaturedPhotoSection() {
   const payload = await getPayload({ config: configPromise })
