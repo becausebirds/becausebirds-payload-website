@@ -10,6 +10,8 @@ import { redirects } from './redirects'
 const NEXT_PUBLIC_SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 const nextConfig: NextConfig = {
+  experimental: {
+  staticGenerationMaxConcurrency: 1,},
   allowedDevOrigins: ['194.163.176.129'],
   sassOptions: {
     loadPaths: ['./node_modules/@payloadcms/ui/dist/scss/'],
