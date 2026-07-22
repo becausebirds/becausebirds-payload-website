@@ -7,31 +7,48 @@ const crosspostToBluesky: CollectionConfig['hooks'] = {
   afterChange: [
     async ({ doc, operation, req }) => {
       if (operation !== 'create') return
-      console.log('[DEBUG] Hook triggered for doc:', doc.id)
+      console.log('[Microposts HOOK] FIRED for operation:', operation, 'doc id:', doc.id)
 
       const handle = process.env.BLUESKY_HANDLE
       const password = process.env.BLUESKY_APP_PASSWORD
       if (!handle || !password) {
-        console.error('[DEBUG] Bluesky credentials missing')
+        console.warn('[Microposts] Bluesky env vars not set — skipping cross-post')
         return
       }
 
       try {
         const agent = new BskyAgent({ service: 'https://bsky.social' })
         await agent.login({ identifier: handle, password })
-        console.log('[DEBUG] Logged into Bluesky')
 
         const siteUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://becausebirds.com'
         const postUrl = `${siteUrl}/microblog/${doc.slug || doc.id}`
 
-        // Build text with link
+        const response = await agent.post({
+          text: doc.content,
+          facets: [
+            {
+              index: {
+                byteStart: doc.content.length,
+                byteEnd: doc.content.length,
+              },
+              features: [
+                {
+                  $type: 'app.bsky.richtext.facet#link',
+                  uri: postUrl,
+                },
+              ],
+            },
+          ],
+          createdAt: new Date().toISOString(),
+        })
+
         const textWithLink = `${doc.content}\n\n${postUrl}`
 
         let embed: any = undefined
 
         if (doc.images && doc.images.length > 0) {
           const firstImage = doc.images[0]
-          const mediaDoc = firstImage.image  // ✅ Already the full object
+          const mediaDoc = firstImage.image
 
           if (mediaDoc?.filename) {
             const filePath = path.join(process.cwd(), 'public', 'media', mediaDoc.filename)
@@ -41,6 +58,9 @@ const crosspostToBluesky: CollectionConfig['hooks'] = {
               const mimeType = mediaDoc.mimeType || 'image/jpeg'
 
               const upload = await agent.uploadBlob(fileBuffer, { encoding: mimeType })
+
+              const bskyPostId = response.uri.split('/').pop()
+              const bskyUrl = `https://bsky.app/profile/${handle}/post/${bskyPostId}`
 
               embed = {
                 $type: 'app.bsky.embed.images',
@@ -57,7 +77,6 @@ const crosspostToBluesky: CollectionConfig['hooks'] = {
           }
         }
 
-        // Use RichText to properly parse facets
         const rt = new RichText({ text: textWithLink })
         await rt.detectFacets(agent)
 
@@ -67,7 +86,8 @@ const crosspostToBluesky: CollectionConfig['hooks'] = {
           embed: embed,
           createdAt: new Date().toISOString(),
         })
-        console.log('[DEBUG] Post successfully sent to Bluesky')
+
+        console.log('[Microposts] ✅ Cross-posted to Bluesky')
       } catch (err) {
         console.error('[Microposts] Bluesky cross-post failed:', err)
       }
@@ -75,12 +95,11 @@ const crosspostToBluesky: CollectionConfig['hooks'] = {
   ],
 }
 
-
 export const Microposts: CollectionConfig = {
   slug: 'microposts',
   admin: {
     useAsTitle: 'content',
-    defaultColumns: ['content', 'createdAt', 'syndicatedTo'],
+    defaultColumns: ['content', 'publishedAt', 'slug'],
   },
   access: {
     read: () => true,
@@ -89,41 +108,34 @@ export const Microposts: CollectionConfig = {
     delete: () => true,
   },
   fields: [
-    { name: 'content', type: 'textarea', required: true, maxLength: 300 },
+    {
+      name: 'content',
+      type: 'textarea',
+      required: true,
+      maxLength: 300,
+    },
     {
       name: 'slug',
       type: 'text',
-      unique: true,
-      admin: { position: 'sidebar' },
-      hooks: {
-        beforeChange: [
-          ({ data }) =>
-            data?.content
-              ?.toLowerCase()
-              .replace(/[^\w\s-]/g, '')
-              .replace(/[\s_]+/g, '-')
-              .replace(/-+/g, '-')
-              .slice(0, 60) || '',
-        ],
-      },
     },
     {
       name: 'images',
       type: 'array',
       fields: [
-        { name: 'image', type: 'upload', relationTo: 'media', required: true },
+        {
+          name: 'image',
+          type: 'upload',
+          relationTo: 'media',
+          required: true,
+        },
         { name: 'alt', type: 'text', label: 'Alt Text' },
       ],
     },
     {
-      name: 'syndicatedTo',
-      type: 'array',
-      fields: [
-        { name: 'platform', type: 'text' },
-        { name: 'url', type: 'text' },
-      ],
+      name: 'publishedAt',
+      type: 'date',
+      defaultValue: () => new Date(),
     },
-    { name: 'publishedAt', type: 'date', defaultValue: () => new Date() },
   ],
   hooks: crosspostToBluesky,
   timestamps: true,
