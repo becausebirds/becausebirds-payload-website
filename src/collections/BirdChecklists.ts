@@ -1,3 +1,4 @@
+import { ImportEbirdButton } from '@/collections/BirdChecklists/ImportEbirdButton'
 import type { CollectionConfig } from 'payload'
 import { generatePreviewPath } from '../utilities/generatePreviewPath'
 
@@ -5,37 +6,42 @@ export const BirdChecklists: CollectionConfig = {
   slug: 'bird-checklists',
 
   admin: {
-    useAsTitle: 'title',
-    defaultColumns: ['title', 'date', 'locationName', 'speciesCount', 'updatedAt'],
-    group: 'Birding',
-    description: 'Bird checklists created and managed in your CMS',
-
-    livePreview: {
-      url: ({ data, req }) => {
-        if (data?.private) {
-          return ''
-        }
-
-        return generatePreviewPath({
-          slug: data?.slug,
-          collection: 'bird-checklists',
-          req,
-        })
-      },
-    },
-
-    preview: (data, { req }) => {
+  useAsTitle: 'title',
+  defaultColumns: ['title', 'date', 'locationName', 'speciesCount', 'updatedAt'],
+  group: 'Birding',
+  description: 'Bird checklists created and managed in your CMS',
+  components: {
+  beforeList: [
+    '@/collections/BirdChecklists/ImportEbirdButton#ImportEbirdButton',
+  ],
+},
+  livePreview: {
+    url: ({ data, req }) => {
       if (data?.private) {
         return ''
       }
 
       return generatePreviewPath({
-        slug: data?.slug as string | null | undefined,
+        slug: data?.slug,
         collection: 'bird-checklists',
         req,
       })
     },
   },
+
+  preview: (data, { req }) => {
+    if (data?.private) {
+      return ''
+    }
+
+    return generatePreviewPath({
+      slug: data?.slug as string | null | undefined,
+      collection: 'bird-checklists',
+      req,
+    })
+  },
+},
+
 
   access: {
     read: () => true,
@@ -70,17 +76,18 @@ export const BirdChecklists: CollectionConfig = {
   },
 
   fields: [
-    // ─── File Upload Import ──────────────────────────────────────────
-    {
-      name: 'importField',
-      type: 'text',
-      label: 'Import from eBird',
-      admin: {
-        components: {
-          Field: '@/collections/BirdChecklists/eBirdImportField#EbirdImportFieldClient',
-        },
+
+      {
+    name: 'importField',
+    type: 'text',
+    label: 'Import from eBird',
+    admin: {
+      hidden: true,  // ← Hide it from the UI if you don't want to see it
+      components: {
+        Field: '@/collections/BirdChecklists/eBirdImportField#EbirdImportFieldClient',
       },
     },
+  },
 
     // ─── Checklist Identifiers ───────────────────────────────────────
     {

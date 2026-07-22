@@ -23,6 +23,7 @@ import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloa
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { EbirdImportFieldClient as EbirdImportFieldClient_be21efe0196a7ea928a7a06450c1c416 } from '@/collections/BirdChecklists/eBirdImportField'
+import { ImportEbirdButton as ImportEbirdButton_edf1c1446d70b352ecb49543630ee828 } from '@/collections/BirdChecklists/ImportEbirdButton'
 import { LinkToDoc as LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
@@ -57,6 +58,7 @@ export const importMap = {
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@/collections/BirdChecklists/eBirdImportField#EbirdImportFieldClient": EbirdImportFieldClient_be21efe0196a7ea928a7a06450c1c416,
+  "@/collections/BirdChecklists/ImportEbirdButton#ImportEbirdButton": ImportEbirdButton_edf1c1446d70b352ecb49543630ee828,
   "@payloadcms/plugin-search/client#LinkToDoc": LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
