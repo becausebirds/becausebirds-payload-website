@@ -98,97 +98,67 @@ BirdChecklists, Birds, Categories, Tags, Products, Users, Microposts],
                   },
                 },
                 {
-                  path: '/micropub',
-                  method: 'post',
-                  handler: async (req) => {
-                    const validToken = process.env.MICROPUB_TOKEN
-                    const authHeader = req.headers.get('authorization')
-                    if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.slice(7) !== validToken) {
-                      return Response.json({ error: 'unauthorized' }, { status: 401 })
-                    }
+  path: '/micropub',
+  method: 'post',
+  handler: async (req) => {
+    const validToken = process.env.MICROPUB_TOKEN
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.slice(7) !== validToken) {
+      return Response.json({ error: 'unauthorized' }, { status: 401 })
+    }
 
-                    const contentType = req.headers.get('content-type') || ''
-                    let content = ''
-                    let photoUrls: string[] = []
+    const formData = await req.formData!()
+    const content = (formData.get('content') as string) || ''
+    const altText = (formData.get('alt') as string) || ''
 
-                    if (contentType.includes('application/x-www-form-urlencoded')) {
-                      const formData = await req.formData!()
-                      content = (formData.get('content') as string) || ''
-                    } else if (contentType.includes('application/json')) {
-                      const json = await req.json!()
-                      if (json.properties) {
-                        // Micropub JSON format
-                        content = json.properties.content?.[0] || ''
-                        photoUrls = json.properties.photo || []
-                      } else {
-                        content = json.content || ''
-                        photoUrls = json.photo || []
-                      }
-                    } else if (contentType.includes('multipart/form-data')) {
-                      const formData = await req.formData!()
-                      content = (formData.get('content') as string) || ''
+    let photoId: number | null = null
 
-                      // Handle photo upload
-                      const photoFile = formData.get('photo') as File | null
-                      if (photoFile && photoFile.size > 0) {
-                        const payload = await req.payload
-                        const mediaDoc = await payload.create({
-                          collection: 'media',
-                          data: {},
-                          file: {
-                            name: photoFile.name,
-                            data: Buffer.from(await photoFile.arrayBuffer()),
-                            mimetype: photoFile.type,
-                            size: photoFile.size,
-                          },
-                        })
-                        console.log('mediaDoc:', JSON.stringify(mediaDoc, null, 2))
-                        photoUrls = [String(mediaDoc.id)]
-                      }
+    // Handle file upload
+    const file = (formData.get('photo') || formData.get('video')) as File | null
+    if (file && file.size > 0) {
+      const payload = await req.payload
+      const mediaDoc = await payload.create({
+        collection: 'media',
+        data: {
+          alt: altText,
+        },
+        file: {
+          name: file.name,
+          data: Buffer.from(await file.arrayBuffer()),
+          mimetype: file.type,
+          size: file.size,
+        },
+      })
+      // Ensure ID is a number for Postgres
+      photoId = typeof mediaDoc.id === 'string' ? parseInt(mediaDoc.id) : mediaDoc.id
+    }
 
-                      // Handle video upload
-                      const videoFile = formData.get('video') as File | null
-                      if (!photoFile && videoFile && videoFile.size > 0) {
-                        const payload = await req.payload
-                        const mediaDoc = await payload.create({
-                          collection: 'media',
-                          data: {},
-                          file: {
-                            name: videoFile.name,
-                            data: Buffer.from(await videoFile.arrayBuffer()),
-                            mimetype: videoFile.type,
-                            size: videoFile.size,
-                          },
-                        })
-                        photoUrls = [String(mediaDoc.id)]
-                      }
-                    } else {
-                      return Response.json({ error: 'unsupported content type' }, { status:
-                            400 })
-                        }
+    if (!content?.trim()) {
+      return Response.json({ error: 'content is required' }, { status: 400 })
+    }
 
-                        if (!content?.trim()) {
-                          return Response.json({ error: 'content is required' }, { status: 400     })
-                        }
-                        const payload = await req.payload
-                        const doc = await payload.create({
-                          collection: 'microposts',
-                          data: {
-                            content: content.trim(),
-                            images: photoUrls.map((id) => ({ image: id })),
-                          } as any,
-                        })
+    const payload = await req.payload
+    const doc = await req.payload.create({
+  collection: 'microposts',
+  data: {
+    content: content.trim(),
+    images: photoId 
+      ? [{ 
+          image: photoId, // Ensure this is just the number/string ID
+          alt: altText 
+        }] 
+      : [],
+  },
+})
 
-                        const siteUrl = process.env.NEXT_PUBLIC_SERVER_URL ||
-                'https://becausebirds.com'
-                        const postUrl = `${siteUrl}/microblog/${doc.slug || doc.id}`
+    const siteUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://becausebirds.com'
+    return new Response(null, {
+      status: 201,
+      headers: { Location: `${siteUrl}/microblog/${doc.slug || doc.id}` },
+    })
+  },
+},
 
-                        return new Response(null, {
-                          status: 201,
-                          headers: { Location: postUrl },
-                        })
-                      },
-                    },
                     {
   path: '/birds-with-data',
   method: 'get',
@@ -307,7 +277,7 @@ BirdChecklists, Birds, Categories, Tags, Products, Users, Microposts],
       const lastDateRaw = newestChecklist?.date ?? null
 
       detailsMap.set(birdId, {
-        topPhotoUrl: photos[0]?.url ?? null,
+        topPhotoUrl: photos[0]?.sizes?.thumbnail?.url ?? photos[0]?.url ?? null,
         firstLocation: oldestChecklist?.locationName ?? null,
         firstDate: oldestChecklist?.date ?? null,
         lastDate: lastDateRaw,
