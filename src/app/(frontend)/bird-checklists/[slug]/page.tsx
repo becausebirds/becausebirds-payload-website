@@ -103,7 +103,7 @@ export default async function BirdChecklistPage({
         All checklists
       </Link>
           <h1 className="text-4xl font-bold my-4">Bird Checklist</h1>
-          <span className="text-md">I create lists of the birds I see and hear while birdwatching. I submit these bird lists to eBird and archive them here.</span>
+          <span className="text-md">This is a list of birds I saw and heard while birdwatching at {checklist.locationName}. I submit these bird lists to eBird and archive them here.</span>
           <BirdChecklistComponent
             checklist={{
               id: checklist.id,

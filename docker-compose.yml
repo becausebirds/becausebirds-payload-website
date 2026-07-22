@@ -25,7 +25,7 @@ services:
       - BLUESKY_HANDLE=${BLUESKY_HANDLE}
       - BLUESKY_APP_PASSWORD=${BLUESKY_APP_PASSWORD}
       - REVALIDATION_SECRET=${REVALIDATION_SECRET}
-      - REVALIDATION_SERVER_URL=http://localhost:3000
+      - REVALIDATION_SERVER_URL=http://payload:3000
     networks:
       - app-network
     restart: unless-stopped
