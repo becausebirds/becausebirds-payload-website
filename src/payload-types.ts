@@ -1168,6 +1168,7 @@ export interface Comment {
   date?: string | null;
   content?: string | null;
   replyPost?: (number | null) | Post;
+  replyBird?: (number | null) | Bird;
   replyComment?: (number | null) | Comment;
   isApproved?: boolean | null;
   updatedAt: string;
@@ -1251,14 +1252,14 @@ export interface Micropost {
         id?: string | null;
       }[]
     | null;
+  publishedAt?: string | null;
   syndicatedTo?:
     | {
-        platform?: string | null;
-        url?: string | null;
+        platform: string;
+        url: string;
         id?: string | null;
       }[]
     | null;
-  publishedAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2300,6 +2301,7 @@ export interface CommentsSelect<T extends boolean = true> {
   date?: T;
   content?: T;
   replyPost?: T;
+  replyBird?: T;
   replyComment?: T;
   isApproved?: T;
   updatedAt?: T;
@@ -2482,6 +2484,7 @@ export interface MicropostsSelect<T extends boolean = true> {
         alt?: T;
         id?: T;
       };
+  publishedAt?: T;
   syndicatedTo?:
     | T
     | {
@@ -2489,7 +2492,6 @@ export interface MicropostsSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
-  publishedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

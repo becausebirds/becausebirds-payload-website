@@ -1,3 +1,4 @@
+// collections/Microposts.ts
 import type { CollectionConfig } from 'payload'
 import path from 'path'
 import { BskyAgent } from '@atproto/api'
@@ -136,6 +137,22 @@ export const Microposts: CollectionConfig = {
       type: 'date',
       defaultValue: () => new Date(),
     },
+    {
+  name: 'syndicatedTo',
+  type: 'array',
+  fields: [
+    {
+      name: 'platform',
+      type: 'text',
+      required: true,
+    },
+    {
+      name: 'url',
+      type: 'text',
+      required: true,
+    },
+  ],
+},
   ],
   hooks: crosspostToBluesky,
   timestamps: true,

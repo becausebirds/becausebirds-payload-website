@@ -1,3 +1,4 @@
+// microblog/[slug]/page.tsx
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import NavBar from '@/components/navbar'
