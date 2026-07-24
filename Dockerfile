@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --prod
+RUN pnpm add sharp 
 
 # Install Chromium for Playwright
 RUN pnpm exec playwright install chromium
@@ -38,5 +39,8 @@ COPY --from=builder /home/node/app/.next ./.next
 COPY --from=builder /home/node/app/public ./public
 COPY --from=builder /home/node/app/package.json ./
 
+# Copy compiled migration files (they get built during pnpm build)
+COPY --from=builder /home/node/app/src/migrations ./src/migrations
+
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["sh", "-c", "npx payload migrate && pnpm start"]
