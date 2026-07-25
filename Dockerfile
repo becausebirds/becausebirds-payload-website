@@ -42,5 +42,17 @@ COPY --from=builder /home/node/app/package.json ./
 # Copy compiled migration files (they get built during pnpm build)
 COPY --from=builder /home/node/app/src/migrations ./src/migrations
 
+# ═══════════════════════════════════════════════════
+# FIX 1 — Copy tsconfig.json so Payload can resolve @/ imports
+# ═══════════════════════════════════════════════════
+COPY tsconfig.json ./
+
+# ═══════════════════════════════════════════════════
+# FIX 2 — Copy next.config.ts (or next.config.mjs) if it exists
+#         Next.js needs this too at runtime
+# ═══════════════════════════════════════════════════
+COPY next.config.ts ./   # or next.config.mjs / next.config.js
+
 EXPOSE 3000
 CMD ["sh", "-c", "npx payload migrate && pnpm start"]
+
