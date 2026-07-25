@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
+import { Feather } from 'lucide-react'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { Link, Feather } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Microblog — Because Birds',
@@ -16,19 +16,18 @@ export const metadata: Metadata = {
 
 /* ── URL linkifier ─────────────────────────────────── */
 function linkifyText(text: string): string {
-  // 1. Escape HTML to prevent XSS
   const escaped = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
 
-  // 2. Turn URLs into clickable links
   const urlPattern = /(https?:\/\/[^\s<]+[^\s<.,;:!?)}\]'"])/g
 
   return escaped.replace(urlPattern, (url) =>
     `<a href="${url}" target="_blank" rel="noopener noreferrer"
-        class="underline text-[#0088CC] hover:text-[#005580] decoration-dotted
+        class="underline text-[#0088CC] dark:text-[#66B2FF] hover:text-[#005580]
+               dark:hover:text-[#99CCFF] decoration-dotted
                hover:decoration-solid transition-all duration-200 break-all">${url}</a>`
   )
 }
@@ -56,17 +55,22 @@ export default async function MicroblogPage() {
         <article className="pt-2 pb-16">
           <div className="flex flex-col items-center gap-4 pt-8">
             <div className="container max-w-[36rem] mx-auto">
+              {/* Title with feather */}
               <div className="flex items-center gap-2 mb-2">
-  <Feather className="w-8 h-8" />
-  <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter font-base">
-    Microblog
-  </h1>
-</div>
-
+                <Feather className="w-8 h-8 text-black dark:text-white" />
+                <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter font-base">
+                  Micro blog
+                </h1>
+              </div>
               <p className="text-gray-600 dark:text-gray-400 mb-8">
                 A feed of short posts and updates from Jeff Mann on Because Birds. This feed
                 is syndicated to Bluesky on the account{' '}
-                <a href="https://bsky.app/profile/becausebirds.com" target="_blank" rel="noopener noreferrer">
+                <a
+                  href="https://bsky.app/profile/becausebirds.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0088CC] dark:text-[#66B2FF] underline hover:text-[#005580] dark:hover:text-[#99CCFF] transition-colors"
+                >
                   @becausebirds.com
                 </a>
               </p>
@@ -74,39 +78,42 @@ export default async function MicroblogPage() {
               <div className="flex flex-col gap-10">
                 {docs.map((post: any) => (
                   <article key={post.id} className="h-entry">
-                    <div className="bg-white border-2 border-black p-4 pb-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
-                      transition-all duration-200">
+                    <div className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-600 p-4 pb-6
+                      shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_hsl(var(--border))]
+                      transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px]
+                      hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+                      dark:hover:shadow-[8px_8px_0px_0px_hsl(var(--border))]">
 
                       {/* Author stamp at top */}
-                      <div className="flex items-center gap-2 mb-3 border-b-2 border-dashed border-gray-200 pb-3">
+                      <div className="flex items-center gap-2 mb-3 border-b-2 border-dashed border-gray-200 dark:border-gray-700 pb-3">
                         <img
                           src="/jeff_mann.jpg"
                           alt="Jeff Mann"
                           width={32}
                           height={32}
-                          className="rounded-full object-cover border-2 border-black/20"
+                          className="rounded-full object-cover border-2 border-black/20 dark:border-white/20"
                         />
-                        <span className="font-bold text-xs uppercase tracking-widest">Jeff Mann</span>
+                        <span className="font-bold text-xs uppercase tracking-widest text-black dark:text-white">Jeff Mann</span>
                       </div>
 
                       {/* Content — with clickable URLs */}
                       <div
-                        className="e-content p-name text-base leading-relaxed whitespace-pre-wrap [&_a]:font-medium"
+                        className="e-content p-name text-base leading-relaxed whitespace-pre-wrap [&_a]:font-medium text-black dark:text-gray-200"
                         style={{ fontFamily: "'Courier New', 'Segoe Print', cursive" }}
                         dangerouslySetInnerHTML={{ __html: linkifyText(post.content) }}
                       />
 
-                      {/* Images — the star of the Polaroid */}
+                      {/* Images — original ratio, no cropping */}
                       {post.images && post.images.length > 0 && (
                         <div className="mt-4 space-y-3">
                           {post.images.map((img: any, i: number) => (
-                            <div key={img.id || i} className="border-2 border-black/10">
+                            <div key={img.id || i} className="border-2 border-black/10 dark:border-gray-700 rounded-sm overflow-hidden">
                               <img
                                 src={img.image?.url || `/media/${img.image?.filename}`}
                                 alt={img.alt || 'Micro post image'}
                                 width={img.image?.width || 800}
                                 height={img.image?.height || 600}
-                                className="w-full h-auto object-contain"
+                                className="w-full h-auto object-contain bg-gray-100 dark:bg-gray-800"
                               />
                             </div>
                           ))}
@@ -114,23 +121,23 @@ export default async function MicroblogPage() {
                       )}
 
                       {/* Handwritten-style timestamp + links */}
-                      <div className="mt-4 pt-3 flex items-center justify-between border-t-2 border-dashed border-gray-200"
+                      <div className="mt-4 pt-3 flex items-center justify-between border-t-2 border-dashed border-gray-200 dark:border-gray-700"
                         style={{ fontFamily: "'Segoe Print', 'Comic Sans MS', cursive", fontSize: '0.75rem' }}>
-                        <time className="dt-published text-gray-500" dateTime={post.createdAt}>
+                        <time className="dt-published text-gray-500 dark:text-gray-400" dateTime={post.createdAt}>
                           🖊 {new Date(post.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
                           })}
                         </time>
-                        <div className="flex gap-3 text-gray-400">
+                        <div className="flex gap-3 text-gray-400 dark:text-gray-500">
                           <a href={`/microblog/${post.slug || post.id}`}
-                            className="underline hover:text-black transition-colors">
-                            <Link className="w-5 h-5"></Link>
+                            className="underline hover:text-black dark:hover:text-white transition-colors">
+                            #
                           </a>
                           {post.syndicatedTo?.map((s: any) => (
                             <a key={s.platform} href={s.url}
-                              className="u-syndication underline hover:text-black transition-colors"
+                              className="u-syndication underline hover:text-black dark:hover:text-white transition-colors"
                               target="_blank" rel="noopener noreferrer">
                               {s.platform}
                             </a>
