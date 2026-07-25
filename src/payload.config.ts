@@ -37,6 +37,7 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     components: {
+       afterNavLinks: ['/components/CustomNav#CustomNav'], 
       // beforeLogin: ['@/components/BeforeLogin'],
       // beforeDashboard: ['@/components/BeforeDashboard'],
     },
@@ -101,9 +102,8 @@ BirdChecklists, Birds, Categories, Tags, Products, Users, Microposts],
   path: '/micropub',
   method: 'post',
   handler: async (req) => {
-    const validToken = process.env.MICROPUB_TOKEN
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.slice(7) !== validToken) {
+     const user = req.user;
+  if (!user) {
       return Response.json({ error: 'unauthorized' }, { status: 401 })
     }
 
