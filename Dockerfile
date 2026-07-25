@@ -47,12 +47,6 @@ COPY --from=builder /home/node/app/src/migrations ./src/migrations
 # ═══════════════════════════════════════════════════
 COPY tsconfig.json ./
 
-# ═══════════════════════════════════════════════════
-# FIX 2 — Copy next.config.ts (or next.config.mjs) if it exists
-#         Next.js needs this too at runtime
-# ═══════════════════════════════════════════════════
-COPY next.config.ts ./   # or next.config.mjs / next.config.js
-
 EXPOSE 3000
 CMD ["sh", "-c", "npx payload migrate && pnpm start"]
 
