@@ -1,18 +1,9 @@
-import type { Metadata } from 'next'
+import { Feather, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
-import { Feather } from 'lucide-react'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-
-export const metadata: Metadata = {
-  title: 'Microblog — Because Birds',
-  description: 'Micro posts from Jeff Mann on Because Birds.',
-  openGraph: {
-    title: 'Microblog — Because Birds',
-    description: 'A feed of short posts and updates from Jeff Mann on Because Birds.',
-  },
-}
 
 /* ── URL linkifier ─────────────────────────────────── */
 function linkifyText(text: string): string {
@@ -32,13 +23,17 @@ function linkifyText(text: string): string {
   )
 }
 
-export default async function MicroblogPage() {
+async function getMicroposts() {
   const payload = await getPayload({ config: configPromise })
-  const { docs } = await payload.find({
+  const result = await payload.find({
     collection: 'microposts',
-    sort: '-createdAt',
-    limit: 50,
+    sort: '-publishedAt',
   })
+  return result.docs || []
+}
+
+export default async function MicropostIndex() {
+  const docs = await getMicroposts()
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
@@ -52,108 +47,111 @@ export default async function MicroblogPage() {
         md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] dark:md:shadow-[12px_12px_0px_0px_hsl(var(--border))] min-h-[calc(100vh-1rem)]
         sm:min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] lg:min-h-[calc(100vh-4rem)]">
         <NavBar />
-        <article className="pt-2 pb-16">
+        <div className="pt-16 pb-16">
           <div className="flex flex-col items-center gap-4 pt-8">
             <div className="container max-w-[36rem] mx-auto">
-              {/* Title with feather */}
-              <div className="flex items-center gap-2 mb-2">
+              {/* Back link */}
+              <Link
+                href="/"
+                className="text-sm text-gray-500 dark:text-gray-400 underline mb-4 inline-block font-mono hover:text-black dark:hover:text-white transition-colors"
+              >
+                ← Back to home
+              </Link>
+
+              {/* Title */}
+              <div className="flex items-center gap-2 mb-8">
                 <Feather className="w-8 h-8 text-black dark:text-white" />
-                <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter font-base">
+                <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter">
                   Micro blog
                 </h1>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-8">
-                A feed of short posts and updates from Jeff Mann on Because Birds. This feed
-                is syndicated to Bluesky on the account{' '}
-                <a
-                  href="https://bsky.app/profile/becausebirds.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#0088CC] dark:text-[#66B2FF] underline hover:text-[#005580] dark:hover:text-[#99CCFF] transition-colors"
-                >
-                  @becausebirds.com
-                </a>
-              </p>
 
+              {/* Post list */}
               <div className="flex flex-col gap-10">
-                {docs.map((post: any) => (
-                  <article key={post.id} className="h-entry">
-                    <div className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-600 p-4 pb-6
-                      shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_hsl(var(--border))]
-                      transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px]
-                      hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
-                      dark:hover:shadow-[8px_8px_0px_0px_hsl(var(--border))]">
+                {docs.map((post: any) => {
+                  const postDate = new Date(post.publishedAt)
+                  const dateStr = postDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                  const timeStr = postDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
 
-                      {/* Author stamp at top */}
-                      <div className="flex items-center gap-2 mb-3 border-b-2 border-dashed border-gray-200 dark:border-gray-700 pb-3">
-                        <img
-                          src="/jeff_mann.jpg"
-                          alt="Jeff Mann"
-                          width={32}
-                          height={32}
-                          className="rounded-full object-cover border-2 border-black/20 dark:border-white/20"
-                        />
-                        <span className="font-bold text-xs uppercase tracking-widest text-black dark:text-white">Jeff Mann</span>
-                      </div>
+                  return (
+                    <article key={post.id} className="h-entry">
+                      <Link href={`/microblog/${post.slug || post.id}`} className="group block">
+                        <div className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-600 p-4 pb-6
+                          shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_hsl(var(--border))]
+                          transition-all duration-200 group-hover:translate-x-[-2px] group-hover:translate-y-[-2px]
+                          group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
+                          dark:group-hover:shadow-[8px_8px_0px_0px_hsl(var(--border))]">
 
-                      {/* Content — with clickable URLs */}
-                      <div
-                        className="e-content p-name text-base leading-relaxed whitespace-pre-wrap [&_a]:font-medium text-black dark:text-gray-200"
-                        style={{ fontFamily: "'Courier New', 'Segoe Print', cursive" }}
-                        dangerouslySetInnerHTML={{ __html: linkifyText(post.content) }}
-                      />
-
-                      {/* Images — original ratio, no cropping */}
-                      {post.images && post.images.length > 0 && (
-                        <div className="mt-4 space-y-3">
-                          {post.images.map((img: any, i: number) => (
-                            <div key={img.id || i} className="border-2 border-black/10 dark:border-gray-700 rounded-sm overflow-hidden">
+                          {/* Author stamp + date — top section */}
+                          <div className="flex items-center justify-between mb-3 border-b-2 border-dashed border-gray-200 dark:border-gray-700 pb-3">
+                            <div className="flex items-center gap-2">
                               <img
-                                src={img.image?.url || `/media/${img.image?.filename}`}
-                                alt={img.alt || 'Micro post image'}
-                                width={img.image?.width || 800}
-                                height={img.image?.height || 600}
-                                className="w-full h-auto object-contain bg-gray-100 dark:bg-gray-800"
+                                src="/jeff_mann.jpg"
+                                alt="Jeff Mann"
+                                width={32}
+                                height={32}
+                                className="rounded-full object-cover border-2 border-black/20 dark:border-white/20"
                               />
+                              <span className="font-bold text-xs uppercase tracking-widest text-black dark:text-white">Jeff Mann</span>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                            <time className="dt-published text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap" dateTime={post.createdAt}>
+                              {dateStr} · {timeStr}
+                            </time>
+                          </div>
 
-                      {/* Handwritten-style timestamp + links */}
-                      <div className="mt-4 pt-3 flex items-center justify-between border-t-2 border-dashed border-gray-200 dark:border-gray-700"
-                        style={{ fontFamily: "'Segoe Print', 'Comic Sans MS', cursive", fontSize: '0.75rem' }}>
-                        <time className="dt-published text-gray-500 dark:text-gray-400" dateTime={post.createdAt}>
-                          🖊 {new Date(post.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </time>
-                        <div className="flex gap-3 text-gray-400 dark:text-gray-500">
-                          <a href={`/microblog/${post.slug || post.id}`}
-                            className="underline hover:text-black dark:hover:text-white transition-colors">
-                            #
-                          </a>
-                          {post.syndicatedTo?.map((s: any) => (
-                            <a key={s.platform} href={s.url}
-                              className="u-syndication underline hover:text-black dark:hover:text-white transition-colors"
-                              target="_blank" rel="noopener noreferrer">
-                              {s.platform}
-                            </a>
-                          ))}
+                          {/* Content */}
+                          <div
+                            className="e-content p-name text-base leading-relaxed whitespace-pre-wrap [&_a]:font-medium text-black dark:text-gray-200"
+                            dangerouslySetInnerHTML={{ __html: linkifyText(post.content) }}
+                          />
+
+                          {/* Images — centered, border hugs image */}
+                          {post.images && post.images.length > 0 && (
+                            <div className="mt-4 space-y-3">
+                              {post.images.map((img: any, i: number) => (
+                                <div key={img.id || i} className="border-2 border-black/10 dark:border-gray-700 rounded-sm overflow-hidden w-fit mx-auto">
+                                  <img
+                                    src={img.image?.url || `/media/${img.image?.filename}`}
+                                    alt={img.alt || 'Micro post image'}
+                                    width={img.image?.width || 800}
+                                    height={img.image?.height || 600}
+                                    className="max-h-[75vh] w-auto object-contain bg-gray-100 dark:bg-gray-800"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Syndication links at bottom */}
+                          {post.syndicatedTo?.length > 0 && (
+                            <div className="mt-4 pt-3 flex items-center justify-end gap-3 border-t-2 border-dashed border-gray-200 dark:border-gray-700">
+                              <span className="text-xs text-gray-400 dark:text-gray-500">Also on</span>
+                              {post.syndicatedTo.map((s: any) => (
+                                <span
+                                  key={s.platform}
+                                  className="text-xs text-gray-400 dark:text-gray-500"
+                                >
+                                  {s.platform}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-                {docs.length === 0 && (
-                  <p className="text-gray-500 italic dark:text-gray-400">No microposts yet. Check back soon!</p>
-                )}
+                      </Link>
+                    </article>
+                  )
+                })}
               </div>
             </div>
           </div>
-        </article>
+        </div>
         <Footer />
       </div>
     </div>

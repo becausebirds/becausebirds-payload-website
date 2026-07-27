@@ -48,24 +48,25 @@ export async function generateMetadata({ params }: Args): Promise<Metadata> {
   const postUrl = `${siteUrl}/microblog/${post.slug || post.id}`
 
   return {
-    title: `@becausebirds — ${post.content?.slice(0, 60)}${post.content?.length > 60 ? '…' : ''}`,
-    description: post.content?.slice(0, 160) || 'A micropost from Because Birds',
-    openGraph: {
-      title: `Micro blog — Because Birds`,
-      description: post.content?.slice(0, 160),
-      url: postUrl,
-      type: 'article',
-      publishedTime: post.createdAt,
-    },
-    twitter: {
-      card: 'summary',
-      title: `Micro blog — Because Birds`,
-      description: post.content?.slice(0, 160),
-    },
-    alternates: {
-      canonical: postUrl,
-    },
-  }
+  title: `@becausebirds — ${post.content?.slice(0, 60)}${post.content?.length > 60 ? '…' : ''}`,
+  description: post.content?.slice(0, 160) || 'A micropost from Because Birds',
+  openGraph: {
+    title: `Micro blog — Because Birds`,
+    description: post.content?.slice(0, 160),
+    url: postUrl,
+    type: 'article',
+    publishedTime: post.publishedAt ?? undefined, 
+  },
+  twitter: {
+    card: 'summary',
+    title: `Micro blog — Because Birds`,
+    description: post.content?.slice(0, 160),
+  },
+  alternates: {
+    canonical: postUrl,
+  },
+}
+
 }
 
 export default async function MicropostPage({ params }: Args) {
@@ -73,6 +74,17 @@ export default async function MicropostPage({ params }: Args) {
   const post = await getMicropost(slug)
 
   if (!post) notFound()
+
+  const postDate = new Date(post.publishedAt ?? '')
+  const dateStr = postDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
+  const timeStr = postDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 
   return (
     <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
@@ -92,8 +104,7 @@ export default async function MicropostPage({ params }: Args) {
               {/* Back link */}
               <a
                 href="/microblog"
-                className="text-sm text-gray-500 dark:text-gray-400 underline mb-4 inline-block
-                  font-['Courier_New',monospace] hover:text-black dark:hover:text-white transition-colors"
+                className="text-sm text-gray-500 dark:text-gray-400 underline mb-4 inline-block font-mono hover:text-black dark:hover:text-white transition-colors"
               >
                 ← Back to micro blog
               </a>
@@ -101,70 +112,68 @@ export default async function MicropostPage({ params }: Args) {
               {/* Title with feather */}
               <div className="flex items-center gap-2 mb-6">
                 <Feather className="w-8 h-8 text-black dark:text-white" />
-                <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter font-base">
+                <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter">
                   Micro blog
                 </h1>
               </div>
 
-              {/* ── Polaroid post card ── */}
+              {/* ── Post card ── */}
               <div className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-600 p-4 pb-6
                 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:shadow-[6px_6px_0px_0px_hsl(var(--border))]
                 transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px]
                 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]
                 dark:hover:shadow-[8px_8px_0px_0px_hsl(var(--border))]">
 
-                {/* Author stamp at top */}
-                <div className="flex items-center gap-2 mb-3 border-b-2 border-dashed border-gray-200 dark:border-gray-700 pb-3">
-                  <img
-                    src="/jeff_mann.jpg"
-                    alt="Jeff Mann"
-                    width={32}
-                    height={32}
-                    className="rounded-full object-cover border-2 border-black/20 dark:border-white/20"
-                  />
-                  <span className="font-bold text-xs uppercase tracking-widest text-black dark:text-white">Jeff Mann</span>
+                {/* Author stamp + date — top section */}
+                <div className="flex items-center justify-between mb-3 border-b-2 border-dashed border-gray-200 dark:border-gray-700 pb-3">
+                  <div className="flex items-center gap-2">
+                    <img
+                      src="/jeff_mann.jpg"
+                      alt="Jeff Mann"
+                      width={32}
+                      height={32}
+                      className="rounded-full object-cover border-2 border-black/20 dark:border-white/20"
+                    />
+                    <span className="font-bold text-xs uppercase tracking-widest text-black dark:text-white">Jeff Mann</span>
+                  </div>
+                  <time className="dt-published text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap" dateTime={post.publishedAt ? post.publishedAt : undefined}
+>
+                    {dateStr} · {timeStr}
+                  </time>
                 </div>
 
                 {/* Content — with clickable URLs */}
                 <div
                   className="e-content p-name text-base leading-relaxed whitespace-pre-wrap [&_a]:font-medium text-black dark:text-gray-200"
-                  style={{ fontFamily: "'Courier New', 'Segoe Print', cursive" }}
                   dangerouslySetInnerHTML={{ __html: linkifyText(post.content) }}
                 />
 
-                {/* Images — original ratio, no cropping */}
+                {/* Images — centered, border hugs image */}
                 {post.images && post.images.length > 0 && (
                   <div className="mt-4 space-y-3">
                     {post.images.map((img: any, i: number) => (
-                      <div key={img.id || i} className="border-2 border-black/10 dark:border-gray-700 rounded-sm overflow-hidden">
+                      <div key={img.id || i} className="border-2 border-black/10 dark:border-gray-700 rounded-sm overflow-hidden w-fit mx-auto">
                         <img
                           src={img.image?.url || `/media/${img.image?.filename}`}
                           alt={img.alt || 'Micro post image'}
                           width={img.image?.width || 800}
                           height={img.image?.height || 600}
-                          className="w-full h-auto object-contain bg-gray-100 dark:bg-gray-800"
+                          className="max-h-[75vh] w-auto object-contain bg-gray-100 dark:bg-gray-800"
                         />
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Handwritten-style timestamp + syndication */}
-                <div className="mt-4 pt-3 flex items-center justify-between border-t-2 border-dashed border-gray-200 dark:border-gray-700"
-                  style={{ fontFamily: "'Segoe Print', 'Comic Sans MS', cursive", fontSize: '0.75rem' }}>
-                  <time className="dt-published text-gray-500 dark:text-gray-400" dateTime={post.createdAt}>
-                    🖊 {new Date(post.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </time>
-                  <div className="flex gap-3 text-gray-400 dark:text-gray-500">
-                    {post.syndicatedTo?.map((s: any) => (
+                {/* Syndication links at bottom (only if they exist) */}
+                {post.syndicatedTo != null && post.syndicatedTo.length > 0 && (
+                  <div className="mt-4 pt-3 flex items-center justify-end gap-3 border-t-2 border-dashed border-gray-200 dark:border-gray-700">
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Also on</span>
+                    {post.syndicatedTo.map((s: any) => (
                       <a
                         key={s.platform}
                         href={s.url}
-                        className="u-syndication underline hover:text-black dark:hover:text-white transition-colors"
+                        className="u-syndication text-xs underline hover:text-black dark:hover:text-white transition-colors text-gray-400 dark:text-gray-500"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -172,7 +181,7 @@ export default async function MicropostPage({ params }: Args) {
                       </a>
                     ))}
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>

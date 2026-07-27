@@ -4,10 +4,30 @@ import path from 'path'
 import { BskyAgent } from '@atproto/api'
 import { RichText } from '@atproto/api'
 
+const slugify = (text: string): string => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')   // Remove non-word chars (punctuation, etc.)
+    .replace(/[\s_]+/g, '-')    // Replace spaces/underscores with hyphens
+    .replace(/^-+|-+$/g, '')    // Remove leading/trailing hyphens
+    .slice(0, 60)               // Cap length for a cleaner slug
+}
+
 const crosspostToBluesky: CollectionConfig['hooks'] = {
+  beforeChange: [
+    ({ data }) => {
+      if (data?.content) {
+        // Take the first ~30 chars of content as the base, append a tiny unique suffix
+        const baseSlug = slugify(data.content).slice(0, 30)
+        data.slug = `${baseSlug}-${Date.now().toString(36)}`
+      }
+    },
+  ],
   afterChange: [
     async ({ doc, operation, req }) => {
       if (operation !== 'create') return
+      if (req.headers?.get('x-skip-crosspost') === 'true') return
       console.log('[Microposts HOOK] FIRED for operation:', operation, 'doc id:', doc.id)
 
       const handle = process.env.BLUESKY_HANDLE
