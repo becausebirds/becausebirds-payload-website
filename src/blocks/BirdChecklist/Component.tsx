@@ -249,7 +249,7 @@ export default async function BirdChecklistComponent({
         <div className="border-b-2 border-black bg-gray-500 px-5 py-4 md:px-6 md:py-5 text-white">
           <h2 className="flex items-center gap-2 mt-0 text-lg font-black tracking-tight uppercase text-gray-200 md:text-3xl">
             <Binoculars className="h-6 w-6 md:h-7 md:w-7" />
-            Bird Checklist
+            {c.locationName}
           </h2>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -278,10 +278,10 @@ export default async function BirdChecklistComponent({
                   {c.locationName}
                 </a>
               ) : (
-                c.locationName
-              )}
+                c.county
+              )}, {c.state && <> {c.state}</>}
               <Globe className="h-3.5 w-3.5 md:h-4 md:w-4" />
-              {c.region && <> {c.region}</>}
+               {c.region && <> {c.region}</>}
             </p>
           )}
           {c.date && (
