@@ -95,10 +95,11 @@ hover:rotate-0 transition-transform
                 height={80}
                 className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20"
               />
-              <span className="text-xl sm:text-2xl md:text-3xl font-black 
-tracking-tight text-black pb-1">
-                becausebirds
-              </span>
+              <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-black pb-1"
+      style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}>
+  becausebirds
+</span>
+
             </Link>
           </div>
 
