@@ -26,5 +26,8 @@ COPY --from=builder /home/node/app/.next ./.next
 COPY --from=builder /home/node/app/public ./public
 COPY --from=builder /home/node/app/package.json ./
 
+RUN pnpm exec playwright install chromium \
+    && npx playwright install-deps chromium
+
 EXPOSE 3000
 CMD ["pnpm", "start"]
