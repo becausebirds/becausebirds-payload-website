@@ -1,13 +1,14 @@
 import Link from 'next/link'
 
 const exploreLinks = [
+  { label: 'Micro blog', href: '/microblog' },
   { label: 'About', href: '/about' },
-  { label: 'Visitor Stats', href: '/website-metrics' },
-  { label: 'Personality Quizzes', href: '/archive?category=16',},
+  { label: 'Visitor stats', href: '/website-metrics' },
+  { label: 'Personality quizzes', href: '/archive?category=16',},
   { label: 'Archive', href: '/archive',},
-  { label: 'eBird Profile', href: 'https://ebird.org/profile/NDI2NTk5/world', external: true },
-  { label: 'iNaturalist Profile', href: 'https://www.inaturalist.org/people/1715077', external: true },
-  { label: 'Bluesky Profile', href: 'https://bsky.app/profile/becausebirds.com', external: true },
+  { label: 'eBird profile', href: 'https://ebird.org/profile/NDI2NTk5/world', external: true },
+  { label: 'iNaturalist profile', href: 'https://www.inaturalist.org/people/1715077', external: true },
+  { label: 'Bluesky profile', href: 'https://bsky.app/profile/becausebirds.com', external: true },
 ]
 
 export default function Footer() {
