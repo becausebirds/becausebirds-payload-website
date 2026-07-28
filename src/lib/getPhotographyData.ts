@@ -25,25 +25,28 @@ export interface PhotoWithChecklist {
     | null
 }
 
-export async function getPhotographyData(): Promise<{
-  photos: PhotoWithChecklist[]
-  total: number
-}> {
+export async function getPhotographyData(): Promise<PhotoWithChecklist[]> {
   const payload = await getPayload({ config: configPromise })
 
-  // Fetch ALL images (up to 1000) so client-side sorting works on the full set
+  // Use the 'sort' parameter to order by the related checklist's date.
+  // Note: Payload supports dot-notation for sorting by related fields.
   const result = await payload.find({
     collection: 'bird-media',
     depth: 2,
-    limit: 1000,
-    sort: '-createdAt',
+    limit: 500,
+    sort: '-checklistId.date', // Sort by checklist date descending
     where: {
       mimeType: { contains: 'image' },
     },
   })
 
-  return {
-    photos: result.docs as unknown as PhotoWithChecklist[],
-    total: result.totalDocs,
+  return result.docs as unknown as PhotoWithChecklist[]
+}
+
+
+function getChecklistDate(photo: PhotoWithChecklist): string | null {
+  if (photo.checklistId && typeof photo.checklistId === 'object') {
+    return photo.checklistId.date ?? null
   }
+  return null
 }

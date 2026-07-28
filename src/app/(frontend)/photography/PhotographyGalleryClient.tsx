@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -11,42 +11,27 @@ import {
   MapPin,
   Calendar,
   Bird,
-  Loader2,
+  ClipboardList
 } from 'lucide-react'
 import type { PhotoWithChecklist } from '@/lib/getPhotographyData'
 
 interface Props {
   initialPhotos: PhotoWithChecklist[]
-  total: number
 }
 
 export default function PhotographyGalleryClient({
   initialPhotos,
-  total,
 }: Props) {
-  const [dispayCount, setDisplayCount] = useState(30)
-  const [sortBy, setSortBy] = useState<'recent' | 'rating'>('recent')
+  const [displayCount, setDisplayCount] = useState(30)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const loaderRef = useRef<HTMLDivElement>(null)
+  const touchStartX = useRef(0)
+  const touchEndX = useRef(0)
 
-  // ── Sort ALL photos in memory ──
-  const sortedPhotos = useMemo(() => {
-    const sorted = [...initialPhotos].sort((a, b) => {
-      if (sortBy === 'rating') {
-        const ratingA = a.rating ?? 0
-        const ratingB = b.rating ?? 0
-        if (ratingB !== ratingA) return ratingB - ratingA
-      }
-      // Default: sort by checklist date descending
-      const dateA = getChecklist(a)?.date ?? ''
-      const dateB = getChecklist(b)?.date ?? ''
-      return dateB.localeCompare(dateA)
-    })
-    return sorted
-  }, [initialPhotos, sortBy])
-
-  const visiblePhotos = sortedPhotos.slice(0, dispayCount)
-  const hasMore = dispayCount < sortedPhotos.length
+  // Use initialPhotos directly (already sorted by server)
+  const sortedPhotos = initialPhotos
+  const visiblePhotos = sortedPhotos.slice(0, displayCount)
+  const hasMore = displayCount < sortedPhotos.length
 
   // ── Infinite scroll via IntersectionObserver ──
   const handleObserver = useCallback(
@@ -120,6 +105,30 @@ export default function PhotographyGalleryClient({
     )
   }
 
+  // ── Touch/Swipe Handlers ──
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.changedTouches[0].screenX
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX.current = e.changedTouches[0].screenX
+    handleSwipe()
+  }
+
+  const handleSwipe = () => {
+    const swipeThreshold = 50
+    const diff = touchStartX.current - touchEndX.current
+
+    if (Math.abs(diff) > swipeThreshold) {
+      if (diff > 0) {
+        nextLightbox()
+      } else {
+        prevLightbox()
+      }
+    }
+  }
+
+  // ── Keyboard Navigation ──
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (lightboxIndex === null) return
@@ -133,39 +142,6 @@ export default function PhotographyGalleryClient({
 
   return (
     <>
-      {/* ── Sort Controls ── */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <span className="text-sm font-bold text-muted-foreground">
-          Sort by:
-        </span>
-        <button
-          onClick={() => setSortBy('recent')}
-          className={`px-4 py-1.5 text-sm font-bold rounded-base border-2 transition-all ${
-            sortBy === 'recent'
-              ? 'border-black bg-yellow-300 dark:bg-yellow-400 dark:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-              : 'border-black bg-white dark:bg-card'
-          }`}
-        >
-          Most Recent
-        </button>
-        <button
-          onClick={() => setSortBy('rating')}
-          className={`px-4 py-1.5 text-sm font-bold rounded-base border-2 transition-all ${
-            sortBy === 'rating'
-              ? 'border-black bg-yellow-300 dark:bg-yellow-400 dark:text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-              : 'border-black bg-white dark:bg-card'
-          }`}
-        >
-          Highest Rated
-        </button>
-        <span className="text-xs font-bold text-muted-foreground ml-auto">
-          {dispayCount > sortedPhotos.length
-            ? sortedPhotos.length
-            : dispayCount}{' '}
-          / {total} photos
-        </span>
-      </div>
-
       {/* ── Masonry Grid ── */}
       <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
         {visiblePhotos.map((photo, index) => {
@@ -181,7 +157,6 @@ export default function PhotographyGalleryClient({
               onClick={() => setLightboxIndex(index)}
               className="break-inside-avoid w-full border-2 border-black bg-white dark:bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all text-left group cursor-pointer"
             >
-              {/* Image — using <img> so native aspect ratio is preserved in columns */}
               <div className="relative overflow-hidden">
                 <img
                   src={src}
@@ -189,12 +164,6 @@ export default function PhotographyGalleryClient({
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
                   loading="lazy"
                 />
-                {photo.rating && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-white/90 dark:bg-black/80 border border-black px-2 py-0.5 rounded-base text-xs font-bold shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                    <span>{photo.rating}</span>
-                  </div>
-                )}
               </div>
               <div className="border-t-2 border-black p-3 space-y-1">
                 {speciesNames && (
@@ -226,8 +195,7 @@ export default function PhotographyGalleryClient({
       {/* ── Infinite Scroll Trigger ── */}
       <div ref={loaderRef} className="flex justify-center py-10">
         {hasMore && (
-          <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+          <div className="text-sm font-bold text-muted-foreground">
             Loading more photos...
           </div>
         )}
@@ -238,19 +206,18 @@ export default function PhotographyGalleryClient({
         )}
       </div>
 
-      {/* ═══════════════════════════════════════
-          LIGHTBOX — redesigned for mobile
-          ═══════════════════════════════════════ */}
+      {/* ── Lightbox ── */}
       {lightboxIndex !== null && currentPhoto && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-2 sm:p-4"
           onClick={() => setLightboxIndex(null)}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
         >
           <div
             className="flex flex-col lg:flex-row max-w-6xl max-h-[95vh] w-full h-full lg:h-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* ── Top bar: Close + Nav buttons (mobile) / hidden on desktop ── */}
             <div className="flex items-center justify-between lg:hidden bg-white dark:bg-card border-2 border-black rounded-t-base px-2 py-1.5">
               <button
                 onClick={prevLightbox}
@@ -259,11 +226,9 @@ export default function PhotographyGalleryClient({
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-
               <span className="text-xs font-bold text-muted-foreground">
                 {lightboxIndex + 1} / {sortedPhotos.length}
               </span>
-
               <div className="flex items-center gap-1">
                 <button
                   onClick={nextLightbox}
@@ -282,21 +247,17 @@ export default function PhotographyGalleryClient({
               </div>
             </div>
 
-            {/* ── Image area ── */}
-            <div className="relative flex-1 flex items-center justify-center bg-black/40 overflow-hidden min-h-[200px] max-h-[45vh] lg:max-h-[85vh] lg:rounded-l-base">
+            <div className="relative flex-1 flex items-center justify-center bg-black/40 overflow-hidden min-h-[200px] max-h-[45vh] lg:max-h-[85vh] lg:rounded-l-base select-none touch-none">
               <Image
                 src={getImageSrc(currentPhoto)}
-                alt={
-                  currentPhoto.alt ?? currentPhoto.filename ?? 'Bird photo'
-                }
+                alt={currentPhoto.alt ?? currentPhoto.filename ?? 'Bird photo'}
                 width={1200}
                 height={800}
                 quality={95}
                 className="w-full h-full object-contain"
                 priority
+                draggable={false}
               />
-
-              {/* Desktop nav buttons — positioned over the image edges */}
               <button
                 onClick={prevLightbox}
                 className="hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 dark:bg-card/90 border-2 border-black rounded-base p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 transition-all"
@@ -311,8 +272,6 @@ export default function PhotographyGalleryClient({
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
-
-              {/* Desktop close button */}
               <button
                 onClick={() => setLightboxIndex(null)}
                 className="hidden lg:flex absolute top-3 right-3 bg-white/90 dark:bg-card/90 border-2 border-black rounded-base p-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
@@ -320,9 +279,11 @@ export default function PhotographyGalleryClient({
               >
                 <X className="h-5 w-5" />
               </button>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 lg:hidden text-xs font-semibold text-white/70 pointer-events-none">
+                Swipe to navigate
+              </div>
             </div>
 
-            {/* ── Metadata Panel ── */}
             <div className="w-full lg:w-72 bg-white dark:bg-card border-2 border-black lg:border-l-0 rounded-b-base lg:rounded-r-base lg:rounded-bl-none overflow-y-auto flex-shrink-0 max-h-[45vh] lg:max-h-[85vh]">
               <div className="border-b-2 border-black bg-lime-100 dark:bg-gray-800 px-4 py-3">
                 <h3 className="font-black text-sm">Photo Details</h3>
@@ -339,7 +300,6 @@ export default function PhotographyGalleryClient({
                     </p>
                   </div>
                 )}
-
                 {(() => {
                   const cl = getChecklist(currentPhoto)
                   return cl?.date ? (
@@ -354,7 +314,6 @@ export default function PhotographyGalleryClient({
                     </div>
                   ) : null
                 })()}
-
                 {(() => {
                   const cl = getChecklist(currentPhoto)
                   return cl?.locationName ? (
@@ -376,7 +335,6 @@ export default function PhotographyGalleryClient({
                     </div>
                   ) : null
                 })()}
-
                 {currentPhoto.rating && (
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
@@ -397,7 +355,6 @@ export default function PhotographyGalleryClient({
                     </p>
                   </div>
                 )}
-
                 {currentPhoto.mediaNotes && (
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1">
@@ -408,22 +365,19 @@ export default function PhotographyGalleryClient({
                     </p>
                   </div>
                 )}
-
                 {(() => {
                   const cl = getChecklist(currentPhoto)
-                  const linkId =
-                    cl?.ebirdChecklistId ?? cl?.slug ?? null
+                  const linkId = cl?.ebirdChecklistId ?? cl?.slug ?? null
                   return linkId ? (
                     <Link
-                      href={`/bird-checklists/${linkId}`}
-                      className="block mt-4 text-center text-xs font-bold border-2 border-black bg-yellow-300 dark:bg-yellow-400 dark:text-black px-3 py-2 rounded-base shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
-                    >
-                      View Full Checklist →
-                    </Link>
+  href={`/bird-checklists/${linkId}`}
+  className="block mt-4 text-center text-xs font-bold border-2 border-black bg-yellow-300 dark:bg-yellow-400 dark:text-black px-3 py-2 rounded-base shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all flex items-center justify-center gap-2"
+>
+  <ClipboardList className="h-4 w-4" />
+  View bird checklist →
+</Link>
                   ) : null
                 })()}
-
-                {/* Photo counter (mobile only — desktop shows counter in top metadata) */}
                 <p className="text-[11px] text-muted-foreground text-center pt-2 lg:hidden">
                   {lightboxIndex + 1} / {sortedPhotos.length}
                 </p>
