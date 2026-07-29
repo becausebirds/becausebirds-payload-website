@@ -69,13 +69,29 @@ export interface LocationPin {
 }
 
 async function getChecklistsForBird(birdId: string): Promise<BirdChecklist[]> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists?where[speciesRecords.bird][equals]=${birdId}&depth=0&limit=50&sort=date&fields=id,date,slug,ebirdChecklistId,locationName,locationId,latitude,longitude,county,state,region,speciesRecords.id,speciesRecords.bird,speciesRecords.count,speciesRecords.comments`,
-  )
-  if (!res.ok) return []
-  const data = await res.json()
-  return data.docs ?? []
+  const allChecklists: BirdChecklist[] = []
+  let page = 1
+  let totalPages = 1
+
+  while (page <= totalPages) {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/api/bird-checklists` +
+      `?where[speciesRecords.bird][equals]=${birdId}` +
+      `&depth=0&limit=100&page=${page}&sort=date` +
+      `&fields=id,date,slug,ebirdChecklistId,locationName,locationId,` +
+      `latitude,longitude,county,state,region,` +
+      `speciesRecords.id,speciesRecords.bird,speciesRecords.count,speciesRecords.comments`,
+    )
+    if (!res.ok) return []
+    const data = await res.json()
+    allChecklists.push(...(data.docs ?? []))
+    totalPages = data.totalPages ?? 1
+    page++
+  }
+
+  return allChecklists
 }
+
 
 async function getMediaForBird(birdId: string): Promise<BirdMediaItem[]> {
   const res = await fetch(
