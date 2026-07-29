@@ -18,7 +18,9 @@ export const generatePreviewPath = ({ collection, slug }: Props) => {
     return null
   }
 
-  // Encode to support slugs with special characters
+  // 1. Get your frontend URL from environment variables
+  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+
   const encodedSlug = encodeURIComponent(slug)
 
   const encodedParams = new URLSearchParams({
@@ -26,7 +28,8 @@ export const generatePreviewPath = ({ collection, slug }: Props) => {
     previewSecret: process.env.PREVIEW_SECRET || '',
   } satisfies PreviewSearchParams)
 
-  const url = `/next/preview?${encodedParams.toString()}`
+  // 2. Prepend the baseUrl to the relative path
+  const url = `${baseUrl}/next/preview?${encodedParams.toString()}`
 
   return url
 }

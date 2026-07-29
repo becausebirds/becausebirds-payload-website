@@ -44,9 +44,28 @@ export const BirdMedia: CollectionConfig = {
   },
 
   upload: {
-    mimeTypes: ['image/*', 'audio/*', 'video/*'],
-    staticDir: 'public/birdmedia',
-  },
+  mimeTypes: ['image/*', 'audio/*', 'video/*'],
+  staticDir: 'public/birdmedia',
+  imageSizes: [
+    {
+      name: 'thumbnail',
+      width: 300,
+    },
+    {
+      name: 'small',
+      width: 600,
+    },
+    {
+      name: 'medium',
+      width: 900,
+    },
+    {
+      name: 'large',
+      width: 1400,
+    },
+  ],
+},
+
 
   fields: [
     // ─── Relationships ──────────────────────────────────────

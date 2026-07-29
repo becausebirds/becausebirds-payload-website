@@ -8,6 +8,12 @@ export interface PhotoWithChecklist {
   alt: string | null
   rating: number | null
   mediaNotes: string | null
+  sizes?: {
+    thumbnail?: { url: string; width: number; height: number }
+    small?: { url: string; width: number; height: number }
+    medium?: { url: string; width: number; height: number }
+    large?: { url: string; width: number; height: number }
+  }
   species: { id: string; comName?: string; sciName?: string }[] | null
   checklistId:
     | {

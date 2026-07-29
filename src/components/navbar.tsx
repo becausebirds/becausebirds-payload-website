@@ -52,11 +52,11 @@ const NavBar = () => {
   };
 
   const navLinks = [
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
     { label: 'Guest book', href: '/guestbook' },
     { label: 'Bird checklists', href: '/bird-checklists' },
     { label: 'Bird pages', href: '/birds' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
   ];
 
   return (
@@ -96,7 +96,7 @@ hover:rotate-0 transition-transform
                 className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20"
               />
               <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-black pb-1"
-      style={{ fontFamily: "'Impact', 'Arial Black', sans-serif" }}>
+      style={{ fontFamily: "'Arial Black', sans-serif" }}>
   becausebirds
 </span>
 

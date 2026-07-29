@@ -68,11 +68,13 @@ export default function PhotographyGalleryClient({
   }
 
   function getImageSrc(photo: PhotoWithChecklist) {
-    const src = photo.url?.startsWith('http')
-      ? photo.url.replace(/^https?:\/\/[^\/]+/, '')
-      : photo.url ?? ''
-    return src
+  const src = photo.sizes?.small?.url ?? photo.url ?? ''
+  if (src.startsWith('http')) {
+    return src.replace(/^https?:\/\/[^\/]+/, '')
   }
+  return src
+}
+
 
   function getSpeciesNames(photo: PhotoWithChecklist) {
     if (!photo.species || !Array.isArray(photo.species)) return null
