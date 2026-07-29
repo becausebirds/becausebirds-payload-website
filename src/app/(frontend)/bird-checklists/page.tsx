@@ -2,6 +2,7 @@
 import BirdChecklistExplorer from '@/components/BirdChecklistExplorer'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
+import RecentChecklists from '@/components/RecentChecklists'
 
 export const dynamic = 'force-static'
 export const revalidate = false
@@ -59,6 +60,7 @@ export default async function BirdChecklistPage() {
           <NavBar />
 
           <BirdChecklistExplorer />
+          
 
           <Footer />
 

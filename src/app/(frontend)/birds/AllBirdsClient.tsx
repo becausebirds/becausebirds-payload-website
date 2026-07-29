@@ -95,7 +95,7 @@ export default function AllBirdsClient({
   const [search, setSearch] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>('observations')
   const [regionFilter, setRegionFilter] = useState('')
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const filteredBirds = useMemo(() => {
@@ -499,25 +499,33 @@ const renderExpandedDetail = (bird: Bird) => {
           key={bird.id}
           className="flex items-center gap-3 border-2 border-black bg-white p-3 dark:border-gray-600 dark:bg-gray-800"
         >
-          <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded border-2 border-black dark:border-gray-600">
-            {photoUrl ? (
-              <Image
-                src={photoUrl}
-                alt={bird.comName}
-                fill
-                className="object-cover"
-                sizes="48px"
-              />
-            ) : (
-              <span className="flex h-full w-full items-center justify-center bg-gray-100 text-lg dark:bg-gray-700">
-                🦜
-              </span>
-            )}
-          </div>
+          <Link
+  href={`/birds/${bird.slug}`}
+  className="block flex-shrink-0"
+>
+  <div className="relative h-12 w-12 overflow-hidden rounded border-2 border-black dark:border-gray-600">
+    {photoUrl ? (
+      <Image
+        src={photoUrl}
+        alt={bird.comName}
+        fill
+        className="object-cover"
+        sizes="48px"
+      />
+    ) : (
+      <span className="flex h-full w-full items-center justify-center bg-gray-100 text-lg dark:bg-gray-700">
+        🦜
+      </span>
+    )}
+  </div>
+</Link>
+
           <div className="min-w-0 flex-1">
-            <h3 className="truncate text-sm font-black text-gray-800 dark:text-gray-100">
-              {bird.comName}
-            </h3>
+            <Link href={`/birds/${bird.slug}`}>
+    <h3 className="truncate text-sm font-black text-gray-800 dark:text-gray-100 hover:underline">
+      {bird.comName}
+    </h3>
+  </Link>
             <p className="truncate text-xs italic text-gray-500 dark:text-gray-400">
               {bird.sciName}
             </p>

@@ -41,9 +41,11 @@ export default function ChecklistMapClient({ trackPoints }: Props) {
         keyboard: false,
       })
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-      }).addTo(map)
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+}).addTo(map)
+
 
       // Plot GPS track as a polyline
       const latlngs = trackPoints.map((p) => [p.lat, p.lng] as [number, number])

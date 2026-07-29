@@ -195,10 +195,12 @@ export default function ChecklistExplorerMap({
         <FitBounds markers={validMarkers} />
 
 
-{/* CartoDB Positron — clean, modern look with well-styled labels & boundaries */}
+{/* CartoDB Positron — clean, modern look with well-styled labels & boundaries 
+*/}
 <TileLayer
   url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OSM</a> &copy; <a href='https://carto.com/attribution'>CARTO</a>"
+  attribution="&copy; <a href='https://www.openstreetmap.org/copyright'>OSM</a> 
+&copy; <a href='https://carto.com/attribution'>CARTO</a>"
 />
 
 
@@ -328,10 +330,7 @@ export default function ChecklistExplorerMap({
             bg-yellow-100
             p-2
             sm:p-3
-            transition-all
-            hover:bg-yellow-200
-            hover:translate-x-[2px]
-            hover:translate-y-[2px]
+            
           "
 
         >
@@ -370,20 +369,44 @@ export default function ChecklistExplorerMap({
             <span
               className="
                 self-start
+                inline-flex
+                items-center
+                gap-1
                 border-2
                 border-black
-                bg-blue-200
-                px-2
-                py-0.5
-                text-[10px]
+                bg-green-400
+                px-3
+                py-1
+                text-[11px]
                 sm:text-xs
-                font-black
-                shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
+                font-bold
+                text-black
+                tracking-tight
+                shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                transition-all
+                hover:translate-x-px
+                hover:translate-y-px
+                hover:shadow-none
+                hover:bg-green-500
               "
             >
-
-              {c.id}
-
+              View Checklist
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="
+                  h-3.5
+                  w-3.5
+                  -mr-0.5
+                "
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z"
+                  clipRule="evenodd"
+                />
+              </svg>
             </span>
 
 

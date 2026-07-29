@@ -5,10 +5,11 @@ import config from '@payload-config'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 import AllBirdsClient from './AllBirdsClient'
+import { Bird } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'All Birds | Because Birds',
-  description: 'Browse all bird species with sightings, photos, and recordings.',
+  title: 'Bird pages | Because Birds',
+  description: 'Browse bird pages filled with my sightings, photos, and recordings.',
 }
 
 export const dynamic = 'force-static'
@@ -154,7 +155,10 @@ export default async function AllBirdsPage() {
 
       if (topPhoto) {
         // Prefer Payload-provided url, but normalize so it always starts with "/"
-        topPhotoUrl = normalizeMediaUrl((topPhoto as any).url)
+        topPhotoUrl = normalizeMediaUrl(
+  (topPhoto as any).sizes?.thumbnail?.url ?? (topPhoto as any).url
+)
+
 
         // If url is missing/unusable, fall back to the file endpoint
         if (!topPhotoUrl && (topPhoto as any).filename) {
@@ -192,11 +196,14 @@ export default async function AllBirdsPage() {
         <NavBar />
 
         <main className="pt-10 pb-16 container mx-auto px-4 space-y-8">
-          <h1 className="text-3xl mb-2 text-gray-800 dark:text-white font-bold tracking-tight uppercase md:text-4xl">
-            All Birds
-          </h1>
+          <div className="flex items-center gap-2 mb-6">
+                <Bird className="w-8 h-8 text-black dark:text-white" />
+                <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter">
+                  Bird pages
+                </h1>
+              </div>
           <p className="text-sm text-gray-800 dark:text-white">
-            This is every bird I've ever seen. Explore them below to see my observations, photos, and recordings.
+            This is every bird I've ever seen. I made these pages using my checklists, photos, and recordings. Explore them below.
           </p>
 
           <AllBirdsClient
