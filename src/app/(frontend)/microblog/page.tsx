@@ -5,6 +5,7 @@ import Footer from '@/components/Footer'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 
+
 /* ── URL linkifier ─────────────────────────────────── */
 function linkifyText(text: string): string {
   const escaped = text
@@ -118,12 +119,13 @@ export default async function MicropostIndex() {
                               {post.images.map((img: any, i: number) => (
                                 <div key={img.id || i} className="border-2 border-black/10 dark:border-gray-700 rounded-sm overflow-hidden w-fit mx-auto">
                                   <img
-                                    src={img.image?.url || `/media/${img.image?.filename}`}
-                                    alt={img.alt || 'Micro post image'}
-                                    width={img.image?.width || 800}
-                                    height={img.image?.height || 600}
-                                    className="max-h-[75vh] w-auto object-contain bg-gray-100 dark:bg-gray-800"
-                                  />
+  src={img.image?.sizes?.medium?.url || img.image?.url || `/media/${img.image?.filename}`}
+  alt={img.alt || 'Micro post image'}
+  width={img.image?.sizes?.medium?.width || img.image?.width || 800}
+  height={img.image?.sizes?.medium?.height || img.image?.height || 600}
+  className="max-h-[75vh] w-auto object-contain bg-gray-100 dark:bg-gray-800"
+/>
+
                                 </div>
                               ))}
                             </div>
