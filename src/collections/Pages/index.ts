@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { BirdChecklistBlock } from '@/blocks/BirdChecklist'
+import { BirdChecklist } from '@/blocks/BirdChecklist'
 
 import {
   BlocksFeature,
@@ -147,7 +147,7 @@ export const Pages: CollectionConfig<'pages'> = {
                         // Layout
                         Columns,
                         QuizBlock,
-                        BirdChecklistBlock,
+                        BirdChecklist,
                         Group,
                         Details,
                         Pullquote,

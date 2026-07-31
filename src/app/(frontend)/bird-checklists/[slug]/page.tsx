@@ -105,12 +105,10 @@ export default async function BirdChecklistPage({
           <h1 className="text-4xl font-bold my-4">Bird Checklist</h1>
           <span className="text-md">This is a list of birds I saw and heard while birdwatching at {checklist.locationName}. I submit these bird lists to eBird and archive them here.</span>
           <BirdChecklistComponent
-            checklist={{
-              id: checklist.id,
-            }}
-            showMap
-            showFullSpeciesList
-          />
+  checklistData={checklist} // Pass the full object here
+  showMap
+  showFullSpeciesList
+/>
         </main>
 
         <Footer />

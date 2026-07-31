@@ -44,7 +44,7 @@ import { Pullquote } from '../../blocks/Pullquote'
 // import { GBGrid } from '../../blocks/GBGrid'
 // import { GBButton } from '../../blocks/GBButton'
 import { Buttons } from '../../blocks/Buttons'
-import { BirdChecklistBlock } from '@/blocks/BirdChecklist'
+import { BirdChecklist } from '@/blocks/BirdChecklist'
 
 import { generatePreviewPath } from '../../utilities/generatePreviewPath'
 import { populateAuthors } from './hooks/populateAuthors'
@@ -154,7 +154,7 @@ export const Posts: CollectionConfig<'posts'> = {
                         // Layout
                         Columns,
                         QuizBlock,
-                        BirdChecklistBlock,
+                        BirdChecklist,
                         Group,
                         Details,
                         Pullquote,

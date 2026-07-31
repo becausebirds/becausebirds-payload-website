@@ -23,7 +23,3 @@ export const LazyMap = dynamic(
   { ssr: false },
 )
 
-export const LazyBirdChecklist = dynamic(
-  () => import('@/blocks/BirdChecklist/Component'),
-  { ssr: false },
-)

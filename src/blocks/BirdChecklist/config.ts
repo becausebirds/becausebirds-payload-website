@@ -1,39 +1,13 @@
+// /blocks/BirdChecklist/config.ts
 import type { Block } from 'payload'
 
-export const BirdChecklistBlock: Block = {
+export const BirdChecklist: Block = {
   slug: 'bird-checklist',
   interfaceName: 'BirdChecklistBlock',
-  labels: {
-    singular: 'Bird Checklist',
-    plural: 'Bird Checklists',
-  },
   fields: [
-    {
-      name: 'checklist',
-      type: 'relationship',
-      relationTo: 'bird-checklists',
-      required: true,
-      label: 'Select Checklist',
-    },
-    {
-      name: 'showMap',
-      type: 'checkbox',
-      defaultValue: true,
-    },
-    {
-      name: 'showFullSpeciesList',
-      type: 'checkbox',
-      defaultValue: true,
-    },
-    {
-      name: 'disableInnerContainer',
-      type: 'checkbox',
-      defaultValue: false,
-    },
-    {
-      name: 'minimized',
-      type: 'checkbox',
-      defaultValue: false,
-    },
+    { name: 'checklist', type: 'relationship', relationTo: 'bird-checklists', required: true },
+    { name: 'showMap', type: 'checkbox', label: 'Show Location Map', defaultValue: true },
+    { name: 'showFullSpeciesList', type: 'checkbox', label: 'Show Full Species List', defaultValue: true },
+    { name: 'minimized', type: 'checkbox', label: 'Start Minimized', defaultValue: false },
   ],
 }

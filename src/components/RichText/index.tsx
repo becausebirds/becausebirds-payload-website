@@ -6,6 +6,9 @@ import {
   DefaultNodeTypes,
   SerializedBlockNode,
   SerializedLinkNode,
+  SerializedTableNode,       
+  SerializedTableRowNode,    
+  SerializedTableCellNode,
   type DefaultTypedEditorState,
 } from '@payloadcms/richtext-lexical'
 import {
@@ -45,8 +48,8 @@ import {
   LazyBarChart,
   LazyPieChart,
   LazyMap,
-  LazyBirdChecklist,
 } from './LazyBlocks.client'
+import BirdChecklistWrapper from '@/blocks/BirdChecklist/ChecklistWrapper'
 
 // Lightweight converters are imported normally (small, used often)
 import { HeadingConverter } from '@/blocks/converters/HeadingConverter'
@@ -66,6 +69,12 @@ import { GroupConverter } from '@/blocks/converters/GroupConverter'
 import { DetailsConverter } from '@/blocks/converters/DetailsConverter'
 import { PullquoteConverter } from '@/blocks/converters/PullquoteConverter'
 import { ButtonsConverter } from '@/blocks/converters/ButtonsConverter'
+
+import {
+  TableConverter,
+  TableRowConverter,
+  TableCellConverter,
+} from '@/blocks/converters/TableConverter'
 
 // Define locally since it's not exported from payload-types
 type QuizBlockProps = {
@@ -107,6 +116,9 @@ type PieChartBlockProps = {
 
 type NodeTypes =
   | DefaultNodeTypes
+  | SerializedTableNode
+  | SerializedTableRowNode
+  | SerializedTableCellNode
   | SerializedBlockNode<
       | MediaBlockProps
       | CodeBlockProps
@@ -156,8 +168,24 @@ const nullToUndefined = <T,>(obj: T): T => {
   }
   return obj
 }
-
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
+  // ✅ Custom table converters FIRST (before defaultConverters)
+  table: ({ node, nodesToJSX }) => (
+    <TableConverter node={node}>
+      {nodesToJSX({ nodes: node.children })}
+    </TableConverter>
+  ),
+  tablerow: ({ node, nodesToJSX }) => (
+    <TableRowConverter node={node}>
+      {nodesToJSX({ nodes: node.children })}
+    </TableRowConverter>
+  ),
+  tablecell: ({ node, nodesToJSX }) => (
+    <TableCellConverter node={node}>
+      {nodesToJSX({ nodes: node.children })}
+    </TableCellConverter>
+  ),
+  // Then spread defaults (won't override your custom ones)
   ...defaultConverters,
   ...LinkJSXConverter({ internalDocToHref }),
   blocks: {
@@ -263,14 +291,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         showHotspotsOnly={node.fields.showHotspotsOnly ?? true}
       />
     ),
-    'bird-checklist': ({ node }: { node: SerializedBlockNode<BirdChecklistBlockProps> }) => (
-      <LazyBirdChecklist
-        checklist={nullToUndefined(node.fields.checklist)}
-        showMap={node.fields.showMap ?? true}
-        showFullSpeciesList={node.fields.showFullSpeciesList ?? true}
-        disableInnerContainer={node.fields.disableInnerContainer ?? false}
-      />
-    ),
+'bird-checklist': ({ node }: { node: 
+SerializedBlockNode<BirdChecklistBlockProps> }) => (
+  <BirdChecklistWrapper
+    block={nullToUndefined(node.fields)}
+  />
+),
   },
 })
 

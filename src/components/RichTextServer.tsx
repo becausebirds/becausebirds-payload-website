@@ -11,6 +11,7 @@ import { CodeBlock } from '@/blocks/Code/Component'
 import { HTMLBlockSerializer } from '@/components/RichText/Serializers/HTMLBlock'
 
 // ── Converters (server-renderable) ──
+import BirdChecklistWrapper from '@/blocks/BirdChecklist/ChecklistWrapper'
 import { HeadingConverter } from '@/blocks/converters/HeadingConverter'
 import { ParagraphConverter } from '@/blocks/converters/ParagraphConverter'
 import { ImageConverter } from '@/blocks/converters/ImageConverter'
@@ -35,7 +36,6 @@ import {
   LazyBarChart,
   LazyPieChart,
   LazyMap,
-  LazyBirdChecklist,
 } from '@/components/RichText/LazyBlocks.client'
 
 // ── Types ──
@@ -350,15 +350,13 @@ function renderNode(node: any, key: number): React.ReactNode {
           )
 
         case 'bird-checklist':
-          return (
-            <LazyBirdChecklist
-              key={key}
-              checklist={fields.checklist}
-              showMap={fields.showMap ?? true}
-              showFullSpeciesList={fields.showFullSpeciesList ?? true}
-              disableInnerContainer={fields.disableInnerContainer ?? false}
-            />
-          )
+  return (
+    <BirdChecklistWrapper
+      key={key}
+      block={fields}
+    />
+  )
+
 
         default:
           console.warn(`Unknown block type: ${blockType}`)

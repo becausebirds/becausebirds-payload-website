@@ -261,16 +261,6 @@ transition-all"
         )
       })}
     </div>
-
-    <div className="flex justify-center mt-5">
-      <Link
-        href="/bird-checklists"
-        className="inline-flex items-center gap-2 bg-background text-gray-900 dark:text-foreground rounded-lg border-2 border-black px-5 py-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-      >
-        <ListChecks className="h-4 w-4" />
-        View all checklists →
-      </Link>
-    </div>
   </section>
 )}
 

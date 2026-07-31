@@ -81,7 +81,7 @@ L.tileLayer(
 
       L.circleMarker([lastPoint.lat, lastPoint.lng], {
         radius: 8,
-        fillColor: '#2563eb',
+        fillColor: '#ef4444',
         color: '#000',
         weight: 2,
         opacity: 1,
