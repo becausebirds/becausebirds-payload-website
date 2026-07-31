@@ -47,42 +47,77 @@ const crosspostToBluesky: CollectionConfig['hooks'] = {
       let embed: any = undefined
 
       if (doc.images && doc.images.length > 0) {
-        const firstImage = doc.images[0]
-        const mediaDoc = firstImage.image
+  const firstImage = doc.images[0]
+  const mediaDoc = firstImage.image as any
 
-        if (mediaDoc?.filename) {
-          const filePath = path.join(process.cwd(), 'public', 'media', mediaDoc.filename)
-          try {
-            const fileBuffer = await require('fs').promises.readFile(filePath)
-            const mimeType = mediaDoc.mimeType || 'image/jpeg'
-            const upload = await agent.uploadBlob(fileBuffer, { encoding: mimeType })
+  if (mediaDoc?.filename) {
+    
+    const sizeKeys = ['large']
+    let chosenFilename = mediaDoc.filename
+    let chosenMimeType = mediaDoc.mimeType || 'image/jpeg'
 
-            embed = {
-              $type: 'app.bsky.embed.images',
-              images: [
-                {
-                  image: upload.data.blob,
-                  alt: firstImage.alt || 'Micro post image',
-                },
-              ],
-            }
-          } catch (fileErr) {
-            console.error('[DEBUG] Failed to read media file:', filePath, fileErr)
-          }
-        }
+    for (const key of sizeKeys) {
+      const size = mediaDoc.sizes?.[key]
+      if (size?.filename) {
+        chosenFilename = size.filename
+        chosenMimeType = size.mimeType || chosenMimeType
+        break
       }
+    }
+
+    const filePath = path.join(process.cwd(), 'public', 'media', chosenFilename)
+    try {
+      const fileBuffer = require('fs').readFileSync(filePath)
+      const upload = await agent.uploadBlob(fileBuffer, {
+        encoding: chosenMimeType,
+      })
+
+      embed = {
+        $type: 'app.bsky.embed.images',
+        images: [
+          {
+            image: upload.data.blob,
+            alt: firstImage.alt || 'Micro post image',
+          },
+        ],
+      }
+    } catch (fileErr) {
+      console.error('[DEBUG] Failed to read media file:', filePath, fileErr)
+    }
+  }
+}
 
       const rt = new RichText({ text: textWithLink })
       await rt.detectFacets(agent)
 
-      await agent.post({
-        text: textWithLink,
-        facets: rt.facets,
-        embed: embed,
-        createdAt: new Date().toISOString(),
-      })
+      const postResult = await agent.post({
+  text: textWithLink,
+  facets: rt.facets,
+  embed: embed,
+  createdAt: new Date().toISOString(),
+})
 
-      console.log('[Microposts] ✅ Cross-posted to Bluesky')
+// Convert AT URI (at://did:plc:xxx/app.bsky.feed.post/recordKey) to a browsable web URL
+const recordKey = postResult.uri.split('/').pop()
+const bskyUrl = `https://bsky.app/profile/${agent.session?.did}/post/${recordKey}`
+
+// Persist the syndication info to the document
+await req.payload.update({
+  collection: 'microposts',
+  id: doc.id,
+  data: {
+    syndicatedTo: [
+      ...(doc.syndicatedTo || []),
+      {
+        platform: 'bluesky',
+        url: bskyUrl,
+      },
+    ],
+  },
+})
+
+console.log(`[Microposts] ✅ Cross-posted to Bluesky: ${bskyUrl}`)
+
     } catch (err) {
       console.error('[Microposts] Bluesky cross-post failed:', err)
     }
