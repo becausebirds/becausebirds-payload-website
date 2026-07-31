@@ -27,7 +27,7 @@ import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { QuizBlock } from '@/blocks/Quiz/config'
 import { BirdChecklists } from './collections/BirdChecklists'
-import { BirdChecklistBlock } from './blocks/BirdChecklist'
+import { BirdChecklist } from './blocks/BirdChecklist'
 import { Birds } from './collections/Birds'
 import { BirdMedia } from './collections/BirdMedia'
 
@@ -75,7 +75,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },
-    push: true,
+    push: false,
   }),
   collections: [Posts, Pages, Quizzes, Media, BirdMedia, Comments, Visitors,
 BirdChecklists, Birds, Categories, Tags, Products, Users, Microposts],

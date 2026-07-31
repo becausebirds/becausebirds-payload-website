@@ -12,8 +12,10 @@ interface BirdChecklist {
   region?: string | null
   county?: string | null
   state?: string | null
+  private?: boolean | null
   speciesRecords?: Array<{ id: string }>
 }
+
 
 interface BirdChecklistsSectionProps {
   checklists: BirdChecklist[]
@@ -29,9 +31,15 @@ export default function BirdChecklistsSection({
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
 
   const sorted = useMemo(
-    () => [...checklists].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [checklists],
-  )
+  () =>
+    [...checklists]
+      .filter((cl) => !cl.private)
+      .sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      ),
+  [checklists],
+)
+
 
   const displayed = sorted.slice(0, visibleCount)
   const hasMore = sorted.length > visibleCount

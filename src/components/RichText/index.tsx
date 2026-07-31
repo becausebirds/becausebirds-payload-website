@@ -70,11 +70,6 @@ import { DetailsConverter } from '@/blocks/converters/DetailsConverter'
 import { PullquoteConverter } from '@/blocks/converters/PullquoteConverter'
 import { ButtonsConverter } from '@/blocks/converters/ButtonsConverter'
 
-import {
-  TableConverter,
-  TableRowConverter,
-  TableCellConverter,
-} from '@/blocks/converters/TableConverter'
 
 // Define locally since it's not exported from payload-types
 type QuizBlockProps = {
@@ -169,23 +164,6 @@ const nullToUndefined = <T,>(obj: T): T => {
   return obj
 }
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
-  // ✅ Custom table converters FIRST (before defaultConverters)
-  table: ({ node, nodesToJSX }) => (
-    <TableConverter node={node}>
-      {nodesToJSX({ nodes: node.children })}
-    </TableConverter>
-  ),
-  tablerow: ({ node, nodesToJSX }) => (
-    <TableRowConverter node={node}>
-      {nodesToJSX({ nodes: node.children })}
-    </TableRowConverter>
-  ),
-  tablecell: ({ node, nodesToJSX }) => (
-    <TableCellConverter node={node}>
-      {nodesToJSX({ nodes: node.children })}
-    </TableCellConverter>
-  ),
-  // Then spread defaults (won't override your custom ones)
   ...defaultConverters,
   ...LinkJSXConverter({ internalDocToHref }),
   blocks: {
