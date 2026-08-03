@@ -62,7 +62,7 @@ const NavBar = () => {
   return (
     <>
       <motion.nav
-        className="sticky top-4 z-50 w-full px-4"
+        className="sticky top-4 z-99999 w-full px-4"
         variants={navbarVariants}
         initial="hidden"
         animate="visible"
@@ -104,7 +104,7 @@ hover:rotate-0 transition-transform
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center text-sm lg:text-base gap-1.5">
+          <div className="hidden md:flex items-center text-sm lg:text-base z-99999 gap-1.5">
   {navLinks.map((link) => (
     <Link
       key={link.href}
@@ -147,7 +147,7 @@ transition-transform
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="fixed top-[90px] sm:top-[110px] z-9000 w-full px-2 
+        <div className="fixed top-[90px] sm:top-[110px] z-99999 w-full px-2 
 sm:px-4" ref={menuRef}>
           <div
             className="w-full max-w-4xl mx-auto bg-yellow-300 p-4

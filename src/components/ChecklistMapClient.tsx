@@ -50,8 +50,8 @@ export default function ChecklistMapClient({ trackPoints }: Props) {
       // Plot GPS track as a polyline
       const latlngs = trackPoints.map((p) => [p.lat, p.lng] as [number, number])
       const polyline = L.polyline(latlngs, {
-        color: '#059669',
-        weight: 3,
+        color: '#2563eb',
+        weight: 5,
         opacity: 0.8,
       }).addTo(map)
 
@@ -61,7 +61,7 @@ export default function ChecklistMapClient({ trackPoints }: Props) {
       // Add start/end markers
       if (latlngs.length > 0) {
         L.circleMarker(latlngs[0], {
-          radius: 5,
+          radius: 7,
           color: '#047857',
           fillColor: '#34d399',
           fillOpacity: 1,
@@ -70,7 +70,7 @@ export default function ChecklistMapClient({ trackPoints }: Props) {
 
         if (latlngs.length > 1) {
           L.circleMarker(latlngs[latlngs.length - 1], {
-            radius: 5,
+            radius: 7,
             color: '#b91c1c',
             fillColor: '#f87171',
             fillOpacity: 1,
