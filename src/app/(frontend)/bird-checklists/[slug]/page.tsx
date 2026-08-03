@@ -6,8 +6,10 @@ import { notFound } from 'next/navigation'
 import NavBar from '@/components/navbar'
 import Footer from '@/components/Footer'
 import BirdChecklistComponent from '@/blocks/BirdChecklist/Component'
+import PlausiblePageTracker from '@/components/PlausiblePageTracker'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+
 
 export const dynamic = 'force-static'
 export const revalidate = false
@@ -70,11 +72,9 @@ export async function generateStaticParams() {
 }
 
 
-export default async function BirdChecklistPage({
-  params,
-}: PageProps) {
-  const { slug } = await params
 
+export default async function BirdChecklistPage({ params }: PageProps) {
+  const { slug } = await params
   const checklist = await getChecklist(slug)
 
   if (!checklist) {
@@ -82,6 +82,9 @@ export default async function BirdChecklistPage({
   }
 
   return (
+    <PlausiblePageTracker
+      customProperties={{ title: checklist.title }}
+    >
     <div className="relative min-h-screen bg-white dark:bg-background p-2 sm:p-4 md:p-6 lg:p-8">
       {/* SVG Background */}
       <div
@@ -114,6 +117,7 @@ export default async function BirdChecklistPage({
         <Footer />
       </div>
     </div>
+    </PlausiblePageTracker>
   )
 }
 
