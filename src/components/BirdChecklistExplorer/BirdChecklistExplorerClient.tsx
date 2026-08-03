@@ -131,8 +131,7 @@ export default function BirdChecklistExplorerClient({
       {/* ── Recent Checklists ── */}
 {recentChecklists && recentChecklists.length > 0 && (
   <section className="mb-4">
-    <h2 className="text-2xl font-black mb-5 text-center tracking-tight text-gray-900 
-dark:text-foreground">
+    <h2 className="text-2xl font-black mb-5 text-center tracking-tight text-gray-900 dark:text-foreground">
   Recent checklists
   <ClipboardList className="inline-block h-5 w-5 text-muted-foreground ml-1.5" />
 </h2>
@@ -195,8 +194,7 @@ dark:text-foreground">
     <div className="flex flex-col items-center gap-2">
       {checklist.birdPreviews.map((bird: any, idx: number) => (
         <div key={idx} className="flex items-center gap-2">
-          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md 
-border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-md border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
             {bird.photoUrl ? (
               <Image
                 src={bird.photoUrl}
@@ -206,9 +204,7 @@ border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-
-center bg-blue-200 dark:bg-blue-800 text-[10px] font-black text-black dark:text-
-white leading-none">
+              <div className="flex h-full w-full items-center justify-center bg-blue-200 dark:bg-blue-800 text-[10px] font-black text-black dark:text-white leading-none">
                 {bird.commonName
                   .split(' ')
                   .map((w: string) => w[0])
@@ -222,9 +218,7 @@ white leading-none">
             {bird.commonName}
           </span>
           {bird.count && (
-            <span className="inline-flex items-center rounded-md 
-border-2 border-black bg-emerald-300 px-1.5 py-0.5 text-[10px] font-black text-
-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <span className="inline-flex items-center rounded-md border-2 border-black bg-emerald-300 px-1.5 py-0.5 text-[10px] ont-black text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               ×{bird.count}
             </span>
           )}
@@ -246,10 +240,7 @@ black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
               <div className="mt-3 flex justify-center">
                 <Link
   href={`/bird-checklists/${checklist.slug}`}
-  className="flex sm:inline-flex items-center justify-center gap-1.5 bg-amber-300 
-text-black rounded-md border-2 border-black px-3 py-1.5 
-text-xs font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] 
-transition-all"
+  className="flex sm:inline-flex items-center justify-center gap-1.5 bg-amber-300 text-black rounded-md border-2 border-black px-3 py-1.5 text-xs font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
 >
 
                   <ClipboardList className="h-3.5 w-3.5" />
@@ -267,12 +258,7 @@ transition-all"
 
 <section>
 
-<h2 className="
-text-3xl
-font-black
-uppercase
-mb-5
-">
+<h2 className="text-3xl font-black uppercase mb-5">
 
 Explore by region
 
@@ -285,12 +271,7 @@ Explore by region
 
 <details
 key={region}
-className="
-border-2 border-black
-mb-4
-bg-gray-100
-dark:bg-gray-800
-"
+className="border-2 border-black mb-4 bg-gray-100 dark:bg-gray-800"
 >
 
 <summary
