@@ -67,8 +67,11 @@ export default function PhotographyGalleryClient({
     })
   }
 
-  function getImageSrc(photo: PhotoWithChecklist) {
-  const src = photo.sizes?.small?.url ?? photo.url ?? ''
+  function getImageSrc(photo: PhotoWithChecklist, size: 'small' | 'large' = 'small') {
+  const src = size === 'large'
+    ? (photo.sizes?.large?.url ?? photo.url ?? '')
+    : (photo.sizes?.small?.url ?? photo.url ?? '')
+
   if (src.startsWith('http')) {
     return src.replace(/^https?:\/\/[^\/]+/, '')
   }
@@ -151,23 +154,29 @@ export default function PhotographyGalleryClient({
           const dateStr = checklist?.date
           const locationName = checklist?.locationName
           const speciesNames = getSpeciesNames(photo)
-          const src = getImageSrc(photo)
+          const src = getImageSrc(photo, 'small')
+
+          const isPortrait = photo.height > photo.width
 
           return (
-            <button
-              key={photo.id}
-              onClick={() => setLightboxIndex(index)}
-              className="break-inside-avoid w-full border-2 border-black bg-white dark:bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all text-left group cursor-pointer"
-            >
-              <div className="relative overflow-hidden">
-                <img
-                  src={src}
-                  alt={photo.alt ?? photo.filename ?? 'Bird photo'}
-                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                  loading="lazy"
-                />
-              </div>
-              <div className="border-t-2 border-black p-3 space-y-1">
+    <button
+      key={photo.id}
+      onClick={() => setLightboxIndex(index)}
+      className="break-inside-avoid w-full border-2 border-black bg-white dark:bg-card shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all text-left group cursor-pointer"
+    >
+      {/* Container with dynamic aspect ratio */}
+      <div className={`relative w-full overflow-hidden ${isPortrait ? 'aspect-[3/4]' : 'aspect-[4/3]'}`}>
+        <Image
+          src={src}
+          alt={photo.alt ?? photo.filename ?? 'Bird photo'}
+          fill
+          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          loading="lazy"
+        />
+      </div>
+
+      <div className="border-t-2 border-black p-3 space-y-1">
                 {speciesNames && (
                   <p className="text-xs font-bold text-gray-900 dark:text-foreground truncate flex items-center gap-1">
                     <Bird className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
@@ -251,7 +260,7 @@ export default function PhotographyGalleryClient({
 
             <div className="relative flex-1 flex items-center justify-center bg-black/40 overflow-hidden min-h-[200px] max-h-[45vh] lg:max-h-[85vh] lg:rounded-l-base select-none touch-none">
               <Image
-                src={getImageSrc(currentPhoto)}
+                src={getImageSrc(currentPhoto, 'large')}
                 alt={currentPhoto.alt ?? currentPhoto.filename ?? 'Bird photo'}
                 width={1200}
                 height={800}

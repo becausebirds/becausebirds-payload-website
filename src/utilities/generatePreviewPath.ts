@@ -14,22 +14,21 @@ type Props = {
 }
 
 export const generatePreviewPath = ({ collection, slug }: Props) => {
-  if (!slug) {
-    return null
-  }
+  if (!slug) return null
 
-  // 1. Get your frontend URL from environment variables
   const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
-
+  const prefix = collectionPrefixMap[collection] ?? ''
   const encodedSlug = encodeURIComponent(slug)
 
+  // Build the path without a double slash when prefix is empty
+  const path = prefix
+    ? `/${prefix}/${encodedSlug}`
+    : `/${encodedSlug}`
+
   const encodedParams = new URLSearchParams({
-    path: `/${collectionPrefixMap[collection]}/${encodedSlug}`,
+    path,
     previewSecret: process.env.PREVIEW_SECRET || '',
   } satisfies PreviewSearchParams)
 
-  // 2. Prepend the baseUrl to the relative path
-  const url = `${baseUrl}/next/preview?${encodedParams.toString()}`
-
-  return url
+  return `${baseUrl}/next/preview?${encodedParams.toString()}`
 }

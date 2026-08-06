@@ -4,6 +4,8 @@ import configPromise from '@payload-config'
 export interface PhotoWithChecklist {
   id: string
   url: string | null
+  width: number
+  height: number
   filename: string | null
   alt: string | null
   rating: number | null
