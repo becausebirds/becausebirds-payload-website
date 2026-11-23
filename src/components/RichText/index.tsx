@@ -174,15 +174,6 @@ const nullToUndefined = <T,>(obj: T): T => {
 }
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
-  // Ensure text formatting is explicitly handled if defaultConverters 
-  // is being partially overridden
-  text: ({ node }) => {
-    let text = <React.Fragment>{node.text}</React.Fragment>
-    if (node.format & 1) text = <strong>{text}</strong> // Bold
-    if (node.format & 2) text = <i>{text}</i>          // Italic
-    if (node.format & 8) text = <u>{text}</u>          // Underline
-    return text
-  },
   ...LinkJSXConverter({ internalDocToHref }),
     // ── Tables (EXPERIMENTAL_TableFeature) ──
   table: ({ node, nodesToJSX }: any) => {
