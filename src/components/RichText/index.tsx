@@ -17,6 +17,16 @@ import {
   RichText as ConvertRichText,
 } from '@payloadcms/richtext-lexical/react'
 
+import {
+  TableWrapper,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  isHeaderRow,
+  isHeaderCell,
+} from '@/blocks/converters/TableConverter'
+
 import type {
   MediaBlock as MediaBlockProps,
   HeadingBlock as HeadingBlockProps,
@@ -53,7 +63,6 @@ import BirdChecklistWrapper from '@/blocks/BirdChecklist/ChecklistWrapper'
 
 // Lightweight converters are imported normally (small, used often)
 import { HeadingConverter } from '@/blocks/converters/HeadingConverter'
-import { ParagraphConverter } from '@/blocks/converters/ParagraphConverter'
 import { ImageConverter } from '@/blocks/converters/ImageConverter'
 import { QuoteConverter } from '@/blocks/converters/QuoteConverter'
 import { AudioConverter } from '@/blocks/converters/AudioConverter'
@@ -165,7 +174,47 @@ const nullToUndefined = <T,>(obj: T): T => {
 }
 const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) => ({
   ...defaultConverters,
+  // Ensure text formatting is explicitly handled if defaultConverters 
+  // is being partially overridden
+  text: ({ node }) => {
+    let text = <React.Fragment>{node.text}</React.Fragment>
+    if (node.format & 1) text = <strong>{text}</strong> // Bold
+    if (node.format & 2) text = <i>{text}</i>          // Italic
+    if (node.format & 8) text = <u>{text}</u>          // Underline
+    return text
+  },
   ...LinkJSXConverter({ internalDocToHref }),
+    // ── Tables (EXPERIMENTAL_TableFeature) ──
+  table: ({ node, nodesToJSX }: any) => {
+    const rows: any[] = node.children ?? []
+    const hasHeader = rows.length > 0 && isHeaderRow(rows[0])
+    return (
+      <TableWrapper>
+        {hasHeader && (
+          <TableHead>{nodesToJSX({ nodes: [rows[0]], parent: node })}</TableHead>
+        )}
+        <TableBody>
+          {nodesToJSX({ nodes: hasHeader ? rows.slice(1) : rows, parent: node })}
+        </TableBody>
+      </TableWrapper>
+    )
+  },
+  tablerow: ({ node, nodesToJSX }: any) => (
+    <TableRow header={isHeaderRow(node)}>
+      {nodesToJSX({ nodes: node.children ?? [], parent: node })}
+    </TableRow>
+  ),
+  tablecell: ({ node, nodesToJSX }: any) => (
+    <TableCell header={isHeaderCell(node)} colSpan={node.colSpan} rowSpan={node.rowSpan}>
+      {nodesToJSX({ nodes: node.children ?? [], parent: node })}
+    </TableCell>
+  ),
+  tableheader: ({ node, nodesToJSX }: any) => (
+    <TableCell header colSpan={node.colSpan} rowSpan={node.rowSpan}>
+      {nodesToJSX({ nodes: node.children ?? [], parent: node })}
+    </TableCell>
+  ),
+
   blocks: {
     mediaBlock: ({ node }) => (
       <MediaBlock
@@ -184,9 +233,6 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
       const { level, anchorId, ...rest } = nullToUndefined(node.fields)
       return <HeadingConverter {...rest} level={level} anchorId={anchorId} />
     },
-    paragraph: ({ node }) => (
-      <ParagraphConverter content={node.fields.content} />
-    ),
     image: ({ node }) => {
       const { image, caption, alt } = nullToUndefined(node.fields)
       return <ImageConverter image={image} caption={caption} alt={alt} />
@@ -269,14 +315,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         showHotspotsOnly={node.fields.showHotspotsOnly ?? true}
       />
     ),
-'bird-checklist': ({ node }: { node: 
-SerializedBlockNode<BirdChecklistBlockProps> }) => (
-  <BirdChecklistWrapper
-    block={nullToUndefined(node.fields)}
-  />
-),
+    'bird-checklist': ({ node }: { node: SerializedBlockNode<BirdChecklistBlockProps> }) => (
+      <BirdChecklistWrapper block={nullToUndefined(node.fields)} />
+    ),
   },
 })
+
 
 type Props = {
   data: DefaultTypedEditorState

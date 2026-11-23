@@ -29,6 +29,17 @@ import { GroupConverter } from '@/blocks/converters/GroupConverter'
 import { DetailsConverter } from '@/blocks/converters/DetailsConverter'
 import { PullquoteConverter } from '@/blocks/converters/PullquoteConverter'
 import { ButtonsConverter } from '@/blocks/converters/ButtonsConverter'
+import {
+  TableWrapper,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableBlock,
+  isHeaderRow,
+  isHeaderCell,
+} from '@/blocks/converters/TableConverter'
+
 
 // ── Lazy interactive blocks (client-only, loaded on demand) ──
 import {
@@ -205,6 +216,45 @@ function renderNode(node: any, key: number): React.ReactNode {
     // ── Horizontal rule ──
     case 'horizontalrule':
       return <hr key={key} className="my-8 border-gray-300 dark:border-gray-600" />
+    
+          // ── Table (EXPERIMENTAL_TableFeature) ──
+    case 'table': {
+      const rows: any[] = node.children ?? []
+      const hasHeader = rows.length > 0 && isHeaderRow(rows[0])
+      const headRows = hasHeader ? [rows[0]] : []
+      const bodyRows = hasHeader ? rows.slice(1) : rows
+
+      return (
+        <TableWrapper key={key}>
+          {headRows.length > 0 && (
+            <TableHead>{headRows.map((row, i) => renderNode(row, i))}</TableHead>
+          )}
+          <TableBody>{bodyRows.map((row, i) => renderNode(row, i))}</TableBody>
+        </TableWrapper>
+      )
+    }
+
+    case 'tablerow': {
+      return (
+        <TableRow key={key} header={isHeaderRow(node)}>
+          {node.children?.map((cell: any, i: number) => renderNode(cell, i))}
+        </TableRow>
+      )
+    }
+
+    case 'tablecell':
+    case 'tableheader': {
+      return (
+        <TableCell
+          key={key}
+          header={isHeaderCell(node)}
+          colSpan={node.colSpan}
+          rowSpan={node.rowSpan}
+        >
+          {node.children?.map((c: any, i: number) => renderNode(c, i))}
+        </TableCell>
+      )
+    }
 
     // ── Line break ──
     case 'linebreak':
@@ -356,6 +406,15 @@ function renderNode(node: any, key: number): React.ReactNode {
       block={fields}
     />
   )
+
+        case 'table':
+          return (
+            <TableBlock
+              key={key}
+              rows={fields.rows ?? fields.table?.rows ?? []}
+              headerRow={fields.headerRow ?? true}
+            />
+          )
 
 
         default:
