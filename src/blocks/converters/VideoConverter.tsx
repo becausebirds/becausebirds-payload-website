@@ -65,7 +65,7 @@ export const VideoConverter: React.FC<{
           src={videoSrc}
           muted
           playsInline
-          preload="none"
+          preload="metadata"
           onLoadedData={() => setLoaded(true)}
         />
         {/* Play button overlay before user interaction */}
