@@ -74,10 +74,16 @@ export const TableCell: React.FC<{
         'border-2 border-black px-3 py-2 align-top dark:border-border',
         // cells contain real lexical paragraphs — kill the prose margins
         '[&>p]:my-0 [&>p]:leading-snug [&>ul]:my-0 [&>ul]:pl-4 [&>ol]:my-0 [&>ol]:pl-4',
+        // prose is cancelled by `not-prose`, so restore link affordances by hand
+        '[&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-2',
+        '[&_a:hover]:decoration-1 [&_a:hover]:opacity-80',
+        // optional: give body-cell links the theme accent so they read as links
+        // '[&_a]:text-primary',
       ),
     },
     children,
   )
+
 
 /* ── Header detection (lexical uses `tableheader` nodes and/or headerState) ── */
 export const isHeaderCell = (cell: any): boolean =>
